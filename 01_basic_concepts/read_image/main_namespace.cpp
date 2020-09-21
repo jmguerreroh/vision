@@ -7,7 +7,7 @@ int main () {
     Mat image;
 
     // Read image
-    image = imread("../images/test.jpg", IMREAD_COLOR);
+    image = imread("../../images/test.jpg", IMREAD_COLOR);
 
     // Show image
     imshow("TEST IMAGE", image);

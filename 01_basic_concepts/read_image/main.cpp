@@ -5,7 +5,7 @@ int main () {
     cv::Mat image;
 
     // Read image
-    image = cv::imread("../images/test.jpg", cv::IMREAD_COLOR);
+    image = cv::imread("../../images/test.jpg", cv::IMREAD_COLOR);
 
     // Show image
     cv::imshow("TEST IMAGE", image);
