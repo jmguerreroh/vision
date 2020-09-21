@@ -1,5 +1,5 @@
 /**
- * Red image code
+ * Red image sample code
  * @author José Miguel Guerrero
  */
 
@@ -12,7 +12,7 @@ int main () {
     Mat image;
 
     // Read image
-    image = imread("../../images/test.jpg", IMREAD_COLOR);
+    image = imread("../../images/lenna.jpg", IMREAD_COLOR);
 
     // Show image
     imshow("TEST IMAGE", image);

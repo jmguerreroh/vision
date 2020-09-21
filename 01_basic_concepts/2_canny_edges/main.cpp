@@ -1,5 +1,5 @@
 /**
- * Canny edges code
+ * Canny edges sample code
  * @author José Miguel Guerrero
  */
 
@@ -13,7 +13,7 @@ int main () {
     Mat image, edges;
 
     // Read image
-    image = imread("../../images/test.jpg", IMREAD_COLOR);
+    image = imread("../../images/lenna.jpg", IMREAD_COLOR);
 
     // Image processing
     Canny(image, edges, 0, 100, 3);
