@@ -1,10 +1,15 @@
+/**
+ * Canny edges code
+ * @author José Miguel Guerrero
+ */
+
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
 using namespace cv;
 
 int main () {
-     // Create image variables
+    // Create image variables
     Mat image, edges;
 
     // Read image

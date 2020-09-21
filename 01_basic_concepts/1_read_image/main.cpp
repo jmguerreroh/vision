@@ -1,3 +1,8 @@
+/**
+ * Red image code
+ * @author José Miguel Guerrero
+ */
+
 #include <opencv2/highgui.hpp>
 
 int main () {
