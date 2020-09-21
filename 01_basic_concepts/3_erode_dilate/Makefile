@@ -1,5 +1,5 @@
 CC = "g++"
-PROJECT = read_image
+PROJECT = erode_dilate
 
 SRC = main.cpp
 

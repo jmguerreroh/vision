@@ -1,5 +1,5 @@
 CC = "g++"
-PROJECT = TestOpenCV
+PROJECT = canny_edges
 
 SRC = main.cpp
 
