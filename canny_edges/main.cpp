@@ -8,14 +8,14 @@ int main () {
     Mat image, edges;
 
     // Read image
-    image = imread("./test.jpg", IMREAD_COLOR);
+    image = imread("../images/test.jpg", IMREAD_COLOR);
 
     // Image processing
     Canny(image, edges, 0, 100, 3);
 
     // Show images
     imshow("TEST IMAGE", image);
-    imshow("TEST EDGES", edges);
+    imshow("CANNY EDGES", edges);
 
     // Wait to press a key
     waitKey(0);
