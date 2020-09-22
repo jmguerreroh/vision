@@ -25,9 +25,9 @@ int const max_kernel_size = 21;
  */
 void Erosion( int, void* ) {
   int erosion_type = 0;
-  if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
-  else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
-  else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
+  if ( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
+  else if ( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
+  else if ( erosion_elem == 2 ) { erosion_type = MORPH_ELLIPSE; }
 
   // Kernel
   Mat element = getStructuringElement( erosion_type,
@@ -45,9 +45,9 @@ void Erosion( int, void* ) {
  */
 void Dilation( int, void* )  {
   int dilation_type = 0;
-  if( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
-  else if( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
-  else if( dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
+  if ( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
+  else if ( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
+  else if ( dilation_elem == 2 ) { dilation_type = MORPH_ELLIPSE; }
 
   // Kernel
   Mat element = getStructuringElement( dilation_type,
@@ -63,7 +63,7 @@ void Dilation( int, void* )  {
 int main( int argc, char** argv ) {
   // Load an image
   src = imread( "../../images/urjc.jpg", IMREAD_COLOR );
-  if( src.empty() ) {
+  if ( src.empty() ) {
     cout << "Could not open or find the image!\n" << endl;
     cout << "Usage: " << argv[0] << " <Input image>" << endl;
     return -1;

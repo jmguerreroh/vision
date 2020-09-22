@@ -28,10 +28,10 @@ int main( int argc, char** argv ) {
     int apiID = cv::CAP_ANY;      // 0 = autodetect default API
 
     // Open selected camera using selected API
-    cap.open(deviceID, apiID);
+    cap.open( deviceID, apiID );
 
     // Check if we succeeded
-    if (!cap.isOpened()) {
+    if ( !cap.isOpened() ) {
         cerr << "ERROR! Unable to open camera\n";
         return -1;
     }
@@ -40,22 +40,22 @@ int main( int argc, char** argv ) {
     cout << "Start grabbing" << endl
         << "Press any key to terminate" << endl;
     // Wait for a key with timeout long enough to show images
-    while (waitKey(5) <= 0) {
+    while ( waitKey(5) <= 0 ) {
         // Wait for a new frame from camera and store it into 'frame'
-        cap.read(frame);
+        cap.read( frame );
 
         // Check if we succeeded
-        if (frame.empty()) {
+        if ( frame.empty() ) {
             cerr << "ERROR! blank frame grabbed\n";
             break;
         }
 
         // Show live 
-        imshow("Live", frame);
+        imshow( "Live", frame );
         // Image processing
-        Canny(frame, edges, 0, 100, 3);
+        Canny( frame, edges, 0, 100, 3 );
         // Show image processing 
-        imshow("Live edges", edges);
+        imshow( "Live edges", edges );
     }
 
     // The camera will be deinitialized automatically in VideoCapture destructor

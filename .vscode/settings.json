@@ -1,6 +1,0 @@
-{
-    "python.autoComplete.extraPaths": [
-        "/home/jmguerrero/ROS/ROS2/udetection_ws/install/udetection_msgs/lib/python3.6/site-packages",
-        "/opt/ros/eloquent/lib/python3.6/site-packages"
-    ]
-}
