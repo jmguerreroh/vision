@@ -1,6 +1,6 @@
 
 /**
- * Resize sample code
+ * Rotation sample code
  * @author José Miguel Guerrero
  */
 

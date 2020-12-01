@@ -1,6 +1,6 @@
 
 /**
- * Resize sample code
+ * Translation sample code
  * @author José Miguel Guerrero
  */
 
