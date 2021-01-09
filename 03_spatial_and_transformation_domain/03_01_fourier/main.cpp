@@ -46,7 +46,6 @@ int main(int argc, char ** argv)
 
     // 3. Make the Discrete Fourier Transform
     dft(complexI, complexI);            // this way the result may fit in the source matrix
-    //imshow("complexI", complexI);
     
     // 4. Transform the real and complex values to magnitude
     // compute the magnitude and switch to logarithmic scale
@@ -85,7 +84,6 @@ int main(int argc, char ** argv)
     // 8. Results
     imshow("Input Image"       , I   );    // Show the result
     imshow("spectrum magnitude", magI);
-    //waitKey();
 
 
     // 9. Calculating the idft
