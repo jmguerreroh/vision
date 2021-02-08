@@ -1,5 +1,5 @@
 CC = "g++"
-PROJECT = canny_edges
+PROJECT = pixel_to_pixel
 
 SRC = main.cpp
 

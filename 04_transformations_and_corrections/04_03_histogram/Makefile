@@ -1,5 +1,5 @@
 CC = "g++"
-PROJECT = read_image
+PROJECT = histogram
 
 SRC = main.cpp
 

@@ -1,5 +1,5 @@
 CC = "g++"
-PROJECT = colors
+PROJECT = cosine
 
 SRC = main.cpp
 
