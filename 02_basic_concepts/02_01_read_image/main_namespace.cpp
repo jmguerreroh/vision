@@ -1,5 +1,5 @@
 /**
- * Red image sample code
+ * Read image sample code
  * @author José Miguel Guerrero
  */
 
