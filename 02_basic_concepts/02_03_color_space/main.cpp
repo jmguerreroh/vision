@@ -50,7 +50,7 @@ int main( int argc, char** argv ) {
  
   // Changing original image to HSV using cvtColor
   Mat HSV_opencv;
-  cvtColor(src, HSV_opencv, COLOR_RGB2HSV);
+  cvtColor(src, HSV_opencv, COLOR_BGR2HSV);
   imshow("HSV OpenCV", HSV_opencv);
 
 
