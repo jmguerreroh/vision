@@ -1,5 +1,5 @@
 CC = "g++"
-PROJECT = histogram
+PROJECT = histogram_comparison
 
 SRC = main.cpp
 

@@ -1,5 +1,5 @@
 CC = "g++"
-PROJECT = pixel_to_pixel
+PROJECT = histogram_equalization
 
 SRC = main.cpp
 

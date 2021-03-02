@@ -1,5 +1,5 @@
 CC = "g++"
-PROJECT = cosine
+PROJECT = smoothing
 
 SRC = main.cpp
 
