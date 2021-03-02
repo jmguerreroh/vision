@@ -1,8 +1,6 @@
 /**
  * Discrete Fourier Transform sample code
  * @author José Miguel Guerrero
- * 
- * https://docs.opencv.org/3.4/d8/d01/tutorial_discrete_fourier_transform.html
  */
 
 #include "opencv2/core.hpp"
@@ -24,18 +22,18 @@ static void help(char ** argv) {
 
 // Compute the Discrete fourier transform
 Mat computeDFT(Mat image) {
-    // 1. Expand the image to an optimal size. 
+    // Expand the image to an optimal size. 
     Mat padded;                      
     int m = getOptimalDFTSize( image.rows );
     int n = getOptimalDFTSize( image.cols ); // on the border add zero values
     copyMakeBorder(image, padded, 0, m - image.rows, 0, n - image.cols, BORDER_CONSTANT, Scalar::all(0));
     
-    // 2. Make place for both the complex and the real values
+    // Make place for both the complex and the real values
     Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
     Mat complexI;
     merge(planes, 2, complexI);         // Add to the expanded another plane with zeros
 
-    // 3. Make the Discrete Fourier Transform
+    // Make the Discrete Fourier Transform
     dft(complexI, complexI, DFT_COMPLEX_OUTPUT);      // this way the result may fit in the source matrix
     return complexI;
 }
@@ -71,21 +69,21 @@ Mat spectrum(const Mat &complexI) {
     // Shift quadrants
     fftShift(complexImg);
 
-    // 4. Transform the real and complex values to magnitude
+    // Transform the real and complex values to magnitude
     // compute the magnitude and switch to logarithmic scale
     // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
     Mat planes_spectrum[2];
-    split(complexImg, planes_spectrum);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+    split(complexImg, planes_spectrum);       // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
     magnitude(planes_spectrum[0], planes_spectrum[1], planes_spectrum[0]);// planes[0] = magnitude
     Mat spectrum = planes_spectrum[0];
 
-    // 5. Switch to a logarithmic scale
-    spectrum += Scalar::all(1);                    // switch to logarithmic scale
+    // Switch to a logarithmic scale
+    spectrum += Scalar::all(1);
     log(spectrum, spectrum);
 
-    // 7. Normalize
+    // Normalize
     normalize(spectrum, spectrum, 0, 1, NORM_MINMAX); // Transform the matrix with float values into a
-                                            // viewable image form (float between values 0 and 1).
+                                                      // viewable image form (float between values 0 and 1).
     return spectrum;
 }
 
@@ -100,25 +98,24 @@ int main(int argc, char ** argv) {
 
     // Compute the Discrete fourier transform
     Mat complexImg = computeDFT(I);
-    Mat filter = complexImg.clone();
 
     // Get the spectrum
     Mat spectrum_original = spectrum(complexImg);
 
-    // 6. Crop and rearrange
+    // Crop and rearrange
     fftShift(complexImg);
-    //doSomethingWithTheSpectrum();   
+    //doSomethingWithTheSpectrum(complexImg);   
     fftShift(complexImg); // rearrage quadrants
 
     // Get the spectrum
     Mat spectrum_filter = spectrum(complexImg);
 
-    // 8. Results
-    imshow("Input Image"       , I   );    // Show the result
-    imshow("Spectrum original", spectrum_original);
-    imshow("Spectrum filter", spectrum_filter);
+    // Results
+    imshow("Input Image"        , I   );    // Show the result
+    imshow("Spectrum original"  , spectrum_original);
+    imshow("Spectrum filter"    , spectrum_filter);
 
-    // 9. Calculating the idft
+    // Calculating the idft
     Mat inverseTransform;
     idft(complexImg, inverseTransform, cv::DFT_INVERSE|cv::DFT_REAL_OUTPUT);
     normalize(inverseTransform, inverseTransform, 0, 1, NORM_MINMAX);
