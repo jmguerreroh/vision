@@ -51,6 +51,7 @@ int main(int argc, char** argv) {
     // Probabilistic Line Transform
     vector<Vec4i> linesP; // will hold the results of the detection
     HoughLinesP( dst, linesP, 1, CV_PI/180, 50, 50, 10 ); // runs the actual detection
+    
     // Draw the lines
     for( size_t i = 0; i < linesP.size(); i++ ) {
         Vec4i l = linesP[i];

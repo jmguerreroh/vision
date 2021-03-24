@@ -42,7 +42,7 @@ int main () {
     GaussianBlur(gray, gauss, Size(5,5), 0);
     imshow("Gaussian Blur", gauss);
 
-     // Image processing
+    // Image processing
     Canny(gauss, edges, 50, 100, 3);
 
     // Contours
