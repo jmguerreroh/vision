@@ -1,5 +1,5 @@
 /**
- * Skeleton sample code based on hang Suen and Guo Hall
+ * Skeleton sample code based on Hang Suen and Guo Hall
  * @author José Miguel Guerrero
  */
 #include <iostream>
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 		for (int j = 0; j < image.rows; j++) {
 			Scalar intensity = src.at<uchar>(j, i);
 			if (intensity.val[0] == 255) {
-				image.at<Vec3b>(j, i) = Vec3b(0, 255, 0);
+				image.at<Vec3b>(j, i) = Vec3b(0, 0, 255);
 			}
 		}
 	}

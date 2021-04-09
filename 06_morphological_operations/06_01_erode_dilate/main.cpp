@@ -20,7 +20,6 @@ const char* window_name = "Erode and Dilate Demo";
 
 
 void ErodeDilate( int, void* ) {
-  int operation = morph_operator + 2;
   Mat element = getStructuringElement( morph_elem, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
   if (morph_operator == 0){
     erode( src, dst, element );
