@@ -43,8 +43,7 @@ const String keys =
     "{fbs_lambda     |128.0             | parameter of fbs post-filtering                                   }"
     ;
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     CommandLineParser parser(argc,argv,keys);
     parser.about("Disparity Filtering Demo");
     if (parser.has("help")) {
@@ -105,7 +104,7 @@ int main(int argc, char** argv)
 
     bool noGT;
     Mat GT_disp;
-    if (GT_path=="../data/aloeGT.png" && left_im!="../data/aloeL.jpg")
+    if (GT_path=="data/aloeGT.png" && left_im!="data/aloeL.jpg")
         noGT=true;
     else {
         noGT=false;

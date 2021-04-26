@@ -37,7 +37,7 @@ int  main (int argc, char** argv) {
   }
 
   // Write data un pcd file
-  pcl::io::savePCDFileASCII ("../../PCL_dara/test_pcd.pcd", cloud);
+  pcl::io::savePCDFileASCII ("../../PCL_data/test_pcd.pcd", cloud);
   std::cerr << "Saved " << cloud.size () << " data points to test_pcd.pcd." << std::endl;
 
   for (const auto& point: cloud)
