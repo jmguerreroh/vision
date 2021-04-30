@@ -15,7 +15,7 @@ using namespace std;
 int main( int argc, char** argv ) {
     
     // Read image
-    Mat src = imread("../../images/lenna.jpg", 0); 
+    Mat src = imread("../../images_and_videos/lenna.jpg", 0); 
     if(src.empty()) {
         cout << "the image is not exist" << endl;  
         return -1;

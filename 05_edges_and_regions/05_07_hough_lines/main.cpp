@@ -12,7 +12,7 @@ using namespace std;
 int main(int argc, char** argv) {
     // Declare the output variables
     Mat dst, cdst, cdstP;
-    const char* default_file = "../../images/chess.jpg";
+    const char* default_file = "../../images_and_videos/chess.jpg";
     const char* filename = argc >=2 ? argv[1] : default_file;
 
     // Load an image

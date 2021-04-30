@@ -95,7 +95,7 @@ void thinning(InputArray input, OutputArray output, int thinningType) {
 
 
 int main(int argc, char** argv) {
-	Mat image = imread("../../images/star.jpg", IMREAD_GRAYSCALE);
+	Mat image = imread("../../images_and_videos/star.jpg", IMREAD_GRAYSCALE);
 
 	if (image.empty()) {
 		printf("No image data \n");

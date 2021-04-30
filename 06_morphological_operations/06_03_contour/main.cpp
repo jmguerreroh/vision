@@ -33,7 +33,7 @@ void ErodeDilate( int, void* ) {
 
 int main( int argc, char** argv ) {
   // Load an image
-  CommandLineParser parser( argc, argv, "{@input | ../../images/horse.png | input image}" );
+  CommandLineParser parser( argc, argv, "{@input | ../../images_and_videos/horse.png | input image}" );
   src = imread( samples::findFile( parser.get<String>( "@input" ) ), IMREAD_COLOR );
   if( src.empty() ) {
     cout << "Could not open or find the image!\n" << endl;

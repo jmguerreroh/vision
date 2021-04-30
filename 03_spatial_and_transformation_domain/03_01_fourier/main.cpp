@@ -89,7 +89,7 @@ Mat spectrum(const Mat &complexI) {
 
 int main(int argc, char ** argv) {
     help(argv);
-    const char* filename = argc >=2 ? argv[1] : "../../images/lenna.jpg";
+    const char* filename = argc >=2 ? argv[1] : "../../images_and_videos/lenna.jpg";
     Mat I = imread( samples::findFile( filename ), IMREAD_GRAYSCALE);
     if( I.empty()){
         cout << "Error opening image" << endl;

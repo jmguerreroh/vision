@@ -13,7 +13,7 @@ using namespace std;
 
 int main( int argc, char** argv ) {
   // Load an image
-  Mat src = imread( "../../images/cat-small.jpg", IMREAD_COLOR );
+  Mat src = imread( "../../images_and_videos/cat-small.jpg", IMREAD_COLOR );
   if ( src.empty() ) {
     cout << "Could not open or find the image!\n" << endl;
     cout << "Usage: " << argv[0] << " <Input image>" << endl;
