@@ -3,6 +3,9 @@
 
 // Usage example:  ./object_detection_yolo.out --video=run.mp4
 //                 ./object_detection_yolo.out --image=bird.jpg
+
+// Download weights mandatory: wget https://pjreddie.com/media/files/yolov3.weights
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
