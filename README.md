@@ -61,7 +61,7 @@ pkg-config opencv4 --cflags --libs
 
 8. Add in *~/.bashrc*:
 ```
-export LD_LIBRARY_PATH=$LS_LIBRARY_PATH:/usr/local/lib/
+echo 'export LD_LIBRARY_PATH=$LS_LIBRARY_PATH:/usr/local/lib/' >> ~/.bashrc
 ```
 
 9. Load the libraries into the current shell:
