@@ -39,18 +39,19 @@ Mat computeDFT(Mat image) {
 }
 
 // 6. Crop and rearrange
-void fftShift(Mat magI) {
+Mat fftShift(const Mat &magI) {
+    Mat magI_copy = magI.clone();
     // crop the spectrum, if it has an odd number of rows or columns
-    magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+    magI_copy = magI_copy(Rect(0, 0, magI_copy.cols & -2, magI_copy.rows & -2));
     
     // rearrange the quadrants of Fourier image  so that the origin is at the image center
-    int cx = magI.cols/2;
-    int cy = magI.rows/2;
+    int cx = magI_copy.cols/2;
+    int cy = magI_copy.rows/2;
 
-    Mat q0(magI, Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
-    Mat q1(magI, Rect(cx, 0, cx, cy));  // Top-Right
-    Mat q2(magI, Rect(0, cy, cx, cy));  // Bottom-Left
-    Mat q3(magI, Rect(cx, cy, cx, cy)); // Bottom-Right
+    Mat q0(magI_copy, Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
+    Mat q1(magI_copy, Rect(cx, 0, cx, cy));  // Top-Right
+    Mat q2(magI_copy, Rect(0, cy, cx, cy));  // Bottom-Left
+    Mat q3(magI_copy, Rect(cx, cy, cx, cy)); // Bottom-Right
 
     Mat tmp;                           // swap quadrants (Top-Left with Bottom-Right)
     q0.copyTo(tmp);
@@ -60,6 +61,8 @@ void fftShift(Mat magI) {
     q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
     q2.copyTo(q1);
     tmp.copyTo(q2);
+
+    return magI_copy;
 }
 
 
@@ -67,13 +70,13 @@ void fftShift(Mat magI) {
 Mat spectrum(const Mat &complexI) {
     Mat complexImg = complexI.clone();
     // Shift quadrants
-    fftShift(complexImg);
+    Mat shift_complex = fftShift(complexImg);
 
     // Transform the real and complex values to magnitude
     // compute the magnitude and switch to logarithmic scale
     // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
     Mat planes_spectrum[2];
-    split(complexImg, planes_spectrum);       // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+    split(shift_complex, planes_spectrum);       // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
     magnitude(planes_spectrum[0], planes_spectrum[1], planes_spectrum[0]);// planes[0] = magnitude
     Mat spectrum = planes_spectrum[0];
 
@@ -103,12 +106,12 @@ int main(int argc, char ** argv) {
     Mat spectrum_original = spectrum(complexImg);
 
     // Crop and rearrange
-    fftShift(complexImg);
-    //doSomethingWithTheSpectrum(complexImg);   
-    fftShift(complexImg); // rearrage quadrants
+    Mat shift_complex = fftShift(complexImg); // Rearrange quadrants - Spectrum with low values at center - Theory mode
+    //doSomethingWithTheSpectrum(shift_complex);   
+    Mat rearrange = fftShift(shift_complex); // Rearrange quadrants - Spectrum with low values at corners - OpenCV mode
 
-    // Get the spectrum
-    Mat spectrum_filter = spectrum(complexImg);
+    // Get the spectrum after the processing
+    Mat spectrum_filter = spectrum(rearrange);
 
     // Results
     imshow("Input Image"        , I   );    // Show the result
