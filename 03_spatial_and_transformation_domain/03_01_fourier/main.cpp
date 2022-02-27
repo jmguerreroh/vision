@@ -120,7 +120,7 @@ int main(int argc, char ** argv) {
 
     // Calculating the idft
     Mat inverseTransform;
-    idft(complexImg, inverseTransform, cv::DFT_INVERSE|cv::DFT_REAL_OUTPUT);
+    idft(rearrange, inverseTransform, cv::DFT_INVERSE|cv::DFT_REAL_OUTPUT);
     normalize(inverseTransform, inverseTransform, 0, 1, NORM_MINMAX);
     imshow("Reconstructed", inverseTransform);
 
