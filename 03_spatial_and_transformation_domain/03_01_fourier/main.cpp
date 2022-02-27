@@ -21,7 +21,7 @@ static void help(char ** argv) {
 }
 
 // Compute the Discrete fourier transform
-Mat computeDFT(Mat image) {
+Mat computeDFT(const Mat &image) {
     // Expand the image to an optimal size. 
     Mat padded;                      
     int m = getOptimalDFTSize( image.rows );
