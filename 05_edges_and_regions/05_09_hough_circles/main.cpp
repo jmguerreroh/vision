@@ -11,7 +11,7 @@ using namespace cv;
 using namespace std;
 
 int main(int argc, char** argv) {
-    const char* filename = argc >=2 ? argv[1] : "smarties.png";
+    const char* filename = argc >=2 ? argv[1] : "../../images_and_videos/coins.jpg";
     // Load an image
     Mat src = imread( samples::findFile( filename ), IMREAD_COLOR );
     // Check if image is loaded fine
@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     vector<Vec3f> circles;
     HoughCircles(gray, circles, HOUGH_GRADIENT, 1,
                  gray.rows/16,  // change this value to detect circles with different distances to each other
-                 100, 30, 1, 30 // change the last two parameters (min_radius & max_radius) to detect larger circles
+                 100, 30, 1, 40 // change the last two parameters (min_radius & max_radius) to detect larger circles
     );
 
     for( size_t i = 0; i < circles.size(); i++ ) {
