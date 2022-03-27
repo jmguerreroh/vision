@@ -22,9 +22,9 @@ Rect computeROI(Size2i src_sz, Ptr<StereoMatcher> matcher_instance);
 
 const String keys =
     "{help h usage ? |                  | print this message                                                }"
-    "{@left          |data/aloeL.jpg | left view of the stereopair                                       }"
-    "{@right         |data/aloeR.jpg | right view of the stereopair                                      }"
-    "{GT             |data/aloeGT.png| optional ground-truth disparity (MPI-Sintel or Middlebury format) }"
+    "{@left          |data/aloeL.jpg    | left view of the stereopair                                       }"
+    "{@right         |data/aloeR.jpg    | right view of the stereopair                                      }"
+    "{GT             |data/aloeGT.png   | optional ground-truth disparity (MPI-Sintel or Middlebury format) }"
     "{dst_path       |None              | optional path to save the resulting filtered disparity map        }"
     "{dst_raw_path   |None              | optional path to save raw disparity map before filtering          }"
     "{algorithm      |bm                | stereo matching method (bm or sgbm)                               }"
@@ -89,15 +89,15 @@ int main(int argc, char** argv) {
     }
 
     //! [load_views]
-    Mat left  = imread(left_im ,IMREAD_COLOR);
+    Mat left  = imread(left_im, IMREAD_COLOR);
     if ( left.empty() ) {
-        cout<<"Cannot read image file: "<<left_im;
+        cout << "Cannot read image file: " << left_im;
         return -1;
     }
 
-    Mat right = imread(right_im,IMREAD_COLOR);
+    Mat right = imread(right_im, IMREAD_COLOR);
     if ( right.empty() ) {
-        cout<<"Cannot read image file: "<<right_im;
+        cout << "Cannot read image file: " << right_im;
         return -1;
     }
     //! [load_views]
@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
     else {
         noGT=false;
         if(readGT(GT_path,GT_disp)!=0) {
-            cout<<"Cannot read ground truth image file: "<<GT_path<<endl;
+            cout << "Cannot read ground truth image file: " << GT_path << endl;
             return -1;
         }
     }
@@ -124,11 +124,11 @@ int main(int argc, char** argv) {
     double matching_time, filtering_time;
     double solving_time = 0;
     if(max_disp<=0 || max_disp%16!=0) {
-        cout<<"Incorrect max_disparity value: it should be positive and divisible by 16";
+        cout << "Incorrect max_disparity value: it should be positive and divisible by 16";
         return -1;
     }
     if(wsize<=0 || wsize%2!=1) {
-        cout<<"Incorrect window_size value: it should be positive and odd";
+        cout << "Incorrect window_size value: it should be positive and odd";
         return -1;
     }
 
@@ -140,8 +140,8 @@ int main(int argc, char** argv) {
             max_disp/=2;
             if(max_disp%16!=0)
                 max_disp += 16-(max_disp%16);
-            resize(left ,left_for_matcher ,Size(),0.5,0.5, INTER_LINEAR_EXACT);
-            resize(right,right_for_matcher,Size(),0.5,0.5, INTER_LINEAR_EXACT);
+            resize(left,  left_for_matcher,  Size(), 0.5, 0.5, INTER_LINEAR_EXACT);
+            resize(right, right_for_matcher, Size(), 0.5, 0.5, INTER_LINEAR_EXACT);
             //! [downscale]
         }
         else {
@@ -164,8 +164,8 @@ int main(int argc, char** argv) {
             cvtColor(right_for_matcher, right_for_matcher, COLOR_BGR2GRAY);
 
             matching_time = (double)getTickCount();
-            left_matcher-> compute(left_for_matcher, right_for_matcher,left_disp);
-            right_matcher->compute(right_for_matcher,left_for_matcher, right_disp);
+            left_matcher  -> compute(left_for_matcher,  right_for_matcher, left_disp);
+            right_matcher -> compute(right_for_matcher, left_for_matcher,  right_disp);
             matching_time = ((double)getTickCount() - matching_time)/getTickFrequency();
             //! [matching]
         }
@@ -179,12 +179,12 @@ int main(int argc, char** argv) {
             Ptr<StereoMatcher> right_matcher = createRightMatcher(left_matcher);
 
             matching_time = (double)getTickCount();
-            left_matcher-> compute(left_for_matcher, right_for_matcher,left_disp);
-            right_matcher->compute(right_for_matcher,left_for_matcher, right_disp);
+            left_matcher  -> compute(left_for_matcher,  right_for_matcher, left_disp);
+            right_matcher -> compute(right_for_matcher, left_for_matcher,  right_disp);
             matching_time = ((double)getTickCount() - matching_time)/getTickFrequency();
         }
         else {
-            cout<<"Unsupported algorithm";
+            cout << "Unsupported algorithm";
             return -1;
         }
         // Disparity maps computed by the respective matcher instances, as well as the source left view are passed to the filter. 
@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
         ROI = wls_filter->getROI();
         if(!no_downscale) {
             // upscale raw disparity and ROI back for a proper comparison:
-            resize(left_disp,left_disp,Size(),2.0,2.0,INTER_LINEAR_EXACT);
+            resize(left_disp, left_disp, Size(), 2.0, 2.0, INTER_LINEAR_EXACT);
             left_disp = left_disp*2.0;
             ROI = Rect(ROI.x*2,ROI.y*2,ROI.width*2,ROI.height*2);
         }
@@ -216,8 +216,8 @@ int main(int argc, char** argv) {
             max_disp/=2;
             if(max_disp%16!=0)
                 max_disp += 16-(max_disp%16);
-            resize(left ,left_for_matcher ,Size(),0.5,0.5);
-            resize(right,right_for_matcher,Size(),0.5,0.5);
+            resize(left , left_for_matcher , Size(), 0.5, 0.5);
+            resize(right, right_for_matcher, Size(), 0.5, 0.5);
             //! [downscale_wls]
         }
         else {
@@ -235,13 +235,13 @@ int main(int argc, char** argv) {
             cvtColor(right_for_matcher, right_for_matcher, COLOR_BGR2GRAY);
 
             matching_time = (double)getTickCount();
-            left_matcher-> compute(left_for_matcher, right_for_matcher,left_disp);
-            right_matcher->compute(right_for_matcher,left_for_matcher, right_disp);
+            left_matcher -> compute(left_for_matcher,  right_for_matcher, left_disp);
+            right_matcher-> compute(right_for_matcher, left_for_matcher,  right_disp);
             matching_time = ((double)getTickCount() - matching_time)/getTickFrequency();
             //! [matching_wls]
         }
         else if(algo=="sgbm") {
-            Ptr<StereoSGBM> left_matcher  = StereoSGBM::create(0,max_disp,wsize);
+            Ptr<StereoSGBM> left_matcher = StereoSGBM::create(0,max_disp,wsize);
             left_matcher->setP1(24*wsize*wsize);
             left_matcher->setP2(96*wsize*wsize);
             left_matcher->setPreFilterCap(63);
@@ -250,12 +250,12 @@ int main(int argc, char** argv) {
             Ptr<StereoMatcher> right_matcher = createRightMatcher(left_matcher);
 
             matching_time = (double)getTickCount();
-            left_matcher-> compute(left_for_matcher, right_for_matcher,left_disp);
-            right_matcher->compute(right_for_matcher,left_for_matcher, right_disp);
+            left_matcher  -> compute(left_for_matcher,  right_for_matcher, left_disp);
+            right_matcher -> compute(right_for_matcher, left_for_matcher,  right_disp);
             matching_time = ((double)getTickCount() - matching_time)/getTickFrequency();
         }
         else {
-            cout<<"Unsupported algorithm";
+            cout << "Unsupported algorithm";
             return -1;
         }
 
@@ -263,20 +263,20 @@ int main(int argc, char** argv) {
         wls_filter->setLambda(lambda);
         wls_filter->setSigmaColor(sigma);
         filtering_time = (double)getTickCount();
-        wls_filter->filter(left_disp,left,filtered_disp,right_disp);
+        wls_filter->filter(left_disp, left, filtered_disp, right_disp);
         filtering_time = ((double)getTickCount() - filtering_time)/getTickFrequency();
         //! [filtering_wls]
 
         conf_map = wls_filter->getConfidenceMap();
 
         Mat left_disp_resized;
-        resize(left_disp,left_disp_resized,left.size());
+        resize(left_disp, left_disp_resized, left.size());
 
         // Get the ROI that was used in the last filter call:
         ROI = wls_filter->getROI();
         if(!no_downscale) {
             // upscale raw disparity and ROI back for a proper comparison:
-            resize(left_disp,left_disp,Size(),2.0,2.0);
+            resize(left_disp, left_disp, Size(), 2.0, 2.0);
             left_disp = left_disp*2.0;
             left_disp_resized = left_disp_resized*2.0;
             ROI = Rect(ROI.x*2,ROI.y*2,ROI.width*2,ROI.height*2);
@@ -310,14 +310,14 @@ int main(int argc, char** argv) {
             Ptr<StereoBM> matcher  = StereoBM::create(max_disp,wsize);
             matcher->setTextureThreshold(0);
             matcher->setUniquenessRatio(0);
-            cvtColor(left_for_matcher,  left_for_matcher, COLOR_BGR2GRAY);
+            cvtColor(left_for_matcher,  left_for_matcher,  COLOR_BGR2GRAY);
             cvtColor(right_for_matcher, right_for_matcher, COLOR_BGR2GRAY);
-            ROI = computeROI(left_for_matcher.size(),matcher);
+            ROI = computeROI(left_for_matcher.size(), matcher);
             wls_filter = createDisparityWLSFilterGeneric(false);
             wls_filter->setDepthDiscontinuityRadius((int)ceil(0.33*wsize));
 
             matching_time = (double)getTickCount();
-            matcher->compute(left_for_matcher,right_for_matcher,left_disp);
+            matcher->compute(left_for_matcher, right_for_matcher, left_disp);
             matching_time = ((double)getTickCount() - matching_time)/getTickFrequency();
         }
         else if(algo=="sgbm") {
@@ -333,31 +333,31 @@ int main(int argc, char** argv) {
             wls_filter->setDepthDiscontinuityRadius((int)ceil(0.5*wsize));
 
             matching_time = (double)getTickCount();
-            matcher->compute(left_for_matcher,right_for_matcher,left_disp);
+            matcher->compute(left_for_matcher, right_for_matcher, left_disp);
             matching_time = ((double)getTickCount() - matching_time)/getTickFrequency();
         }
         else {
-            cout<<"Unsupported algorithm";
+            cout << "Unsupported algorithm";
             return -1;
         }
 
         wls_filter->setLambda(lambda);
         wls_filter->setSigmaColor(sigma);
         filtering_time = (double)getTickCount();
-        wls_filter->filter(left_disp,left,filtered_disp,Mat(),ROI);
+        wls_filter->filter(left_disp, left, filtered_disp, Mat(), ROI);
         filtering_time = ((double)getTickCount() - filtering_time)/getTickFrequency();
     }
     else {
-        cout<<"Unsupported filter";
+        cout << "Unsupported filter";
         return -1;
     }
 
     //collect and print all the stats:
     cout.precision(2);
-    cout<<"Matching time:  "<<matching_time<<"s"<<endl;
-    cout<<"Filtering time: "<<filtering_time<<"s"<<endl;
-    cout<<"Solving time: "<<solving_time<<"s"<<endl;
-    cout<<endl;
+    cout << "Matching time:  " << matching_time << "s" << endl;
+    cout << "Filtering time: " << filtering_time << "s" << endl;
+    cout << "Solving time: " << solving_time << "s" << endl;
+    cout << endl;
 
     double MSE_before,percent_bad_before,MSE_after,percent_bad_after;
     if(!noGT) {
@@ -367,12 +367,12 @@ int main(int argc, char** argv) {
         percent_bad_after = computeBadPixelPercent(GT_disp,filtered_disp,ROI);
 
         cout.precision(5);
-        cout<<"MSE before filtering: "<<MSE_before<<endl;
-        cout<<"MSE after filtering:  "<<MSE_after<<endl;
-        cout<<endl;
+        cout << "MSE before filtering: " << MSE_before << endl;
+        cout << "MSE after filtering:  " << MSE_after << endl;
+        cout << endl;
         cout.precision(3);
-        cout<<"Percent of bad pixels before filtering: "<<percent_bad_before<<endl;
-        cout<<"Percent of bad pixels after filtering:  "<<percent_bad_after<<endl;
+        cout << "Percent of bad pixels before filtering: " << percent_bad_before << endl;
+        cout << "Percent of bad pixels after filtering:  " << percent_bad_after << endl;
     }
     
     // We use a convenience function getDisparityVis to visualize the disparity maps. The second parameter defines the contrast 
