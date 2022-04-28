@@ -3,7 +3,7 @@
 
 # Computer Vision Examples
 
-This project contains code examples created in Visual Studio Code for Computer Vision using C++ & OpenCV. These examples are created for the Computer Vision Subject of Robotics Software Engineering Degree at URJC.
+This project contains code examples created in Visual Studio Code for Computer Vision using C++ & OpenCV & Point Cloud Library (PCL). These examples are created for the Computer Vision Subject of Robotics Software Engineering Degree at URJC.
 
 ## Installation
 
