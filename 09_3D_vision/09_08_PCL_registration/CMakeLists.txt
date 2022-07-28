@@ -4,5 +4,5 @@ find_package(PCL 1.4 REQUIRED COMPONENTS common io visualization features filter
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
-add_executable(pcl_registration main.cpp)
-target_link_libraries(pcl_registration ${PCL_LIBRARIES})
+add_executable(pcl_inc_registration main.cpp)
+target_link_libraries(pcl_inc_registration ${PCL_LIBRARIES})

@@ -5,7 +5,7 @@
  * Based on author Radu Bogdan Rusu and adaptation Raphael Favier
  */
 
-#include <boost/make_shared.hpp>
+#include <pcl/memory.h>  // for pcl::make_shared
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_representation.h>
@@ -33,10 +33,10 @@ typedef pcl::PointNormal PointNormalT;
 typedef pcl::PointCloud<PointNormalT> PointCloudWithNormals;
 
 // This is a tutorial so we can afford having global variables 
-//our visualizer
-pcl::visualization::PCLVisualizer *p;
-//its left and right viewports
-int vp_1, vp_2;
+	//our visualizer
+	pcl::visualization::PCLVisualizer *p;
+	//its left and right viewports
+	int vp_1, vp_2;
 
 //convenient structure to handle our pointclouds
 struct PCD {
@@ -208,7 +208,7 @@ void pairAlign (const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
   // Note: adjust this based on the size of your datasets
   reg.setMaxCorrespondenceDistance (0.1);  
   // Set the point representation
-  reg.setPointRepresentation (boost::make_shared<const MyPointRepresentation> (point_representation));
+  reg.setPointRepresentation (pcl::make_shared<const MyPointRepresentation> (point_representation));
 
   reg.setInputSource (points_with_normals_src);
   reg.setInputTarget (points_with_normals_tgt);
@@ -296,7 +296,7 @@ int main (int argc, char** argv) {
 	PointCloud::Ptr result (new PointCloud), source, target;
   Eigen::Matrix4f GlobalTransform = Eigen::Matrix4f::Identity (), pairTransform;
   
-  for (size_t i = 1; i < data.size (); ++i) {
+  for (std::size_t i = 1; i < data.size (); ++i) {
     source = data[i-1].cloud;
     target = data[i].cloud;
 
@@ -304,7 +304,7 @@ int main (int argc, char** argv) {
     showCloudsLeft(source, target);
 
     PointCloud::Ptr temp (new PointCloud);
-    PCL_INFO ("Aligning %s (%d) with %s (%d).\n", data[i-1].f_name.c_str (), source->points.size (), data[i].f_name.c_str (), target->points.size ());
+    PCL_INFO ("Aligning %s (%zu) with %s (%zu).\n", data[i-1].f_name.c_str (), static_cast<std::size_t>(source->size ()), data[i].f_name.c_str (), static_cast<std::size_t>(target->size ()));
     pairAlign (source, target, temp, pairTransform, true);
 
     //transform current pair into the global transform
