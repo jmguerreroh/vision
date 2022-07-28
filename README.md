@@ -7,7 +7,9 @@ This project contains code examples created in Visual Studio Code for Computer V
 
 ## Installation
 
-Open Ubuntu terminal and follow the next steps:
+Probably OpenCV is installed, but it's a good practice to install it as follows.
+
+Open an Ubuntu terminal and follow the next steps:
 
 1. Install dependencies:
 ```
@@ -69,6 +71,39 @@ echo 'export LD_LIBRARY_PATH=$LS_LIBRARY_PATH:/usr/local/lib/' >> ~/.bashrc
 source ~/.bashrc
 ```
 
+## Compiling PCL from source
+
+The best way to be updated, is to install PCL compiling from source: https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html
+
+It fixs some problems when you try to use Ubuntu 22.04, VTK 9.1 and PCL 1.12.1
+
+1. Clone PCL repository:
+```
+mkdir ~/pcl_build && cd ~/pcl_build
+git clone --recursive https://github.com/PointCloudLibrary/pcl.git
+```
+
+2. Create temporary build directory:
+```
+cd ~/pcl_build/pcl
+mkdir build
+cd build
+```
+
+3. Run the CMake build system using the default options:
+```
+cmake ..
+```
+
+4. Compilation process:
+```
+make -j2
+```
+
+5. Installation process:
+```
+sudo make -j2 install
+```
 
 ## About
 
