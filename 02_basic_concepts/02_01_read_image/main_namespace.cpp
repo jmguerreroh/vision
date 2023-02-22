@@ -7,18 +7,19 @@
 
 using namespace cv;
 
-int main () {
-    // Create image variable
-    Mat image;
+int main()
+{
+  // Create image variable
+  Mat image;
 
-    // Read image
-    image = imread("../../images_and_videos/lenna.jpg", IMREAD_COLOR);
+  // Read image
+  image = imread("../../images_and_videos/lenna.jpg", IMREAD_COLOR);
 
-    // Show image
-    imshow("TEST IMAGE", image);
+  // Show image
+  imshow("TEST IMAGE", image);
 
-    // Wait to press a key
-    waitKey(0);
-    
-    return 0;
+  // Wait to press a key
+  waitKey(0);
+
+  return 0;
 }

@@ -1,4 +1,3 @@
-
 /**
  * RANSAC example aligning images
  * Based on https://github.com/spmallick/learnopencv/tree/master/ImageAlignment-FeatureBased
@@ -16,7 +15,7 @@ using namespace cv::xfeatures2d;
 const int MAX_FEATURES = 500;
 const float GOOD_MATCH_PERCENT = 0.15f;
 
-void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h)
+void alignImages(Mat & im1, Mat & im2, Mat & im1Reg, Mat & h)
 {
   // Convert images to grayscale
   Mat im1Gray, im2Gray;
@@ -42,55 +41,57 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h)
 
   // Remove not so good matches
   const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
-  matches.erase(matches.begin()+numGoodMatches, matches.end());
+  matches.erase(matches.begin() + numGoodMatches, matches.end());
 
   // Draw top matches
   Mat imMatches;
   drawMatches(im1, keypoints1, im2, keypoints2, matches, imMatches);
-  resize(imMatches, imMatches, Size(imMatches.size().width/2,imMatches.size().height/2), 0, 0, INTER_LANCZOS4);
+  resize(
+    imMatches, imMatches, Size(
+      imMatches.size().width / 2,
+      imMatches.size().height / 2), 0, 0, INTER_LANCZOS4);
   imshow("Matches", imMatches);
 
   // Extract location of good matches
   std::vector<Point2f> points1, points2;
 
-  for( size_t i = 0; i < matches.size(); i++ )
-  {
-    points1.push_back( keypoints1[ matches[i].queryIdx ].pt );
-    points2.push_back( keypoints2[ matches[i].trainIdx ].pt );
+  for (size_t i = 0; i < matches.size(); i++) {
+    points1.push_back(keypoints1[matches[i].queryIdx].pt);
+    points2.push_back(keypoints2[matches[i].trainIdx].pt);
   }
 
   // Find homography
-  h = findHomography( points1, points2, RANSAC );
+  h = findHomography(points1, points2, RANSAC);
 
   // Use homography to warp image
   warpPerspective(im1, im1Reg, h, im2.size());
 }
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
   // Read reference image
-  string refFilename("../../images_and_videos/form.jpg"); 
-  cout << "Reading reference image : " << refFilename << endl; 
+  string refFilename("../../images_and_videos/form.jpg");
+  cout << "Reading reference image : " << refFilename << endl;
   Mat imReference = imread(refFilename);
 
   // Read image to be aligned
   string imFilename("../../images_and_videos/scanned-form.jpg");
-  cout << "Reading image to align : " << imFilename << endl; 
+  cout << "Reading image to align : " << imFilename << endl;
   Mat im = imread(imFilename);
 
-  // Registered image will be resotred in imReg. 
-  // The estimated homography will be stored in h. 
+  // Registered image will be resotred in imReg.
+  // The estimated homography will be stored in h.
   Mat imReg, h;
 
   // Align images
-  cout << "Aligning images ..." << endl; 
+  cout << "Aligning images ..." << endl;
   alignImages(im, imReference, imReg, h);
 
   // Show aligned image
-  resize(imReg, imReg, Size(imReg.size().width/2,imReg.size().height/2), 0, 0, INTER_LANCZOS4);
+  resize(imReg, imReg, Size(imReg.size().width / 2, imReg.size().height / 2), 0, 0, INTER_LANCZOS4);
   imshow("Aligned", imReg);
 
   // Print estimated homography
-  cout << "Estimated homography : \n" << h << endl; 
+  cout << "Estimated homography : \n" << h << endl;
   waitKey();
 }

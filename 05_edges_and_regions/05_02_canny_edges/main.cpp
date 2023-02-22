@@ -8,22 +8,23 @@
 
 using namespace cv;
 
-int main () {
-    // Create image variables
-    Mat image, edges;
+int main()
+{
+  // Create image variables
+  Mat image, edges;
 
-    // Read image
-    image = imread("../../images_and_videos/lenna.jpg", IMREAD_COLOR);
+  // Read image
+  image = imread("../../images_and_videos/lenna.jpg", IMREAD_COLOR);
 
-    // Image processing
-    Canny(image, edges, 0, 100, 3);
+  // Image processing
+  Canny(image, edges, 0, 100, 3);
 
-    // Show images
-    imshow("TEST IMAGE", image);
-    imshow("CANNY EDGES", edges);
+  // Show images
+  imshow("TEST IMAGE", image);
+  imshow("CANNY EDGES", edges);
 
-    // Wait to press a key
-    waitKey(0);
+  // Wait to press a key
+  waitKey(0);
 
-    return 0;
+  return 0;
 }
