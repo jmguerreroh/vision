@@ -2,7 +2,7 @@
 
 This project contains code examples created in Visual Studio Code for Computer Vision using C++ & OpenCV & Point Cloud Library (PCL). These examples are created for the Computer Vision Subject of Robotics Software Engineering Degree at URJC.
 
-## Installation
+## OpenCV installation from source
 
 Probably OpenCV is installed, but it's a good practice to install it as follows.
 
@@ -68,7 +68,7 @@ echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-## Compiling PCL from source
+## PCL installation from source
 
 The best way to be updated, is to install PCL compiling from source: https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html
 
@@ -100,6 +100,22 @@ make -j $(expr $(nproc) / 2)
 5. Installation process:
 ```
 sudo make -j2 install
+```
+
+## Compiling examples and creating executables
+
+OpenCV examples use a Makefile, use `make` command to compile and create the executable.
+```
+cd folder_example
+make
+./executable
+```
+
+PCL examples use a CMakeList.txt, so you should create the Makefile using `cmake` and create the executable using `make`. Is a good practice to create it in a build folder.
+```
+cd folder_example
+mkdir build && cd build && cmake .. && make
+./executable
 ```
 
 ## About
