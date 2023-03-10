@@ -91,10 +91,15 @@ cd build
 ```
 cmake ..
 ```
+Please note that cmake might default to a debug build. If you want to compile a release build of PCL with enhanced compiler optimizations, you can change the build target to “Release” with “-DCMAKE_BUILD_TYPE=Release”:
+```
+cmake -DCMAKE_BUILD_TYPE=Release ..
+
+```
 
 4. Compilation process (if it fails, rerun the command.):
 ```
-make -j $(expr $(nproc) / 2)
+make -j2
 ```
 
 5. Installation process:
