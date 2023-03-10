@@ -92,7 +92,7 @@ cd build
 cmake ..
 ```
 
-4. Compilation process:
+4. Compilation process (if it fails, rerun the command.):
 ```
 make -j $(expr $(nproc) / 2)
 ```
