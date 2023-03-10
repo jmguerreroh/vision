@@ -45,7 +45,7 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE \
 
 5. Compilation process:
 ```
-make -j$(nproc)
+make -j $(expr $(nproc) / 2)
 ```
 
 6. Installation process:
@@ -94,7 +94,7 @@ cmake ..
 
 4. Compilation process:
 ```
-make -j2
+make -j $(expr $(nproc) / 2)
 ```
 
 5. Installation process:
