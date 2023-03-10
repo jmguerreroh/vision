@@ -10,10 +10,12 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/features2d.hpp"
 #include "opencv2/xfeatures2d.hpp"
+
 using namespace cv;
 using namespace cv::xfeatures2d;
 using std::cout;
 using std::endl;
+
 int main(int argc, char * argv[])
 {
   // Read image
@@ -38,7 +40,6 @@ int main(int argc, char * argv[])
   return 0;
 }
 #else
-
 int main()
 {
   std::cout << "This tutorial code needs the xfeatures2d contrib module to be run." << std::endl;

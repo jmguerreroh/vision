@@ -5,12 +5,10 @@
  */
 
 #include <opencv2/opencv.hpp>
-#include "opencv2/xfeatures2d.hpp"
 #include "opencv2/features2d.hpp"
 
 using namespace std;
 using namespace cv;
-using namespace cv::xfeatures2d;
 
 const int MAX_FEATURES = 500;
 const float GOOD_MATCH_PERCENT = 0.15f;
