@@ -10,17 +10,21 @@ using namespace std;
 
 // Global variables
 Mat src, dst;
-int morph_elem = 0;
-int morph_size = 1;
-int morph_operator = 0;
 int const max_operator = 1;
 int const max_elem = 2;
 int const max_kernel_size = 21;
 const char * window_name = "Erode and Dilate Demo";
+const char * trackbar1 = "Operator:\n 0: Erode - 1: Dilate ";
+const char * trackbar2 = "Element:\n 0: Rect - 1: Cross - 2: Ellipse";
+const char * trackbar3 = "Kernel size:\n 2n +1";
+
 
 
 void ErodeDilate(int, void *)
 {
+  int morph_operator = getTrackbarPos(trackbar1, window_name); 
+  int morph_elem = getTrackbarPos(trackbar2, window_name);
+  int morph_size = getTrackbarPos(trackbar3, window_name);
   Mat element = getStructuringElement(
     morph_elem, Size(
       2 * morph_size + 1,
@@ -49,16 +53,15 @@ int main(int argc, char ** argv)
   namedWindow(window_name, WINDOW_AUTOSIZE);   // Create window
 
   createTrackbar(
-    "Operator:\n 0: Erode - 1: Dilate ", window_name, &morph_operator, max_operator,
+    trackbar1, window_name, nullptr, max_operator,
     ErodeDilate);
   createTrackbar(
-    "Element:\n 0: Rect - 1: Cross - 2: Ellipse", window_name,
-    &morph_elem, max_elem,
+    trackbar2, window_name, nullptr, max_elem,
     ErodeDilate);
   createTrackbar(
-    "Kernel size:\n 2n +1", window_name,
-    &morph_size, max_kernel_size,
+    trackbar3, window_name, nullptr, max_kernel_size,
     ErodeDilate);
+  setTrackbarPos(trackbar3, window_name, 1); 
 
   // Default start
   ErodeDilate(0, 0);

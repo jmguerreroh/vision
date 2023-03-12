@@ -40,6 +40,10 @@ int isColor = true;
 bool useMask = false;
 int newMaskVal = 255;
 
+const char * window_name = "image";
+const char * trackbar1 = "lo_diff";
+const char * trackbar2 = "up_diff";
+
 // Get seed using the Mouse
 static void onMouse(int event, int x, int y, int, void *)
 {
@@ -47,6 +51,9 @@ static void onMouse(int event, int x, int y, int, void *)
   if (event != EVENT_LBUTTONDOWN) {
     return;
   }
+
+  int loDiff = getTrackbarPos(trackbar1, window_name); 
+  int upDiff = getTrackbarPos(trackbar2, window_name);
   // Get seed
   Point seed = Point(x, y);
   // Get lower and upper values using sliders
@@ -75,7 +82,7 @@ static void onMouse(int event, int x, int y, int, void *)
       dst, seed, newVal, &ccomp, Scalar(lo, lo, lo),
       Scalar(up, up, up), flags);
   }
-  imshow("image", dst);
+  imshow(window_name, dst);
   cout << area << " pixels were repainted\n";
 }
 
@@ -101,15 +108,17 @@ int main(int argc, char ** argv)
   image0.copyTo(image);
   cvtColor(image0, gray, COLOR_BGR2GRAY);
   mask.create(image0.rows + 2, image0.cols + 2, CV_8UC1);
-  namedWindow("image", 0);
+  namedWindow(window_name, 0);
 
   // Trackbars
-  createTrackbar("lo_diff", "image", &loDiff, 255, 0);
-  createTrackbar("up_diff", "image", &upDiff, 255, 0);
-  setMouseCallback("image", onMouse, 0);     // Mouse callback
+  createTrackbar(trackbar1, window_name, nullptr, 255, 0);
+  setTrackbarPos(trackbar1, window_name, 20);
+  createTrackbar(trackbar2, window_name, nullptr, 255, 0);
+  setTrackbarPos(trackbar2, window_name, 20);
+  setMouseCallback(window_name, onMouse, 0);     // Mouse callback
 
-  for (;; ) {
-    imshow("image", isColor ? image : gray);
+  for (;;) {
+    imshow(window_name, isColor ? image : gray);
     char c = (char)waitKey(0);
     if (c == 27) {
       cout << "Exiting ...\n";

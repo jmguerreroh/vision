@@ -11,10 +11,10 @@ using namespace cv;
 using namespace std;
 
 Mat src, src_gray;
-int thresh = 200;
 int max_thresh = 255;
 const char * source_window = "Source image";
 const char * corners_window = "Corners detected";
+const char * trackbar = "Threshold:";
 void cornerHarris_demo(int, void *);
 
 int main(int argc, char ** argv)
@@ -33,7 +33,8 @@ int main(int argc, char ** argv)
   namedWindow(source_window);
 
   // Create trackbar
-  createTrackbar("Threshold: ", source_window, &thresh, max_thresh, cornerHarris_demo);
+  createTrackbar(trackbar, source_window, nullptr, max_thresh, cornerHarris_demo);
+  setTrackbarPos(trackbar, source_window, 200);
   imshow(source_window, src);
 
   // Callback
@@ -48,6 +49,7 @@ void cornerHarris_demo(int, void *)
   int blockSize = 2;
   int apertureSize = 3;
   double k = 0.04;
+  int thresh = getTrackbarPos(trackbar, source_window);
 
   // Corner detector using default config
   Mat dst = Mat::zeros(src.size(), CV_32FC1);
