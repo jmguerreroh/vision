@@ -87,11 +87,11 @@ void thinning(InputArray input, OutputArray output, int thinningType)
     absdiff(processed, prev, diff);
     processed.copyTo(prev);
 
-    //// muestra la animacion en cada iteracion del algoritmo
+    //// Displays the animation at each iteration of the algorithm
     temp = processed * 255;
     imshow("Original Skeleton Final", temp);
     waitKey(10);
-    //// end animacion
+    //// end animation
   } while (countNonZero(diff) > 0);
 
   processed *= 255;
@@ -111,7 +111,7 @@ int main(int argc, char ** argv)
   Mat src = image.clone();
   thinning(src, src, 2);
 
-  // Draw green skeleton over the original image
+  // Draw red skeleton over the original image
   cvtColor(image, image, COLOR_GRAY2BGR);
 
   for (int i = 0; i < image.cols; i++) {
@@ -122,7 +122,6 @@ int main(int argc, char ** argv)
       }
     }
   }
-  // end 1
 
   imshow("OpenCV Skeleton Final", src);
   imshow("Original Skeleton Final", image);
