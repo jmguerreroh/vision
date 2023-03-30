@@ -32,6 +32,8 @@ cd build
 ```
 
 4. Setup OpenCV:
+
+Without CUDA:
 ```
 cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D CMAKE_INSTALL_PREFIX=/usr/local \
@@ -42,7 +44,19 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D BUILD_EXAMPLES=ON ..\
     -D OPENCV_ENABLE_NONFREE=ON
 ```
-
+With CUDA:
+```
+cmake -D CMAKE_BUILD_TYPE=RELEASE \
+    -D CMAKE_INSTALL_PREFIX=/usr/local \
+    -D INSTALL_C_EXAMPLES=ON \
+    -D INSTALL_PYTHON_EXAMPLES=ON \
+    -D OPENCV_GENERATE_PKGCONFIG=ON \
+    -D OPENCV_EXTRA_MODULES_PATH=~/opencv_build/opencv_contrib/modules \
+    -D BUILD_EXAMPLES=ON ..\
+    -D OPENCV_ENABLE_NONFREE=ON \
+    -D WITH_CUDA=ON \
+    -D OPENCV_DNN_CUDA=ON
+```
 5. Compilation process:
 ```
 make -j $(expr $(nproc) / 2)
