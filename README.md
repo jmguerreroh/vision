@@ -56,7 +56,13 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D OPENCV_ENABLE_NONFREE=ON \
     -D WITH_CUDA=ON \
     -D OPENCV_DNN_CUDA=ON
+    -D WITH_CUDNN=ON \
+    -D ENABLE_FAST_MATH=1 \
+    -D CUDA_FAST_MATH=1 \
+    -D CUDA_ARCH_BIN=8.6 \
+    -D WITH_CUBLAS=1 
 ```
+CUDA_ARCH_BIN can be found here: https://developer.nvidia.com/cuda-gpus
 5. Compilation process:
 ```
 make -j $(expr $(nproc) / 2)
