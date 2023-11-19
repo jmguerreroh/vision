@@ -39,7 +39,7 @@ int main()
   Mat image, gray, edges, gauss;
 
   // Read image
-  image = imread("../../images_and_videos/coins.jpg", IMREAD_COLOR);
+  image = imread("../../data/coins.jpg", IMREAD_COLOR);
 
   // Convert image to grayscale
   cvtColor(image, gray, COLOR_BGR2GRAY);

@@ -14,7 +14,7 @@ int main()
 {
 
   // Read image
-  Mat src = imread("../../images_and_videos/lenna.jpg", 0);
+  Mat src = imread("../../data/lena.jpg", 0);
   if (src.empty()) {
     cout << "the image is not exist" << endl;
     return -1;

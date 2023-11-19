@@ -2,7 +2,32 @@
 
 This project contains code examples created in Visual Studio Code for Computer Vision using C++ & OpenCV & Point Cloud Library (PCL). These examples are created for the Computer Vision Subject of Robotics Software Engineering Degree at URJC.
 
-## OpenCV installation from source
+## Compiling examples and creating executables
+
+Add an environment variable to find the samples into your `.bashrc` file
+```
+OPENCV_SAMPLES_DATA_PATH=/<repo-folder>/data/
+```
+
+OpenCV examples use a Makefile, use `make` command to compile and create the executable.
+```
+cd example_folder
+make
+./executable
+```
+
+PCL examples use a CMakeList.txt, so you should create the Makefile using `cmake` and create the executable using `make`. Is a good practice to create it in a build folder.
+```
+cd example_folder
+mkdir build && cd build && cmake .. && make
+./executable
+```
+
+# Installation from source
+
+If you have ROS packages installed, you may skip the following OpenCV and PCL installation steps, as OpenCV and PCL might already be included in your ROS distribution.
+
+## OpenCV installation from source (do not install without supervision)
 
 Probably OpenCV is installed, but it's a good practice to install it as follows.
 
@@ -88,7 +113,7 @@ echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-## PCL installation from source
+## PCL installation from source (do not install without supervision)
 
 The best way to be updated, is to install PCL compiling from source: https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html
 
@@ -114,7 +139,6 @@ cmake ..
 Please note that cmake might default to a debug build. If you want to compile a release build of PCL with enhanced compiler optimizations, you can change the build target to “Release” with “-DCMAKE_BUILD_TYPE=Release”:
 ```
 cmake -DCMAKE_BUILD_TYPE=Release ..
-
 ```
 
 4. Compilation process (if it fails, rerun the command.):
@@ -125,22 +149,6 @@ make -j2
 5. Installation process:
 ```
 sudo make -j2 install
-```
-
-## Compiling examples and creating executables
-
-OpenCV examples use a Makefile, use `make` command to compile and create the executable.
-```
-cd folder_example
-make
-./executable
-```
-
-PCL examples use a CMakeList.txt, so you should create the Makefile using `cmake` and create the executable using `make`. Is a good practice to create it in a build folder.
-```
-cd folder_example
-mkdir build && cd build && cmake .. && make
-./executable
 ```
 
 ## About

@@ -68,12 +68,12 @@ void alignImages(Mat & im1, Mat & im2, Mat & im1Reg, Mat & h)
 int main(int argc, char ** argv)
 {
   // Read reference image
-  string refFilename("../../images_and_videos/form.jpg");
+  string refFilename("../../data/form.jpg");
   cout << "Reading reference image : " << refFilename << endl;
   Mat imReference = imread(refFilename);
 
   // Read image to be aligned
-  string imFilename("../../images_and_videos/scanned-form.jpg");
+  string imFilename("../../data/scanned-form.jpg");
   cout << "Reading image to align : " << imFilename << endl;
   Mat im = imread(imFilename);
 

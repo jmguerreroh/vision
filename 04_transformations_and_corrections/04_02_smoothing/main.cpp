@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
   namedWindow(window_name, WINDOW_AUTOSIZE);
 
   // Read image
-  const char * filename = argc >= 2 ? argv[1] : "../../images_and_videos/lenna.jpg";
+  const char * filename = argc >= 2 ? argv[1] : "lena.jpg";
   src = imread(samples::findFile(filename), IMREAD_COLOR);
   if (src.empty()) {
     printf(" Error opening image\n");

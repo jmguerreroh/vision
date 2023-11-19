@@ -17,9 +17,9 @@ int main(int argc, char ** argv)
 {
 
   // Load the base image (src_base) and the other two test images:
-  Mat src_base = imread("../../images_and_videos/Histogram_Comparison_Source_0.jpg", IMREAD_COLOR);
-  Mat src_test1 = imread("../../images_and_videos/Histogram_Comparison_Source_1.jpg", IMREAD_COLOR);
-  Mat src_test2 = imread("../../images_and_videos/Histogram_Comparison_Source_2.jpg", IMREAD_COLOR);
+  Mat src_base = imread("../../data/Histogram_Comparison_Source_0.jpg", IMREAD_COLOR);
+  Mat src_test1 = imread("../../data/Histogram_Comparison_Source_1.jpg", IMREAD_COLOR);
+  Mat src_test2 = imread("../../data/Histogram_Comparison_Source_2.jpg", IMREAD_COLOR);
   if (src_base.empty() || src_test1.empty() || src_test2.empty() ) {
     cout << "Could not open or find the images!\n" << endl;
     return -1;

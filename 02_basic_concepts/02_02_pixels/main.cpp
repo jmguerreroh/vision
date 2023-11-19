@@ -14,7 +14,7 @@ using namespace std;
 int main(int argc, char ** argv)
 {
   // Load an image
-  Mat src = imread("../../images_and_videos/lenna.jpg", IMREAD_COLOR);
+  Mat src = imread("../../data/lena.jpg", IMREAD_COLOR);
   if (src.empty() ) {
     cout << "Could not open or find the image!\n" << endl;
     cout << "Usage: " << argv[0] << " <Input image>" << endl;

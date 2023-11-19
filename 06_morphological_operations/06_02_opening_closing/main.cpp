@@ -35,7 +35,7 @@ void Morphology_Operations(int, void *)
 
 int main(int argc, char ** argv)
 {
-  CommandLineParser parser(argc, argv, "{@input | ../../images_and_videos/crop.png | input image}");
+  CommandLineParser parser(argc, argv, "{@input | crop.png | input image}");
   src = imread(samples::findFile(parser.get<String>("@input") ), IMREAD_COLOR);
   if (src.empty()) {
     std::cout << "Could not open or find the image!\n" << std::endl;

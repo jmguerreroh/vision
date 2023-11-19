@@ -13,7 +13,7 @@ int main()
   Mat image;
 
   // Read image
-  image = imread("../../images_and_videos/lenna.jpg", IMREAD_COLOR);
+  image = imread("../../data/lena.jpg", IMREAD_COLOR);
 
   // Show image
   imshow("TEST IMAGE", image);

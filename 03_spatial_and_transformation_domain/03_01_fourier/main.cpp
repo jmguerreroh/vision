@@ -18,7 +18,7 @@ static void help(char ** argv)
        << "This program demonstrated the use of the discrete Fourier transform (DFT). " << endl
        << "The dft of an image is taken and it's power spectrum is displayed." << endl << endl
        << "Usage:" << endl
-       << argv[0] << " [image_name -- default images/lenna.jpg]" << endl << endl;
+       << argv[0] << " [image_name -- default images/lena.jpg]" << endl << endl;
 }
 
 // Compute the Discrete fourier transform
@@ -99,7 +99,7 @@ Mat spectrum(const Mat & complexI)
 int main(int argc, char ** argv)
 {
   help(argv);
-  const char * filename = argc >= 2 ? argv[1] : "../../images_and_videos/lenna.jpg";
+  const char * filename = argc >= 2 ? argv[1] : "lena.jpg";
   Mat I = imread(samples::findFile(filename), IMREAD_GRAYSCALE);
   if (I.empty()) {
     cout << "Error opening image" << endl;
