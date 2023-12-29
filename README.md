@@ -115,21 +115,25 @@ source ~/.bashrc
 
 ## PCL installation from source (do not install without supervision)
 
-The best way to be updated, is to install PCL compiling from source: https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html
+The best way to be updated is to install PCL compiling from the source: https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html
 
-It fixs some problems when you try to use Ubuntu 22.04, VTK 9.1 and PCL 1.12.1
+It fixes some problems when you try to use Ubuntu 22.04, VTK 9.1, and PCL 1.12.1
 
-1. Clone PCL repository:
+1. Download a [Stable version] (latest recommended):
+```
+mkdir ~/pcl_build && cd ~/pcl_build
+tar xvf pcl-pcl-<version>.tar.gz
+```
+or clone PCL repository (experimental):
 ```
 mkdir ~/pcl_build && cd ~/pcl_build
 git clone --recursive https://github.com/PointCloudLibrary/pcl.git
 ```
 
-2. Create temporary build directory:
+2. Create a temporary build directory:
 ```
-cd ~/pcl_build/pcl
-mkdir build
-cd build
+cd ~/pcl_build/<pcl-folder>
+mkdir build && cd build
 ```
 
 3. Run the CMake build system using the default options:
@@ -175,3 +179,4 @@ This work is licensed under a
 
 [Universidad Rey Juan Carlos]: https://www.urjc.es/
 [José Miguel Guerrero]: https://sites.google.com/view/jmguerrero
+[Stable version]: https://github.com/PointCloudLibrary/pcl/releases
