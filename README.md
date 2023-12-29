@@ -141,7 +141,7 @@ Please note that cmake might default to a debug build. If you want to compile a 
 cmake -DCMAKE_BUILD_TYPE=Release ..
 ```
 
-4. Compilation process (if it fails, rerun the command.):
+4. Compilation process (if it fails, rerun the command):
 ```
 make -j2
 ```
