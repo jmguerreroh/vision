@@ -119,24 +119,26 @@ The best way to be updated is to install PCL compiling from the source: https://
 
 It fixes some problems when you try to use Ubuntu 22.04, VTK 9.1, and PCL 1.12.1
 
-1. Download a [Stable version] (latest recommended):
+1. Create a folder:
 ```
 mkdir ~/pcl_build && cd ~/pcl_build
+```
+2. Download a [Stable version] (latest recommended) and uncompress:
+```
 tar xvf pcl-pcl-<version>.tar.gz
 ```
 or clone PCL repository (experimental):
 ```
-mkdir ~/pcl_build && cd ~/pcl_build
 git clone --recursive https://github.com/PointCloudLibrary/pcl.git
 ```
 
-2. Create a temporary build directory:
+3. Create a temporary build directory:
 ```
 cd ~/pcl_build/<pcl-folder>
 mkdir build && cd build
 ```
 
-3. Run the CMake build system using the default options:
+4. Run the CMake build system using the default options:
 ```
 cmake ..
 ```
@@ -145,12 +147,12 @@ Please note that cmake might default to a debug build. If you want to compile a 
 cmake -DCMAKE_BUILD_TYPE=Release ..
 ```
 
-4. Compilation process (if it fails, rerun the command):
+5. Compilation process (if it fails, rerun the command):
 ```
 make -j2
 ```
 
-5. Installation process:
+6. Installation process:
 ```
 sudo make -j2 install
 ```
