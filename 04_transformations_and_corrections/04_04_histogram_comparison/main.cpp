@@ -1,5 +1,5 @@
 /**
- * Histogram comparison sample code
+ * Histogram comparison - sample code
  * @author José Miguel Guerrero
  *
  * https://docs.opencv.org/3.4/d8/dc8/tutorial_histogram_comparison.html
@@ -12,10 +12,8 @@
 using namespace std;
 using namespace cv;
 
-
 int main(int argc, char ** argv)
 {
-
   // Load the base image (src_base) and the other two test images:
   Mat src_base = imread("../../data/Histogram_Comparison_Source_0.jpg", IMREAD_COLOR);
   Mat src_test1 = imread("../../data/Histogram_Comparison_Source_1.jpg", IMREAD_COLOR);

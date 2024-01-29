@@ -1,5 +1,5 @@
 /**
- * Fill demo sample code
+ * Fill demo - sample code
  * @author José Miguel Guerrero
  *
  * https://docs.opencv.org/3.4/d1/d17/samples_2cpp_2ffilldemo_8cpp-example.html
@@ -10,6 +10,7 @@
 #include "opencv2/videoio.hpp"
 #include "opencv2/highgui.hpp"
 #include <iostream>
+
 using namespace cv;
 using namespace std;
 
@@ -52,7 +53,7 @@ static void onMouse(int event, int x, int y, int, void *)
     return;
   }
 
-  int loDiff = getTrackbarPos(trackbar1, window_name); 
+  int loDiff = getTrackbarPos(trackbar1, window_name);
   int upDiff = getTrackbarPos(trackbar2, window_name);
   // Get seed
   Point seed = Point(x, y);
@@ -86,7 +87,6 @@ static void onMouse(int event, int x, int y, int, void *)
   cout << area << " pixels were repainted\n";
 }
 
-
 int main(int argc, char ** argv)
 {
   cv::CommandLineParser parser(argc, argv,
@@ -117,7 +117,7 @@ int main(int argc, char ** argv)
   setTrackbarPos(trackbar2, window_name, 20);
   setMouseCallback(window_name, onMouse, 0);     // Mouse callback
 
-  for (;;) {
+  for (;; ) {
     imshow(window_name, isColor ? image : gray);
     char c = (char)waitKey(0);
     if (c == 27) {

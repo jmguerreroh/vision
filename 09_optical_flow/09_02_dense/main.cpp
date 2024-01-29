@@ -12,6 +12,7 @@
  * We find their magnitude and direction. We color code the result for better visualization. Direction corresponds to Hue value of the image.
  * Magnitude corresponds to Value plane
  */
+
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -24,7 +25,6 @@ using namespace std;
 
 int main(int argc, char ** argv)
 {
-
   const string keys =
     "{ h help |      | print this help message }"
     "{ @image | vtest.avi | path to image file }";

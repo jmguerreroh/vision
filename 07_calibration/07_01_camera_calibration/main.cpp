@@ -4,6 +4,7 @@
  *
  * Based on: https://github.com/niconielsen32/ComputerVision
  */
+
 #include <iostream>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core.hpp>
@@ -15,7 +16,6 @@ using namespace std;
 
 int main(int argc, char ** argv)
 {
-
   // Get filenames
   vector<String> fileNames;
   glob("../calibration_images/Image*.png", fileNames, false);
@@ -66,7 +66,6 @@ int main(int argc, char ** argv)
 
     i++;
   }
-
 
   Matx33f K(Matx33f::eye());    // intrinsic camera matrix
   Vec<float, 5> k(0, 0, 0, 0, 0);   // distortion coefficients

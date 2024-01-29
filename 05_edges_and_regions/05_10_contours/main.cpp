@@ -1,5 +1,5 @@
 /**
- * Contours sample code
+ * Contours - sample code
  * @author José Miguel Guerrero
  */
 

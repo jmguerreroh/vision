@@ -1,5 +1,5 @@
 /**
- * Histogram equalization sample code
+ * Histogram equalization - sample code
  * @author José Miguel Guerrero
  *
  * https://docs.opencv.org/3.4/d8/dbc/tutorial_histogram_calculation.html
@@ -15,7 +15,6 @@ using namespace cv;
 
 int main(int argc, char ** argv)
 {
-
   // Read image
   CommandLineParser parser(argc, argv, "{@input | lena.jpg | input image}");
   Mat src = imread(samples::findFile(parser.get<String>("@input") ), IMREAD_COLOR);

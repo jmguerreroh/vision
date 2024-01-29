@@ -1,5 +1,5 @@
 /**
- * Rotation sample code
+ * Rotation - sample code
  * @author José Miguel Guerrero
  */
 
@@ -34,7 +34,6 @@ int main(int argc, char ** argv)
   Mat rot_mat = getRotationMatrix2D(center, angle, scale);
   warpAffine(src, rotation_dst, rot_mat, src.size());
   imshow("Rotation", rotation_dst);
-
 
   waitKey();
   return 0;

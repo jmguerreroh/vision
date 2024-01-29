@@ -1,5 +1,5 @@
 /**
- * Resize sample code
+ * Resize - sample code
  * @author José Miguel Guerrero
  */
 

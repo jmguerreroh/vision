@@ -74,7 +74,6 @@ int main(int argc, char ** argv)
     net.setPreferableTarget(DNN_TARGET_CUDA);
   }
 
-
   // Open a video file or an image file or a camera stream.
   string str, outputFile;
   VideoCapture cap;
@@ -82,7 +81,6 @@ int main(int argc, char ** argv)
   Mat frame, blob;
 
   try {
-
     outputFile = "yolo_out_cpp.avi";
     if (parser.has("image")) {
       // Open the image file
@@ -163,7 +161,6 @@ int main(int argc, char ** argv)
     }
 
     imshow(kWinName, frame);
-
   }
 
   cap.release();

@@ -36,7 +36,6 @@ printUsage(const char * progName)
             << "\n\n";
 }
 
-
 pcl::visualization::PCLVisualizer::Ptr simpleVis(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud)
 {
   // --------------------------------------------
@@ -52,7 +51,6 @@ pcl::visualization::PCLVisualizer::Ptr simpleVis(pcl::PointCloud<pcl::PointXYZ>:
   viewer->initCameraParameters();
   return viewer;
 }
-
 
 pcl::visualization::PCLVisualizer::Ptr rgbVis(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud)
 {
@@ -71,7 +69,6 @@ pcl::visualization::PCLVisualizer::Ptr rgbVis(pcl::PointCloud<pcl::PointXYZRGB>:
   return viewer;
 }
 
-
 pcl::visualization::PCLVisualizer::Ptr customColourVis(
   pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud)
 {
@@ -89,7 +86,6 @@ pcl::visualization::PCLVisualizer::Ptr customColourVis(
   viewer->initCameraParameters();
   return viewer;
 }
-
 
 pcl::visualization::PCLVisualizer::Ptr normalsVis(
   pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud,
@@ -110,7 +106,6 @@ pcl::visualization::PCLVisualizer::Ptr normalsVis(
   viewer->initCameraParameters();
   return viewer;
 }
-
 
 pcl::visualization::PCLVisualizer::Ptr shapesVis(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud)
 {
@@ -157,7 +152,6 @@ pcl::visualization::PCLVisualizer::Ptr shapesVis(pcl::PointCloud<pcl::PointXYZRG
   return viewer;
 }
 
-
 pcl::visualization::PCLVisualizer::Ptr viewportsVis(
   pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud,
   pcl::PointCloud<pcl::Normal>::ConstPtr normals1, pcl::PointCloud<pcl::Normal>::ConstPtr normals2)
@@ -199,7 +193,6 @@ pcl::visualization::PCLVisualizer::Ptr viewportsVis(
 
   return viewer;
 }
-
 
 unsigned int text_id = 0;
 void keyboardEventOccurred(
@@ -250,12 +243,10 @@ pcl::visualization::PCLVisualizer::Ptr interactionCustomizationVis()
   return viewer;
 }
 
-
 // --------------
 // -----Main-----
 // --------------
-int
-main(int argc, char ** argv)
+int main(int argc, char ** argv)
 {
   // --------------------------------------
   // -----Parse Command Line Arguments-----

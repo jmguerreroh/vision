@@ -1,11 +1,13 @@
 /**
- * Opening and Closing sample code
+ * Opening and Closing - sample code
  * @author José Miguel Guerrero
  */
+
 #include "opencv2/imgproc.hpp"
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/highgui.hpp"
 #include <iostream>
+
 using namespace cv;
 
 Mat src, dst;
@@ -19,7 +21,7 @@ const char * trackbar3 = "Kernel size:\n 2n +1";
 
 void Morphology_Operations(int, void *)
 {
-  int morph_operator = getTrackbarPos(trackbar1, window_name); 
+  int morph_operator = getTrackbarPos(trackbar1, window_name);
   int morph_elem = getTrackbarPos(trackbar2, window_name);
   int morph_size = getTrackbarPos(trackbar3, window_name);
   // Since MORPH_X : 2,3,4,5 and 6
@@ -53,7 +55,7 @@ int main(int argc, char ** argv)
   createTrackbar(
     trackbar3, window_name, nullptr, max_kernel_size,
     Morphology_Operations);
-  setTrackbarPos(trackbar3, window_name, 1); 
+  setTrackbarPos(trackbar3, window_name, 1);
 
   Morphology_Operations(0, 0);
   waitKey(0);

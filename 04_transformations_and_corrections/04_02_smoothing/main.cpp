@@ -1,5 +1,5 @@
 /**
- * Smoothing sample code
+ * Smoothing - sample code
  * @author José Miguel Guerrero
  *
  * https://docs.opencv.org/3.4/dc/dd3/tutorial_gausian_median_blur_bilateral_filter.html
@@ -22,10 +22,8 @@ char window_name[] = "Smoothing Demo";
 int display_caption(const char * caption);
 int display_dst(int delay);
 
-
 int main(int argc, char ** argv)
 {
-
   namedWindow(window_name, WINDOW_AUTOSIZE);
 
   // Read image

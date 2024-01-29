@@ -1,5 +1,5 @@
 /**
- * Sobel edges sample code
+ * Sobel edges - sample code
  * @author José Miguel Guerrero
  */
 
@@ -10,10 +10,8 @@
 using namespace cv;
 using namespace std;
 
-
 int main(int argc, char ** argv)
 {
-
   // Read image
   Mat src = imread("../../data/lena.jpg", 0);
   if (src.empty()) {
@@ -28,7 +26,6 @@ int main(int argc, char ** argv)
   Mat SobelGx = (Mat_<char>(3, 3) <<   -1, 0, 1,
     -2, 0, 2,
     -1, 0, 1);
-
 
   Mat SobelGy = (Mat_<char>(3, 3) <<   -1, -2, -1,
     0, 0, 0,

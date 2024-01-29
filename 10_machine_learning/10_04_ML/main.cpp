@@ -4,6 +4,7 @@
  *
  * https://github.com/opencv/opencv/blob/master/samples/cpp/points_classifier.cpp
  */
+
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/ml.hpp"
@@ -105,7 +106,6 @@ static void find_decision_boundary_NBC()
   predict_and_paint(normalBayesClassifier, imgDst);
 }
 #endif
-
 
 #if _KNN_
 static void find_decision_boundary_KNN(int K)
@@ -209,7 +209,6 @@ static void find_decision_boundary_RF()
   rtrees->train(prepare_train_data());
   predict_and_paint(rtrees, imgDst);
 }
-
 #endif
 
 #if _ANN_

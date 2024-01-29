@@ -1,5 +1,5 @@
 /**
- * Canny edges sample code
+ * Canny edges - sample code
  * @author José Miguel Guerrero
  */
 

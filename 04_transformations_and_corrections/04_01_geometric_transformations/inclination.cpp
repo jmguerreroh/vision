@@ -1,5 +1,5 @@
 /**
- * Warp + rotate sample code
+ * Warp + rotate - sample code
  * @author José Miguel Guerrero
  *
  * https://docs.opencv.org/3.4/d4/d61/tutorial_warp_affine.html
@@ -45,7 +45,6 @@ int main(int argc, char ** argv)
   Mat rot_mat = getRotationMatrix2D(center, angle, scale);
   Mat warp_rotate_dst;
   warpAffine(warp_dst, warp_rotate_dst, rot_mat, warp_dst.size() );
-
 
   imshow("Source image", src);
   imshow("Warp", warp_dst);

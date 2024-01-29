@@ -1,5 +1,5 @@
 /**
- * Discrete Fourier Transform sample code
+ * Discrete Fourier Transform - sample code
  * @author José Miguel Guerrero
  */
 

@@ -13,7 +13,6 @@ using namespace std;
 
 int main(int argc, char ** argv)
 {
-
   // Read image
   Mat src = imread("../../data/lena.jpg", 0);
   if (src.empty()) {

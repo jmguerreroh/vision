@@ -1,5 +1,5 @@
 /**
- * Moments sample code
+ * Moments - sample code
  * @author José Miguel Guerrero
  *
  * https://docs.opencv.org/3.4/d8/d23/classcv_1_1Moments.html

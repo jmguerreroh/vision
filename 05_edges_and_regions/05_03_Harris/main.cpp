@@ -1,5 +1,5 @@
 /**
- * Harris corners detector sample code
+ * Harris corners detector - sample code
  * @author José Miguel Guerrero
  * https://docs.opencv.org/3.4/d4/d7d/tutorial_harris_detector.html
  */
@@ -43,7 +43,6 @@ int main(int argc, char ** argv)
   return 0;
 }
 
-
 void cornerHarris_demo(int, void *)
 {
   int blockSize = 2;
@@ -68,6 +67,7 @@ void cornerHarris_demo(int, void *)
       }
     }
   }
+
   // Show images
   namedWindow(corners_window);
   imshow(corners_window, dst_norm_scaled);

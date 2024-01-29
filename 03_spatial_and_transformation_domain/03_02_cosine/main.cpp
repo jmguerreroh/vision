@@ -1,5 +1,5 @@
 /**
- * Discrete Cosine Transform sample code
+ * Discrete Cosine Transform - sample code
  * @author José Miguel Guerrero
  */
 
@@ -9,10 +9,8 @@
 using namespace std;
 using namespace cv;
 
-
 int main()
 {
-
   // Read image
   Mat src = imread("../../data/lena.jpg", 0);
   if (src.empty()) {

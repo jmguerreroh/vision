@@ -10,6 +10,7 @@
  * It returns next points along with some status numbers which has a value of 1 if next point is found, else zero. We iteratively pass these next points
  * as previous points in next step. See the code below:
  */
+
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>

@@ -1,7 +1,8 @@
 /**
- * Skeleton sample code based on Hang Suen and Guo Hall
+ * Skeleton - sample code: based on Hang Suen and Guo Hall
  * @author José Miguel Guerrero
  */
+
 #include <iostream>
 #include <opencv2/opencv.hpp>
 

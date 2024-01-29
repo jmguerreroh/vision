@@ -56,7 +56,6 @@ struct PCDComparator
   }
 };
 
-
 // Define a new point representation for < x, y, z, curvature >
 class MyPointRepresentation : public pcl::PointRepresentation<PointNormalT>
 {
@@ -80,7 +79,6 @@ public:
   }
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////
 /** \brief Display source and target on the first viewport of the visualizer
  *
@@ -99,7 +97,6 @@ void showCloudsLeft(const PointCloud::Ptr cloud_target, const PointCloud::Ptr cl
   p->spin();
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 /** \brief Display source and target on the second viewport of the visualizer
  *
@@ -111,7 +108,6 @@ void showCloudsRight(
   p->removePointCloud("source");
   p->removePointCloud("target");
 
-
   PointCloudColorHandlerGenericField<PointNormalT> tgt_color_handler(cloud_target, "curvature");
   if (!tgt_color_handler.isCapable()) {
     PCL_WARN("Cannot create curvature color handler!");
@@ -121,7 +117,6 @@ void showCloudsRight(
   if (!src_color_handler.isCapable()) {
     PCL_WARN("Cannot create curvature color handler!");
   }
-
 
   p->addPointCloud(cloud_target, tgt_color_handler, "target", vp_2);
   p->addPointCloud(cloud_source, src_color_handler, "source", vp_2);
@@ -163,7 +158,6 @@ void loadData(int argc, char ** argv, std::vector<PCD, Eigen::aligned_allocator<
   }
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 /** \brief Align a pair of PointCloud datasets and return the result
   * \param cloud_src the source PointCloud
@@ -192,7 +186,6 @@ void pairAlign(
     src = cloud_src;
     tgt = cloud_tgt;
   }
-
 
   // Compute surface normals and curvature
   PointCloudWithNormals::Ptr points_with_normals_src(new PointCloudWithNormals);
@@ -230,7 +223,6 @@ void pairAlign(
 
   reg.setInputSource(points_with_normals_src);
   reg.setInputTarget(points_with_normals_tgt);
-
 
   //
   // Run the same optimization in a loop and visualize the results
@@ -292,7 +284,6 @@ void pairAlign(
 
   final_transform = targetToSource;
 }
-
 
 /* ---[ */
 int main(int argc, char ** argv)

@@ -8,7 +8,6 @@
 #include <pcl/point_types.h>
 #include <pcl/visualization/cloud_viewer.h>
 
-
 using namespace pcl::visualization;
 
 int  main(int argc, char ** argv)

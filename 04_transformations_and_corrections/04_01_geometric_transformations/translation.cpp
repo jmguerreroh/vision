@@ -1,5 +1,5 @@
 /**
- * Translation sample code
+ * Translation - sample code
  * @author José Miguel Guerrero
  */
 
@@ -33,7 +33,6 @@ int main(int argc, char ** argv)
   Mat trans_mat(2, 3, CV_32F, data);
   warpAffine(src, translation_dst, trans_mat, src.size());
   imshow("Translation", translation_dst);
-
 
   waitKey();
   return 0;

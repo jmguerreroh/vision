@@ -4,6 +4,7 @@
  *
  * https://docs.opencv.org/3.4/d0/dcc/tutorial_non_linear_svms.html
  */
+
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>

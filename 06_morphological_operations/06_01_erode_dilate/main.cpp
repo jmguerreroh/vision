@@ -1,10 +1,12 @@
 /**
- * Erosion and Dilation sample code
+ * Erosion and Dilation - sample code
  * @author José Miguel Guerrero
  */
+
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include <iostream>
+
 using namespace cv;
 using namespace std;
 
@@ -18,11 +20,9 @@ const char * trackbar1 = "Operator:\n 0: Erode - 1: Dilate ";
 const char * trackbar2 = "Element:\n 0: Rect - 1: Cross - 2: Ellipse";
 const char * trackbar3 = "Kernel size:\n 2n +1";
 
-
-
 void ErodeDilate(int, void *)
 {
-  int morph_operator = getTrackbarPos(trackbar1, window_name); 
+  int morph_operator = getTrackbarPos(trackbar1, window_name);
   int morph_elem = getTrackbarPos(trackbar2, window_name);
   int morph_size = getTrackbarPos(trackbar3, window_name);
   Mat element = getStructuringElement(
@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
   createTrackbar(
     trackbar3, window_name, nullptr, max_kernel_size,
     ErodeDilate);
-  setTrackbarPos(trackbar3, window_name, 1); 
+  setTrackbarPos(trackbar3, window_name, 1);
 
   // Default start
   ErodeDilate(0, 0);

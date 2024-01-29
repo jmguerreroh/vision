@@ -1,5 +1,5 @@
 /**
- * Logic transformation sample code
+ * Logic transformation - sample code
  * @author José Miguel Guerrero
  */
 
@@ -11,7 +11,6 @@ using namespace std;
 
 int main()
 {
-
   // create two input matrices zeros
   Mat im1 = Mat::zeros(Size(400, 400), CV_8UC1);
   Mat im2 = Mat::zeros(Size(400, 400), CV_8UC1);
@@ -36,7 +35,6 @@ int main()
   // Display the output images
   imshow("bitwise_and", output1);
   imshow("bitwise_or", output2);
-
 
   waitKey(0);
   return 0;

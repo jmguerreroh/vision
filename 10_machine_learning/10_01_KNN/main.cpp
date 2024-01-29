@@ -2,6 +2,7 @@
  * KNN demo sample
  * @author José Miguel Guerrero
  */
+
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/ml.hpp"
@@ -25,7 +26,6 @@ const int MAX_CLASSES = 2;
 vector<Vec3b> classColors(MAX_CLASSES);
 int currentClass = 0;
 vector<int> classCounters(MAX_CLASSES);
-
 
 static void on_mouse(int event, int x, int y, int /*flags*/, void *)
 {
@@ -57,7 +57,6 @@ static void on_mouse(int event, int x, int y, int /*flags*/, void *)
   }
 }
 
-
 // Create KNN setup: K is the number of neighborhoods
 static void KNN(int K)
 {
@@ -83,7 +82,6 @@ static void KNN(int K)
     }
   }
 }
-
 
 int main()
 {

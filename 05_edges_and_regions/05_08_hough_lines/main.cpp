@@ -1,5 +1,5 @@
 /**
- * Hough lines detection sample code
+ * Hough lines detection - sample code
  * @author José Miguel Guerrero
  */
 

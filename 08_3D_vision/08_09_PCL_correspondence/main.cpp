@@ -2,6 +2,7 @@
  * PCL correspondence demo sample
  * @author José Miguel Guerrero
  */
+
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_cloud.h>
 #include <pcl/correspondence.h>
@@ -214,7 +215,6 @@ int main(int argc, char * argv[])
   //
   //  Downsample Clouds to Extract keypoints
   //
-
   pcl::UniformSampling<PointType> uniform_sampling;
   uniform_sampling.setInputCloud(model);
   uniform_sampling.setRadiusSearch(model_ss_);
@@ -227,7 +227,6 @@ int main(int argc, char * argv[])
   uniform_sampling.filter(*scene_keypoints);
   std::cout << "Scene total points: " << scene->size() << "; Selected Keypoints: " <<
     scene_keypoints->size() << std::endl;
-
 
   //
   //  Compute Descriptor for keypoints

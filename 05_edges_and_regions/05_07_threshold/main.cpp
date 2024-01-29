@@ -1,5 +1,5 @@
 /**
- * Thresholding using Binary al Otsu sample code
+ * Thresholding using Binary al Otsu - sample code
  * @author José Miguel Guerrero
  */
 
@@ -8,7 +8,6 @@
 
 using namespace cv;
 using namespace std;
-
 
 int main()
 {

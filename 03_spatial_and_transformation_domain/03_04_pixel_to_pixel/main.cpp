@@ -1,5 +1,5 @@
 /**
- * Pixel to pixel transformation sample code
+ * Pixel to pixel transformation - sample code
  * @author José Miguel Guerrero
  */
 
@@ -9,7 +9,6 @@
 
 using namespace cv;
 using namespace std;
-
 
 int main(int argc, char ** argv)
 {
@@ -53,7 +52,6 @@ int main(int argc, char ** argv)
   imshow("Original", src);
   imshow("Pixel to pixel inverse", dst1);
   imshow("Pixel to pixel threshold", dst2);
-
 
   waitKey(0);
   return 0;
