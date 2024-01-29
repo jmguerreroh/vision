@@ -1,5 +1,5 @@
 /**
- * Cycle through pixels sample code
+ * Cycle through pixels - sample code
  * @author José Miguel Guerrero
  */
 
@@ -9,7 +9,6 @@
 
 using namespace cv;
 using namespace std;
-
 
 int main(int argc, char ** argv)
 {
@@ -25,16 +24,16 @@ int main(int argc, char ** argv)
   namedWindow("Pixel Demo", WINDOW_AUTOSIZE);
   imshow("Pixel Demo", src);
 
-
+  // ------------
   // Method 1:
   // Read pixel values using Vec3b: vector of 3 values
   for (int i = 0; i < src.rows; i++) {
     for (int j = 0; j < src.cols; j++) {
       // You can now access the pixel value with cv::Vec3b
       cout <<
-        (uint)src.at<Vec3b>(i, j)[0] << " " << (uint)src.at<Vec3b>(
-        i,
-        j)[1] << " " << (uint)src.at<Vec3b>(i, j)[2] << endl;
+        (uint)src.at<Vec3b>(i, j)[0] << " " <<
+        (uint)src.at<Vec3b>(i, j)[1] << " " <<
+        (uint)src.at<Vec3b>(i, j)[2] << endl;
     }
   }
 
@@ -47,10 +46,10 @@ int main(int argc, char ** argv)
   // Now I can access each channel separately
   for (int i = 0; i < src.rows; i++) {
     for (int j = 0; j < src.cols; j++) {
-      cout << (uint)three_channels[0].at<uchar>(i, j) << " " << (uint)three_channels[1].at<uchar>(
-        i,
-        j)
-           << " " << (uint)three_channels[2].at<uchar>(i, j) << endl;
+      cout <<
+        (uint)three_channels[0].at<uchar>(i, j) << " " <<
+        (uint)three_channels[1].at<uchar>(i, j) << " " <<
+        (uint)three_channels[2].at<uchar>(i, j) << endl;
     }
   }
 

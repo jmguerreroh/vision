@@ -11,7 +11,6 @@
 using namespace cv;
 using namespace std;
 
-
 int main(int argc, char ** argv)
 {
   // Load an image
@@ -22,11 +21,9 @@ int main(int argc, char ** argv)
     return -1;
   }
 
-
   // Split BGR channels
   vector<Mat> BGR_channels;
   split(src, BGR_channels);
-
 
   // Resize images and concatenate them
   int tam = 2;
@@ -54,7 +51,6 @@ int main(int argc, char ** argv)
   Mat HSV_opencv;
   cvtColor(src, HSV_opencv, COLOR_BGR2HSV);
   imshow("HSV OpenCV", HSV_opencv);
-
 
   waitKey(0);
   return 0;
