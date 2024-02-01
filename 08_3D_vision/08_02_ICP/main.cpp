@@ -4,6 +4,7 @@
  *
  * https://github.com/opencv/opencv_contrib/blob/master/modules/surface_matching/samples/ppf_load_match.cpp
  */
+
 #include "opencv2/surface_matching.hpp"
 #include <iostream>
 #include "opencv2/surface_matching/ppf_helpers.hpp"
