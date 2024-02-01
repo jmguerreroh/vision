@@ -88,6 +88,7 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D WITH_CUBLAS=1 
 ```
 CUDA_ARCH_BIN can be found here: https://developer.nvidia.com/cuda-gpus
+
 5. Compilation process:
 ```
 make -j $(expr $(nproc) / 2)
