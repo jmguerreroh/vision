@@ -24,7 +24,7 @@ static void help(char ** argv)
 // Compute the Discrete fourier transform
 Mat computeDFT(const Mat & image)
 {
-  // Expand the image to an optimal size.
+  // Expand the image to an optimal size - power-of-two.
   Mat padded;
   int m = getOptimalDFTSize(image.rows);
   int n = getOptimalDFTSize(image.cols);     // on the border add zero values
@@ -32,10 +32,16 @@ Mat computeDFT(const Mat & image)
     image, padded, 0, m - image.rows, 0, n - image.cols, BORDER_CONSTANT, Scalar::all(
       0));
 
-  // Make place for both the complex and the real values
-  Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
+  // Create a matrix for the real part of the image by converting the padded image to float
+  Mat realPart = Mat_<float>(padded);
+
+  // Create a matrix for the imaginary part of the complex values filled with zeros
+  Mat imaginaryPart = Mat::zeros(padded.size(), CV_32F);
+
+  // Combine the real and imaginary parts into a single complex matrix
+  Mat planes[] = {realPart, imaginaryPart};
   Mat complexI;
-  merge(planes, 2, complexI);           // Add to the expanded another plane with zeros
+  merge(planes, 2, complexI); // The resulting complex matrix has real and imaginary parts
 
   // Make the Discrete Fourier Transform
   dft(complexI, complexI, DFT_COMPLEX_OUTPUT);        // this way the result may fit in the source matrix
