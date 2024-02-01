@@ -161,6 +161,7 @@ sudo make -j2 install
 ## About
 
 This is a project made by [José Miguel Guerrero], Associate Professor at [Universidad Rey Juan Carlos].
+
 Copyright &copy; 2021.
 
 [![Twitter](https://img.shields.io/badge/follow-@jm__guerrero-green.svg)](https://twitter.com/jm__guerrero)
