@@ -6,7 +6,7 @@ This project contains code examples created in Visual Studio Code for Computer V
 
 Add an environment variable to find the samples into your `.bashrc` file
 ```
-OPENCV_SAMPLES_DATA_PATH=/<repo-folder>/data/
+export OPENCV_SAMPLES_DATA_PATH=/<repo-folder>/data/
 ```
 
 OpenCV examples use a Makefile, use `make` command to compile and create the executable.
