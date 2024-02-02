@@ -21,7 +21,7 @@ static void help(char ** argv)
        << argv[0] << " [image_name -- default images/lena.jpg]" << endl << endl;
 }
 
-// Compute the Discrete fourier transform
+// Compute the Discrete Fourier Transform
 Mat computeDFT(const Mat & image)
 {
   // Expand the image to an optimal size - power-of-two.
@@ -29,8 +29,7 @@ Mat computeDFT(const Mat & image)
   int m = getOptimalDFTSize(image.rows);
   int n = getOptimalDFTSize(image.cols);     // on the border add zero values
   copyMakeBorder(
-    image, padded, 0, m - image.rows, 0, n - image.cols, BORDER_CONSTANT, Scalar::all(
-      0));
+    image, padded, 0, m - image.rows, 0, n - image.cols, BORDER_CONSTANT, Scalar::all(0));
 
   // Create a matrix for the real part of the image by converting the padded image to float
   Mat realPart = Mat_<float>(padded);
@@ -48,7 +47,7 @@ Mat computeDFT(const Mat & image)
   return complexI;
 }
 
-// 6. Crop and rearrange
+// Crop and rearrange
 Mat fftShift(const Mat & magI)
 {
   Mat magI_copy = magI.clone();
@@ -88,8 +87,8 @@ Mat spectrum(const Mat & complexI)
   // compute the magnitude and switch to logarithmic scale
   // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
   Mat planes_spectrum[2];
-  split(shift_complex, planes_spectrum);         // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
-  magnitude(planes_spectrum[0], planes_spectrum[1], planes_spectrum[0]);  // planes[0] = magnitude
+  split(shift_complex, planes_spectrum);         // planes_spectrum[0] = Re(DFT(I)), planes_spectrum[1] = Im(DFT(I))
+  magnitude(planes_spectrum[0], planes_spectrum[1], planes_spectrum[0]);  // planes_spectrum[0] = magnitude
   Mat spectrum = planes_spectrum[0];
 
   // Switch to a logarithmic scale
@@ -98,7 +97,7 @@ Mat spectrum(const Mat & complexI)
 
   // Normalize
   normalize(spectrum, spectrum, 0, 1, NORM_MINMAX);   // Transform the matrix with float values into a
-                                                      // viewable image form (float between values 0 and 1).
+                                                      // viewable image form (float between values 0 and 1)
   return spectrum;
 }
 
@@ -120,14 +119,15 @@ int main(int argc, char ** argv)
 
   // Crop and rearrange
   Mat shift_complex = fftShift(complexImg);   // Rearrange quadrants - Spectrum with low values at center - Theory mode
-  //doSomethingWithTheSpectrum(shift_complex);
+  // doSomethingWithTheSpectrum(shift_complex);
   Mat rearrange = fftShift(shift_complex);   // Rearrange quadrants - Spectrum with low values at corners - OpenCV mode
 
   // Get the spectrum after the processing
   Mat spectrum_filter = spectrum(rearrange);
 
-  // Results
-  imshow("Input Image", I);                 // Show the result
+  // Original image
+  imshow("Input Image", I);
+  // Show the spectrums
   imshow("Spectrum original", spectrum_original);
   imshow("Spectrum filter", spectrum_filter);
 
