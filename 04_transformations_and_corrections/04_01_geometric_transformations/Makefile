@@ -15,4 +15,4 @@ $(PROJECT) : $(SRC1).cpp $(SRC2).cpp $(SRC3).cpp $(SRC4).cpp
 	$(CC) $(SRC4).cpp -o $(SRC4) $(LIBS)
 
 clean :
-	rm -rf *.o $(PROJECT)
+	rm -rf *.o resize rotation translation inclination
