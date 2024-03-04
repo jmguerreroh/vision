@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
   cout << "Reading image to align : " << imFilename << endl;
   Mat im = imread(imFilename);
 
-  // Registered image will be resotred in imReg.
+  // Registered image will be restored in imReg.
   // The estimated homography will be stored in h.
   Mat imReg, h;
 
