@@ -27,7 +27,7 @@ int main()
       bw_otsu.cols - 100,
       15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
 
-  // Convert image to binary using Otsu
+  // Convert image to binary using Fix value
   double bin_val = cv::threshold(gray, bw_bin, 100, 255, THRESH_BINARY);
   putText(
     bw_bin, to_string(bin_val), Point(
