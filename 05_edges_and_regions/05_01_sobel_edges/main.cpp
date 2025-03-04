@@ -26,12 +26,12 @@ int main(int argc, char ** argv)
   // Use masks to calculate the gradient
 
   // Masks
-  Mat SobelGx = (Mat_<char>(3, 3) <<   
+  Mat SobelGx = (Mat_<char>(3, 3) <<
     -1, 0, 1,
     -2, 0, 2,
     -1, 0, 1);
 
-  Mat SobelGy = (Mat_<char>(3, 3) <<   
+  Mat SobelGy = (Mat_<char>(3, 3) <<
     -1, -2, -1,
     0, 0, 0,
     1, 2, 1);
