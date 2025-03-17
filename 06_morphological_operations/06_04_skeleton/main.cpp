@@ -1,132 +1,160 @@
 /**
- * Skeleton - sample code: based on Hang Suen and Guo Hall
+ * Skeleton - sample code: based on Zhang-Suen thinning algorithm
  * @author José Miguel Guerrero
  */
 
-#include <iostream>
 #include <opencv2/opencv.hpp>
+#include <vector>
+#include <iostream>
 
-using namespace cv;
-using namespace std;
-
-#define THINNING_ZHANGSUEN 1
-#define THINNING_GUOHALL 2
-
-// Applies a thinning iteration to a binary image
-static void thinningIteration(Mat img, int iter, int thinningType)
+int countNeighbors(const cv::Mat & image, int x, int y)
 {
-  Mat marker = Mat::zeros(img.size(), CV_8UC1);
+  // Count the number of white (255) neighbors in the 3x3 window
+  int count = 0;
+  int dx[] = {-1, -1, 0, 1, 1, 1, 0, -1};
+  int dy[] = {0, 1, 1, 1, 0, -1, -1, -1};
 
-  if (thinningType == THINNING_ZHANGSUEN) {
-    for (int i = 1; i < img.rows - 1; i++) {
-      for (int j = 1; j < img.cols - 1; j++) {
-        uchar p2 = img.at<uchar>(i - 1, j);
-        uchar p3 = img.at<uchar>(i - 1, j + 1);
-        uchar p4 = img.at<uchar>(i, j + 1);
-        uchar p5 = img.at<uchar>(i + 1, j + 1);
-        uchar p6 = img.at<uchar>(i + 1, j);
-        uchar p7 = img.at<uchar>(i + 1, j - 1);
-        uchar p8 = img.at<uchar>(i, j - 1);
-        uchar p9 = img.at<uchar>(i - 1, j - 1);
-
-        int A = (p2 == 0 && p3 == 1) + (p3 == 0 && p4 == 1) +
-          (p4 == 0 && p5 == 1) + (p5 == 0 && p6 == 1) +
-          (p6 == 0 && p7 == 1) + (p7 == 0 && p8 == 1) +
-          (p8 == 0 && p9 == 1) + (p9 == 0 && p2 == 1);
-        int B = p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9;
-        int m1 = iter == 0 ? (p2 * p4 * p6) : (p2 * p4 * p8);
-        int m2 = iter == 0 ? (p4 * p6 * p8) : (p2 * p6 * p8);
-
-        if (A == 1 && (B >= 2 && B <= 6) && m1 == 0 && m2 == 0) {
-          marker.at<uchar>(i, j) = 1;
-        }
-      }
+  for (int i = 0; i < 8; i++) {
+    if (image.at<uchar>(x + dx[i], y + dy[i]) == 255) {
+      count++;
     }
   }
-
-  if (thinningType == THINNING_GUOHALL) {
-    for (int i = 1; i < img.rows - 1; i++) {
-      for (int j = 1; j < img.cols - 1; j++) {
-        uchar p2 = img.at<uchar>(i - 1, j);
-        uchar p3 = img.at<uchar>(i - 1, j + 1);
-        uchar p4 = img.at<uchar>(i, j + 1);
-        uchar p5 = img.at<uchar>(i + 1, j + 1);
-        uchar p6 = img.at<uchar>(i + 1, j);
-        uchar p7 = img.at<uchar>(i + 1, j - 1);
-        uchar p8 = img.at<uchar>(i, j - 1);
-        uchar p9 = img.at<uchar>(i - 1, j - 1);
-
-        int C = ((!p2) & (p3 | p4)) + ((!p4) & (p5 | p6)) + ((!p6) & (p7 | p8)) +
-          ((!p8) & (p9 | p2));
-        int N1 = (p9 | p2) + (p3 | p4) + (p5 | p6) + (p7 | p8);
-        int N2 = (p2 | p3) + (p4 | p5) + (p6 | p7) + (p8 | p9);
-        int N = N1 < N2 ? N1 : N2;
-        int m = iter == 0 ? ((p6 | p7 | (!p9)) & p8) : ((p2 | p3 | (!p5)) & p4);
-
-        if ((C == 1) && ((N >= 2) && ((N <= 3)) & (m == 0))) {
-          marker.at<uchar>(i, j) = 1;
-        }
-      }
-    }
-  }
-  img &= ~marker;
+  return count;
 }
 
-// Apply the thinning procedure to a given image
-void thinning(InputArray input, OutputArray output, int thinningType)
+int countTransitions(const cv::Mat & image, int x, int y)
 {
-  Mat processed = input.getMat().clone();
-  // Enforce the range of the input image to be in between 0 - 255
-  processed /= 255;
+  // Count the number of 0 to 1 transitions in a circular scan of neighbors
+  int dx[] = {-1, -1, 0, 1, 1, 1, 0, -1, -1};
+  int dy[] = {0, 1, 1, 1, 0, -1, -1, -1, 0};
+  int transitions = 0;
 
-  Mat prev = Mat::zeros(processed.size(), CV_8UC1);
-  Mat diff, temp;
+  for (int i = 0; i < 8; i++) {
+    if (image.at<uchar>(x + dx[i], y + dy[i]) == 0 &&
+      image.at<uchar>(x + dx[i + 1], y + dy[i + 1]) == 255)
+    {
+      transitions++;
+    }
+  }
+  return transitions;
+}
+
+void zhangSuenThinning(cv::Mat & image)
+{
+  // Perform Zhang-Suen thinning on the input binary image
+  cv::Mat temp = image.clone();
+  bool changed;
 
   do {
-    thinningIteration(processed, 0, thinningType);
-    thinningIteration(processed, 1, thinningType);
-    absdiff(processed, prev, diff);
-    processed.copyTo(prev);
+    changed = false;
+    std::vector<cv::Point> toRemove;
 
-    //// Displays the animation at each iteration of the algorithm
-    temp = processed * 255;
-    imshow("Original Skeleton Final", temp);
-    waitKey(10);
-    //// end animation
-  } while (countNonZero(diff) > 0);
+    // Step 1
+    for (int x = 1; x < image.rows - 1; x++) {
+      for (int y = 1; y < image.cols - 1; y++) {
+        if (image.at<uchar>(x, y) == 255) {
+          int neighbors = countNeighbors(image, x, y);
+          int transitions = countTransitions(image, x, y);
 
-  processed *= 255;
-  output.assign(processed);
+          if (neighbors >= 2 && neighbors <= 6 && transitions == 1 &&
+            (image.at<uchar>(x - 1, y) == 0 || image.at<uchar>(x,
+            y + 1) == 0 || image.at<uchar>(x + 1, y) == 0) &&
+            (image.at<uchar>(x, y + 1) == 0 || image.at<uchar>(x + 1, y) == 0 || image.at<uchar>(x,
+            y - 1) == 0))
+          {
+            toRemove.push_back(cv::Point(y, x));
+          }
+        }
+      }
+    }
+    // Remove the marked pixels
+    for (auto p : toRemove) {
+      temp.at<uchar>(p.y, p.x) = 0;
+    }
+
+    // Show iteration step
+    cv::imshow("Thinning Process", temp);
+    cv::waitKey(10);     // Pause for 10ms to visualize the changes
+
+    // Step 2
+    toRemove.clear();
+    for (int x = 1; x < image.rows - 1; x++) {
+      for (int y = 1; y < image.cols - 1; y++) {
+        if (temp.at<uchar>(x, y) == 255) {
+          int neighbors = countNeighbors(temp, x, y);
+          int transitions = countTransitions(temp, x, y);
+
+          if (neighbors >= 2 && neighbors <= 6 && transitions == 1 &&
+            (temp.at<uchar>(x - 1, y) == 0 || temp.at<uchar>(x, y + 1) == 0 || temp.at<uchar>(x,
+            y - 1) == 0) &&
+            (temp.at<uchar>(x - 1, y) == 0 || temp.at<uchar>(x + 1, y) == 0 || temp.at<uchar>(x,
+            y - 1) == 0))
+          {
+            toRemove.push_back(cv::Point(y, x));
+          }
+        }
+      }
+    }
+    // Remove the marked pixels
+    for (auto p : toRemove) {
+      temp.at<uchar>(p.y, p.x) = 0;
+    }
+
+    // Show iteration step
+    cv::imshow("Thinning Process", temp);
+    cv::waitKey(10);     // Pause for 10ms to visualize the changes
+
+    // Check if any pixel was removed
+    changed = !toRemove.empty();
+    temp.copyTo(image);
+
+  } while (changed);
 }
 
-
-int main(int argc, char ** argv)
+cv::Mat overlaySkeletonOnOriginal(const cv::Mat & original, const cv::Mat & skeleton)
 {
-  Mat image = imread("../../data/star.jpg", IMREAD_GRAYSCALE);
+  // Convert original grayscale image to BGR (color)
+  cv::Mat coloredOriginal;
+  cv::cvtColor(original, coloredOriginal, cv::COLOR_GRAY2BGR);
 
-  if (image.empty()) {
-    printf("No image data \n");
+  // Overlay the skeleton in red
+  for (int x = 0; x < skeleton.rows; x++) {
+    for (int y = 0; y < skeleton.cols; y++) {
+      if (skeleton.at<uchar>(x, y) == 255) {
+        coloredOriginal.at<cv::Vec3b>(x, y) = cv::Vec3b(0, 0, 255);         // Red color
+      }
+    }
+  }
+  return coloredOriginal;
+}
+
+int main()
+{
+  // Load the input binary image
+  cv::Mat original = cv::imread("../../data/star.jpg", cv::IMREAD_GRAYSCALE);
+  if (original.empty()) {
+    std::cout << "Error: Unable to load the image." << std::endl;
     return -1;
   }
 
-  Mat src = image.clone();
-  thinning(src, src, 2);
+  // Convert to binary image
+  cv::Mat image;
+  cv::threshold(original, image, 127, 255, cv::THRESH_BINARY);
 
-  // Draw red skeleton over the original image
-  cvtColor(image, image, COLOR_GRAY2BGR);
+  // Display original image
+  cv::imshow("Original Image", image);
+  cv::waitKey(10);   // Pause for 10ms to visualize the changes
 
-  for (int i = 0; i < image.cols; i++) {
-    for (int j = 0; j < image.rows; j++) {
-      Scalar intensity = src.at<uchar>(j, i);
-      if (intensity.val[0] == 255) {
-        image.at<Vec3b>(j, i) = Vec3b(0, 0, 255);
-      }
-    }
-  }
+  // Apply Zhang-Suen thinning
+  zhangSuenThinning(image);
 
-  imshow("OpenCV Skeleton Final", src);
-  imshow("Original Skeleton Final", image);
-  waitKey(0);
+  // Overlay skeleton on original image
+  cv::Mat finalOverlay = overlaySkeletonOnOriginal(original, image);
+
+  // Display the final skeleton over the original image
+  cv::imshow("Final Skeleton Overlay", finalOverlay);
+  cv::waitKey(0);
+  cv::destroyAllWindows();
 
   return 0;
 }
