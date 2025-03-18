@@ -11,111 +11,129 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
-using namespace cv;
-using namespace std;
-
 int main(int argc, char ** argv)
 {
   // Get filenames
-  vector<String> fileNames;
-  glob("../calibration_images/Image*.png", fileNames, false);
-  Size patternSize(25 - 1, 18 - 1);
-  vector<vector<Point2f>> q(fileNames.size());
+  std::vector<cv::String> fileNames;
+  cv::glob("../calibration_images/Image*.png", fileNames, false);
+  cv::Size patternSize(25 - 1, 18 - 1);
+  std::vector<std::vector<cv::Point2f>> q(fileNames.size());
 
   // 1. Generate checkerboard (world) coordinates Q. The board has 25 x 18 fields with a size of 15x15mm
-  vector<vector<Point3f>> Q;
+  std::vector<std::vector<cv::Point3f>> Q;
   int checkerBoard[2] = {25, 18};
-  // Defining the world coordinates for 3D points
-  vector<Point3f> objp;
+
+  // Defining the world coordinates for 3D points assuming z=0
+  std::vector<cv::Point3f> objp;
   for (int i = 1; i < checkerBoard[1]; i++) {
     for (int j = 1; j < checkerBoard[0]; j++) {
-      objp.push_back(Point3f(j, i, 0));
+      objp.push_back(cv::Point3f(j, i, 0));
     }
   }
 
-  vector<Point2f> imgPoint;
   // Detect feature points
   size_t i = 0;
   for (auto const & f : fileNames) {
-    cout << string(f) << endl;
+    std::cout << std::string(f) << std::endl;
 
     // 2. Read in the image an call cv::findChessboardCorners()
-    Mat img = imread(fileNames[i]);
-    Mat gray;
+    cv::Mat img = cv::imread(fileNames[i]);
+    cv::Mat gray;
 
-    cvtColor(img, gray, COLOR_RGB2GRAY);
+    cv::cvtColor(img, gray, cv::COLOR_RGB2GRAY);
 
-    bool patternFound = findChessboardCorners(
+    bool patternFound = cv::findChessboardCorners(
       gray, patternSize, q[i],
-      CALIB_CB_ADAPTIVE_THRESH + CALIB_CB_NORMALIZE_IMAGE +
-      CALIB_CB_FAST_CHECK);
+      cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE +
+      cv::CALIB_CB_FAST_CHECK);
 
-    // 2. Use cv::cornerSubPix() to refine the found corner detections
+    // 3. Use cv::cornerSubPix() to refine the found corner detections
     if (patternFound) {
-      cornerSubPix(
-        gray, q[i], Size(11, 11), Size(-1, -1),
-        TermCriteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 30, 0.1));
+      cv::cornerSubPix(
+        gray, q[i], cv::Size(11, 11), cv::Size(-1, -1),
+        cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 30, 0.1));
       Q.push_back(objp);
     }
 
     // Display
-    drawChessboardCorners(img, patternSize, q[i], patternFound);
-    resize(img, img, Size(img.cols / 2, img.rows / 2));
-    imshow("chessboard detection", img);
-    waitKey(800);
+    cv::drawChessboardCorners(img, patternSize, q[i], patternFound);
+    cv::resize(img, img, cv::Size(img.cols / 2, img.rows / 2));
+    cv::imshow("chessboard detection", img);
+    cv::waitKey(800);
 
     i++;
   }
 
-  Matx33f K(Matx33f::eye());    // intrinsic camera matrix
-  Vec<float, 5> k(0, 0, 0, 0, 0);   // distortion coefficients
+  // Intrinsic camera matrix
+  //    fx: focal length in x direction
+  //    fy: focal length in y direction
+  //    cx: principal point x
+  //    cy: principal point y
+  cv::Matx33f K(cv::Matx33f::eye());
 
-  vector<Mat> rvecs, tvecs;
-  vector<double> stdIntrinsics, stdExtrinsics, perViewErrors;
-  int flags = CALIB_FIX_ASPECT_RATIO + CALIB_FIX_K3 +
-    CALIB_ZERO_TANGENT_DIST + CALIB_FIX_PRINCIPAL_POINT;
-  Size frameSize(1440, 1080);
+  // distortion coefficients (k1, k2, p1, p2, k3):
+  //    k1: radial distortion coefficient first order
+  //    k2: radial distortion coefficient second order
+  //    p1: tangential distortion coefficient horizontal deviation
+  //    p2: tangential distortion coefficient vertical deviation
+  //    k3: radial distortion coefficient third order
+  cv::Vec<float, 5> k(0, 0, 0, 0, 0);   
 
-  cout << "Calibrating..." << endl;
+  // rvects and tvects are the rotation and translation vectors for each view
+  std::vector<cv::Mat> rvecs, tvecs;
+
+  // stdIntrinsics, stdExtrinsics and perViewErrors are the standard deviations of the estimated parameters
+  std::vector<double> stdIntrinsics, stdExtrinsics, perViewErrors;
+
+  // Flags for calibration
+  int flags = cv::CALIB_FIX_ASPECT_RATIO +    // Keeps the aspect ratio fixed
+              cv::CALIB_FIX_K3 +              // Fixes k3 distortion coefficient
+              cv::CALIB_ZERO_TANGENT_DIST +   // Assumes zero tangential distortion
+              cv::CALIB_FIX_PRINCIPAL_POINT;  // Fixes the principal point at the center
+
+  // Frame size 
+  cv::Size frameSize(1440, 1080);
+
+  std::cout << "Calibrating..." << std::endl;
+
   // 4. Call "float error = cv::calibrateCamera()" with the input coordinates and output parameters as declared above...
+  float error = cv::calibrateCamera(Q, q, frameSize, K, k, rvecs, tvecs, flags);
 
-  float error = calibrateCamera(Q, q, frameSize, K, k, rvecs, tvecs, flags);
-
-  cout << "Reprojection error = " << error << "\nK =\n"
+  std::cout << "Reprojection error = " << error << "\nK =\n"
        << K << "\nk=\n"
-       << k << endl;
+       << k << std::endl;
 
   // Precompute lens correction interpolation
-  Mat mapX, mapY;
-  initUndistortRectifyMap(K, k, Matx33f::eye(), K, frameSize, CV_32FC1, mapX, mapY);
+  cv::Mat mapX, mapY;
+  cv::initUndistortRectifyMap(K, k, cv::Matx33f::eye(), K, frameSize, CV_32FC1, mapX, mapY);
 
   // Show lens corrected images
   for (auto const & f : fileNames) {
-    cout << string(f) << endl;
+    std::cout << std::string(f) << std::endl;
 
-    Mat img = imread(f, IMREAD_COLOR);
+    cv::Mat img = cv::imread(f, cv::IMREAD_COLOR);
 
-    Mat imgUndistorted;
+    cv::Mat imgUndistorted;
     // 5. Remap the image using the precomputed interpolation maps
-    remap(img, imgUndistorted, mapX, mapY, INTER_LINEAR);
+    cv::remap(img, imgUndistorted, mapX, mapY, cv::INTER_LINEAR);
 
     // Display
-    resize(img, img, Size(img.cols / 2, img.rows / 2));
-    putText(
-      img, "Original", Point(img.cols - 100, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(
+    cv::resize(img, img, cv::Size(img.cols / 2, img.rows / 2));
+    cv::putText(
+      img, "Original", cv::Point(img.cols - 100, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(
         0, 0,
         0), 2);
-    resize(imgUndistorted, imgUndistorted, Size(imgUndistorted.cols / 2, imgUndistorted.rows / 2));
-    putText(
-      imgUndistorted, "Undistorted", Point(
+    cv::resize(imgUndistorted, imgUndistorted, cv::Size(imgUndistorted.cols / 2, imgUndistorted.rows / 2));
+    cv::putText(
+      imgUndistorted, "Undistorted", cv::Point(
         imgUndistorted.cols - 100,
-        15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 0),
+        15), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0),
       2);
 
-    Mat concat;
-    hconcat(img, imgUndistorted, concat);
-    imshow("Comparison", concat);
-    waitKey(0);
+    cv::Mat concat;
+    cv::hconcat(img, imgUndistorted, concat);
+    cv::imshow("Comparison", concat);
+    cv::waitKey(0);
   }
 
   return 0;
