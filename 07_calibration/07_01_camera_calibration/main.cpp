@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
   //    fy: focal length in y direction
   //    cx: principal point x
   //    cy: principal point y
-  cv::Matx33f cameraMatrix(cv::Matx33f::eye());
+  cv::Matx33f K(cv::Matx33f::eye());
 
   // distortion coefficients (k1, k2, p1, p2, k3):
   //    k1: radial distortion coefficient first order
@@ -77,45 +77,57 @@ int main(int argc, char ** argv)
   //    p1: tangential distortion coefficient horizontal deviation
   //    p2: tangential distortion coefficient vertical deviation
   //    k3: radial distortion coefficient third order
-  cv::Vec<float, 5> distCoeffs(0, 0, 0, 0, 0);   
+  cv::Vec<float, 5> distCoeffs(0, 0, 0, 0, 0);
 
   // rvects and tvects are the rotation and translation vectors for each view
   std::vector<cv::Mat> rvecs, tvecs;
 
-  // stdIntrinsics, stdExtrinsics and perViewErrors are the standard deviations of the estimated parameters
-  std::vector<double> stdIntrinsics, stdExtrinsics, perViewErrors;
-
   // Flags for calibration
   int flags = cv::CALIB_FIX_ASPECT_RATIO +    // Keeps the aspect ratio fixed
-              cv::CALIB_FIX_K3 +              // Fixes k3 distortion coefficient
-              cv::CALIB_ZERO_TANGENT_DIST +   // Assumes zero tangential distortion
-              cv::CALIB_FIX_PRINCIPAL_POINT;  // Fixes the principal point at the center
+    cv::CALIB_FIX_K3 +                        // Fixes k3 distortion coefficient
+    cv::CALIB_ZERO_TANGENT_DIST +             // Assumes zero tangential distortion
+    cv::CALIB_FIX_PRINCIPAL_POINT;            // Fixes the principal point at the center
 
-  // Frame size 
+  // Frame size
   cv::Size frameSize(1440, 1080);
 
   std::cout << "Calibrating..." << std::endl;
 
   // 4. Call "float error = cv::calibrateCamera()" with the input coordinates and output parameters as declared above...
-  float error = cv::calibrateCamera(Q, q, frameSize, cameraMatrix, distCoeffs, rvecs, tvecs, flags);
+  float error = cv::calibrateCamera(Q, q, frameSize, K, distCoeffs, rvecs, tvecs, flags);
 
-  std::cout << "Reprojection error = " << error << "\ncameraMatrix =\n"
-       << cameraMatrix << "\ndistCoeffs =\n"
-       << distCoeffs << std::endl;
+  std::cout << "Reprojection error = " << error << "\nK =\n"
+            << K << "\ndistCoeffs =\n"
+            << distCoeffs << std::endl;
 
   // Get first image and apply lens correction using undistort
   // This method is not recommended for real-time applications
   cv::Mat firstImg = cv::imread(fileNames[0], cv::IMREAD_COLOR);
   cv::Mat undistortedImg;
-  cv::undistort(firstImg, undistortedImg, cameraMatrix, distCoeffs);
-  cv::resize(undistortedImg, undistortedImg, cv::Size(undistortedImg.cols / 2, undistortedImg.rows / 2));
-  cv::imshow("Undistorted no RT", undistortedImg);
+  cv::undistort(firstImg, undistortedImg, K, distCoeffs);
+
+  // Display
+  cv::resize(firstImg, firstImg, cv::Size(firstImg.cols / 2, firstImg.rows / 2));
+  cv::putText(
+    firstImg, "Original", cv::Point(firstImg.cols - 100, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5,
+    cv::Scalar(0, 0, 0), 2);
+  cv::resize(undistortedImg, undistortedImg,
+    cv::Size(undistortedImg.cols / 2, undistortedImg.rows / 2));
+  cv::putText(
+    undistortedImg, "Undistorted",
+    cv::Point(undistortedImg.cols - 100, 15),
+    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0), 2);
+
+  cv::Mat concat_nort;
+  cv::hconcat(firstImg, undistortedImg, concat_nort);
+  cv::imshow("Comparison no RT", concat_nort);
   cv::waitKey(0);
 
   // For real-time applications, we can use the remap method
   // Precompute lens correction interpolation
   cv::Mat mapX, mapY;
-  cv::initUndistortRectifyMap(cameraMatrix, distCoeffs, cv::Matx33f::eye(), cameraMatrix, frameSize, CV_32FC1, mapX, mapY);
+  cv::initUndistortRectifyMap(
+    K, distCoeffs, cv::Matx33f::eye(), K, frameSize, CV_32FC1, mapX, mapY);
 
   // Show lens corrected images
   for (auto const & f : fileNames) {
@@ -130,19 +142,18 @@ int main(int argc, char ** argv)
     // Display
     cv::resize(img, img, cv::Size(img.cols / 2, img.rows / 2));
     cv::putText(
-      img, "Original", cv::Point(img.cols - 100, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(
-        0, 0,
-        0), 2);
-    cv::resize(imgUndistorted, imgUndistorted, cv::Size(imgUndistorted.cols / 2, imgUndistorted.rows / 2));
+      img, "Original", cv::Point(img.cols - 100, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5,
+      cv::Scalar(0, 0, 0), 2);
+    cv::resize(imgUndistorted, imgUndistorted,
+      cv::Size(imgUndistorted.cols / 2, imgUndistorted.rows / 2));
     cv::putText(
-      imgUndistorted, "Undistorted", cv::Point(
-        imgUndistorted.cols - 100,
-        15), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0),
-      2);
+      imgUndistorted, "Undistorted",
+      cv::Point(imgUndistorted.cols - 100, 15),
+      cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0), 2);
 
     cv::Mat concat;
     cv::hconcat(img, imgUndistorted, concat);
-    cv::imshow("Comparison", concat);
+    cv::imshow("Comparison RT", concat);
     cv::waitKey(0);
   }
 
