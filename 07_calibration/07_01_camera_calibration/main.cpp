@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
   }
 
   // Detect feature points
-  size_t i = 0;
+  std::size_t i = 0;
   for (auto const & f : fileNames) {
     std::cout << std::string(f) << std::endl;
 
