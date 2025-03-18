@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
   //    fy: focal length in y direction
   //    cx: principal point x
   //    cy: principal point y
-  cv::Matx33f K(cv::Matx33f::eye());
+  cv::Matx33f cameraMatrix(cv::Matx33f::eye());
 
   // distortion coefficients (k1, k2, p1, p2, k3):
   //    k1: radial distortion coefficient first order
@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
   //    p1: tangential distortion coefficient horizontal deviation
   //    p2: tangential distortion coefficient vertical deviation
   //    k3: radial distortion coefficient third order
-  cv::Vec<float, 5> k(0, 0, 0, 0, 0);   
+  cv::Vec<float, 5> distCoeffs(0, 0, 0, 0, 0);   
 
   // rvects and tvects are the rotation and translation vectors for each view
   std::vector<cv::Mat> rvecs, tvecs;
@@ -97,15 +97,25 @@ int main(int argc, char ** argv)
   std::cout << "Calibrating..." << std::endl;
 
   // 4. Call "float error = cv::calibrateCamera()" with the input coordinates and output parameters as declared above...
-  float error = cv::calibrateCamera(Q, q, frameSize, K, k, rvecs, tvecs, flags);
+  float error = cv::calibrateCamera(Q, q, frameSize, cameraMatrix, distCoeffs, rvecs, tvecs, flags);
 
-  std::cout << "Reprojection error = " << error << "\nK =\n"
-       << K << "\nk=\n"
-       << k << std::endl;
+  std::cout << "Reprojection error = " << error << "\ncameraMatrix =\n"
+       << cameraMatrix << "\ndistCoeffs =\n"
+       << distCoeffs << std::endl;
 
+  // Get first image and apply lens correction using undistort
+  // This method is not recommended for real-time applications
+  cv::Mat firstImg = cv::imread(fileNames[0], cv::IMREAD_COLOR);
+  cv::Mat undistortedImg;
+  cv::undistort(firstImg, undistortedImg, cameraMatrix, distCoeffs);
+  cv::resize(undistortedImg, undistortedImg, cv::Size(undistortedImg.cols / 2, undistortedImg.rows / 2));
+  cv::imshow("Undistorted no RT", undistortedImg);
+  cv::waitKey(0);
+
+  // For real-time applications, we can use the remap method
   // Precompute lens correction interpolation
   cv::Mat mapX, mapY;
-  cv::initUndistortRectifyMap(K, k, cv::Matx33f::eye(), K, frameSize, CV_32FC1, mapX, mapY);
+  cv::initUndistortRectifyMap(cameraMatrix, distCoeffs, cv::Matx33f::eye(), cameraMatrix, frameSize, CV_32FC1, mapX, mapY);
 
   // Show lens corrected images
   for (auto const & f : fileNames) {
