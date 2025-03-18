@@ -35,8 +35,9 @@ int main(int argc, char ** argv)
   // Get filenames
   std::vector<cv::String> fileNames;
   cv::glob("../calibration_images/Image*.png", fileNames, false);
+
+  // Pattern size (rows, cols)
   cv::Size patternSize(25 - 1, 18 - 1);
-  std::vector<std::vector<cv::Point2f>> q(fileNames.size());
 
   // 1. Generate checkerboard (world) coordinates Q. The board has 25 x 18 fields with a size of 15x15mm
   std::vector<std::vector<cv::Point3f>> Q;
@@ -50,6 +51,9 @@ int main(int argc, char ** argv)
     }
   }
 
+  // 2D points (image points) q. Each image has a vector of 2D points
+  std::vector<std::vector<cv::Point2f>> q(fileNames.size());
+
   // Detect feature points
   std::size_t i = 0;
   for (auto const & f : fileNames) {
@@ -62,9 +66,13 @@ int main(int argc, char ** argv)
     cv::cvtColor(img, gray, cv::COLOR_RGB2GRAY);
 
     bool patternFound = cv::findChessboardCorners(
-      gray, patternSize, q[i],
-      cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE +
-      cv::CALIB_CB_FAST_CHECK);
+      gray,         // Input: Grayscale image
+      patternSize,  // Input: Size of the chessboard pattern (rows, cols)
+      q[i],         // Output: Detected 2D corner points
+      cv::CALIB_CB_ADAPTIVE_THRESH + // Input: Optional flags for optimization
+      cv::CALIB_CB_NORMALIZE_IMAGE +
+      cv::CALIB_CB_FAST_CHECK
+    );
 
     // 3. Use cv::cornerSubPix() to refine the found corner detections
     if (patternFound) {
@@ -113,7 +121,16 @@ int main(int argc, char ** argv)
   std::cout << "Calibrating..." << std::endl;
 
   // 4. Call "float error = cv::calibrateCamera()" with the input coordinates and output parameters as declared above...
-  float error = cv::calibrateCamera(Q, q, frameSize, K, distCoeffs, rvecs, tvecs, flags);
+  float error = cv::calibrateCamera(
+    Q,          // 3D points (object points) in the world coordinate system
+    q,          // 2D points (in image plane) in the camera coordinate system
+    frameSize,  // Image size (width, height)
+    K,          // Output intrinsic matrix (3x3)
+    distCoeffs, // Output distortion coefficients (radial & tangential)
+    rvecs,      // Output rotation vectors (3x1) one for each view
+    tvecs,      // Output translation vectors (3x1) one for each view
+    flags       // Flags (optional)
+  );
 
   std::cout << "Reprojection error = " << error << "\nK =\n"
             << K << "\ndistCoeffs =\n"
