@@ -11,6 +11,25 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
+void compare_images(std::string title, cv::Mat & distorted, cv::Mat & undistorted)
+{
+  cv::resize(distorted, distorted, cv::Size(distorted.cols / 2, distorted.rows / 2));
+  cv::putText(
+    distorted, "Original", cv::Point(distorted.cols - 100, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5,
+    cv::Scalar(0, 0, 0), 2);
+  cv::resize(undistorted, undistorted,
+    cv::Size(undistorted.cols / 2, undistorted.rows / 2));
+  cv::putText(
+    undistorted, "Undistorted",
+    cv::Point(undistorted.cols - 100, 15),
+    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0), 2);
+
+  cv::Mat concat;
+  cv::hconcat(distorted, undistorted, concat);
+  cv::imshow(title, concat);
+  cv::waitKey(0);
+}
+
 int main(int argc, char ** argv)
 {
   // Get filenames
@@ -107,27 +126,21 @@ int main(int argc, char ** argv)
   cv::undistort(firstImg, undistortedImg, K, distCoeffs);
 
   // Display
-  cv::resize(firstImg, firstImg, cv::Size(firstImg.cols / 2, firstImg.rows / 2));
-  cv::putText(
-    firstImg, "Original", cv::Point(firstImg.cols - 100, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5,
-    cv::Scalar(0, 0, 0), 2);
-  cv::resize(undistortedImg, undistortedImg,
-    cv::Size(undistortedImg.cols / 2, undistortedImg.rows / 2));
-  cv::putText(
-    undistortedImg, "Undistorted",
-    cv::Point(undistortedImg.cols - 100, 15),
-    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0), 2);
-
-  cv::Mat concat_nort;
-  cv::hconcat(firstImg, undistortedImg, concat_nort);
-  cv::imshow("Comparison no RT", concat_nort);
-  cv::waitKey(0);
+  compare_images("Comparison no RT", firstImg, undistortedImg);
 
   // For real-time applications, we can use the remap method
   // Precompute lens correction interpolation
   cv::Mat mapX, mapY;
   cv::initUndistortRectifyMap(
-    K, distCoeffs, cv::Matx33f::eye(), K, frameSize, CV_32FC1, mapX, mapY);
+    K,                  // Camera intrinsic matrix (3x3)
+    distCoeffs,         // Distortion coefficients (radial & tangential)
+    cv::Matx33f::eye(), // Rectification matrix (identity if no rectification)
+    K,                  // New intrinsic matrix after undistortion (can be modified)
+    frameSize,          // Size of the output image (width, height)
+    CV_32FC1,           // Type of the output maps (CV_32FC1 or CV_16SC2)
+    mapX,               // Output map for x-coordinates
+    mapY                // Output map for y-coordinates
+  );
 
   // Show lens corrected images
   for (auto const & f : fileNames) {
@@ -137,24 +150,16 @@ int main(int argc, char ** argv)
 
     cv::Mat imgUndistorted;
     // 5. Remap the image using the precomputed interpolation maps
-    cv::remap(img, imgUndistorted, mapX, mapY, cv::INTER_LINEAR);
+    cv::remap(
+      img,              // Input distorted image
+      imgUndistorted,   // Output undistorted image
+      mapX,             // Precomputed x-coordinates map
+      mapY,             // Precomputed y-coordinates map
+      cv::INTER_LINEAR  // Interpolation method
+    );
 
     // Display
-    cv::resize(img, img, cv::Size(img.cols / 2, img.rows / 2));
-    cv::putText(
-      img, "Original", cv::Point(img.cols - 100, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5,
-      cv::Scalar(0, 0, 0), 2);
-    cv::resize(imgUndistorted, imgUndistorted,
-      cv::Size(imgUndistorted.cols / 2, imgUndistorted.rows / 2));
-    cv::putText(
-      imgUndistorted, "Undistorted",
-      cv::Point(imgUndistorted.cols - 100, 15),
-      cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0), 2);
-
-    cv::Mat concat;
-    cv::hconcat(img, imgUndistorted, concat);
-    cv::imshow("Comparison RT", concat);
-    cv::waitKey(0);
+    compare_images("Comparison RT", img, imgUndistorted);
   }
 
   return 0;
