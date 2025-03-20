@@ -2,7 +2,7 @@
  * Camera calibration demo sample
  * @author José Miguel Guerrero
  *
- * Based on: https://github.com/niconielsen32/ComputerVision
+ * Images from: https://github.com/niconielsen32/ComputerVision
  */
 
 #include <iostream>
@@ -27,7 +27,7 @@ void compare_images(std::string title, cv::Mat & distorted, cv::Mat & undistorte
   cv::Mat concat;
   cv::hconcat(distorted, undistorted, concat);
   cv::imshow(title, concat);
-  cv::waitKey(0);
+  cv::waitKey(400);
 }
 
 int main(int argc, char ** argv)
@@ -36,23 +36,22 @@ int main(int argc, char ** argv)
   std::vector<cv::String> fileNames;
   cv::glob("../calibration_images/Image*.png", fileNames, false);
 
-  // Pattern size (rows, cols)
-  cv::Size patternSize(25 - 1, 18 - 1);
+  // Pattern size inner corners (rows, cols)
+  cv::Size chessBoardSize(24, 17);
+  cv::Size squareSize(15, 15); // mm
 
-  // 1. Generate checkerboard (world) coordinates Q. The board has 25 x 18 fields with a size of 15x15mm
-  std::vector<std::vector<cv::Point3f>> Q;
-  int checkerBoard[2] = {25, 18};
-
-  // Defining the world coordinates for 3D points assuming z=0
-  std::vector<cv::Point3f> objp;
-  for (int i = 1; i < checkerBoard[1]; i++) {
-    for (int j = 1; j < checkerBoard[0]; j++) {
-      objp.push_back(cv::Point3f(j, i, 0));
+  // 1. Generate world coordinates for 3D points assuming z=0. The board has 25 x 18 fields with a size of 15x15mm
+  std::vector<cv::Point3f> chessBoard3Dcorners;
+  for (int i = 0; i < chessBoardSize.height; i++) {
+    for (int j = 0; j < chessBoardSize.width; j++) {
+      chessBoard3Dcorners.push_back(cv::Point3f(j * squareSize.width, i * squareSize.height, 0));
     }
   }
 
-  // 2D points (image points) q. Each image has a vector of 2D points
-  std::vector<std::vector<cv::Point2f>> q(fileNames.size());
+  // 2D points (image points). Each image has a vector of 2D points
+  std::vector<std::vector<cv::Point2f>> chessBoard2D(fileNames.size());
+  // 3D points (object points). Each image has a vector of 3D points
+  std::vector<std::vector<cv::Point3f>> chessBoard3D(fileNames.size());
 
   // Detect feature points
   std::size_t i = 0;
@@ -62,14 +61,13 @@ int main(int argc, char ** argv)
     // 2. Read in the image an call cv::findChessboardCorners()
     cv::Mat img = cv::imread(fileNames[i]);
     cv::Mat gray;
-
     cv::cvtColor(img, gray, cv::COLOR_RGB2GRAY);
 
     bool patternFound = cv::findChessboardCorners(
-      gray,         // Input: Grayscale image
-      patternSize,  // Input: Size of the chessboard pattern (rows, cols)
-      q[i],         // Output: Detected 2D corner points
-      cv::CALIB_CB_ADAPTIVE_THRESH + // Input: Optional flags for optimization
+      gray,                           // Input: Grayscale image
+      chessBoardSize,                 // Input: Size of the chessboard pattern (rows, cols)
+      chessBoard2D[i],                // Output: Detected 2D corner points
+      cv::CALIB_CB_ADAPTIVE_THRESH +  // Input: Optional flags for optimization
       cv::CALIB_CB_NORMALIZE_IMAGE +
       cv::CALIB_CB_FAST_CHECK
     );
@@ -77,16 +75,17 @@ int main(int argc, char ** argv)
     // 3. Use cv::cornerSubPix() to refine the found corner detections
     if (patternFound) {
       cv::cornerSubPix(
-        gray, q[i], cv::Size(11, 11), cv::Size(-1, -1),
+        gray, chessBoard2D[i], cv::Size(11, 11), cv::Size(-1, -1),
         cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 30, 0.1));
-      Q.push_back(objp);
+      // For each image, we have the same 3D points
+      chessBoard3D[i] = chessBoard3Dcorners;
     }
 
     // Display
-    cv::drawChessboardCorners(img, patternSize, q[i], patternFound);
+    cv::drawChessboardCorners(img, chessBoardSize, chessBoard2D[i], patternFound);
     cv::resize(img, img, cv::Size(img.cols / 2, img.rows / 2));
     cv::imshow("chessboard detection", img);
-    cv::waitKey(800);
+    cv::waitKey(400);
 
     i++;
   }
@@ -120,16 +119,19 @@ int main(int argc, char ** argv)
 
   std::cout << "Calibrating..." << std::endl;
 
+  std::cout << "Chessboard 3D size: " << chessBoard3D.size() << std::endl;
+  std::cout << "Chessboard 2D size: " << chessBoard2D.size() << std::endl;
+
   // 4. Call "float error = cv::calibrateCamera()" with the input coordinates and output parameters as declared above...
   float error = cv::calibrateCamera(
-    Q,          // 3D points (object points) in the world coordinate system
-    q,          // 2D points (in image plane) in the camera coordinate system
-    frameSize,  // Image size (width, height)
-    K,          // Output intrinsic matrix (3x3)
-    distCoeffs, // Output distortion coefficients (radial & tangential)
-    rvecs,      // Output rotation vectors (3x1) one for each view
-    tvecs,      // Output translation vectors (3x1) one for each view
-    flags       // Flags (optional)
+    chessBoard3D,  // 3D points (object points) in the world coordinate system
+    chessBoard2D,  // 2D points (in image plane) in the camera coordinate system
+    frameSize,     // Image size (width, height)
+    K,             // Output intrinsic matrix (3x3)
+    distCoeffs,    // Output distortion coefficients (radial & tangential)
+    rvecs,         // Output rotation vectors (3x1) one for each view
+    tvecs,         // Output translation vectors (3x1) one for each view
+    flags          // Flags (optional)
   );
 
   std::cout << "Reprojection error = " << error << "\nK =\n"
