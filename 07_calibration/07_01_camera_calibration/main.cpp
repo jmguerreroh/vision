@@ -176,10 +176,14 @@ int main(int argc, char ** argv)
   );
 
   // Show lens corrected images
+  i = 0;
   for (auto const & f : fileNames) {
     std::cout << std::string(f) << std::endl;
 
     original = cv::imread(f, cv::IMREAD_COLOR);
+
+    // Draw the 3D axes
+    cv::drawFrameAxes(original, K, distCoeffs, rvecs[i], tvecs[i], 120, 10);
 
     // Remap the image using the precomputed interpolation maps
     cv::remap(
@@ -192,6 +196,8 @@ int main(int argc, char ** argv)
 
     // Display
     compare_images("Comparison RT", original, undistorted);
+
+    i++;
   }
 
   return 0;
