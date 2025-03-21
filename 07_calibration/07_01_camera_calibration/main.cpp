@@ -72,7 +72,7 @@ int main(int argc, char ** argv)
     bool patternFound = cv::findChessboardCorners(
       grayscale,                      // Input: Grayscale image
       chessBoardSize,                 // Input: Size of the chessboard pattern (rows, cols)
-      corners,                // Output: Detected 2D corner points
+      corners,                        // Output: Detected 2D corner points
       cv::CALIB_CB_ADAPTIVE_THRESH +  // Input: Optional flags for optimization
       cv::CALIB_CB_NORMALIZE_IMAGE +
       cv::CALIB_CB_FAST_CHECK
@@ -83,7 +83,7 @@ int main(int argc, char ** argv)
       // Refine corner accuracy
       cv::cornerSubPix(
         grayscale,        // Input grayscale image (single-channel)
-        corners,  // Initial corner coordinates to refine
+        corners,          // Initial corner coordinates to refine
         cv::Size(11, 11), // Half-size of the search window (11x11 pixels)
         cv::Size(-1, -1), // Half-size of the dead region (-1,-1 means no dead region)
         cv::TermCriteria(
