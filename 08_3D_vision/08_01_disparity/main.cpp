@@ -2,7 +2,7 @@
  * Disparity filtering demo sample
  * @author José Miguel Guerrero
  *
- * https://docs.opencv.org/master/d3/d14/tutorial_ximgproc_disparity_filtering.html
+ * Reference: https://docs.opencv.org/master/d3/d14/tutorial_ximgproc_disparity_filtering.html
  */
 
 #include "opencv2/calib3d.hpp"
@@ -14,13 +14,9 @@
 #include <iostream>
 #include <string>
 
-using namespace cv;
-using namespace cv::ximgproc;
-using namespace std;
+cv::Rect computeROI(cv::Size2i src_sz, cv::Ptr<cv::StereoMatcher> matcher_instance);
 
-Rect computeROI(Size2i src_sz, Ptr<StereoMatcher> matcher_instance);
-
-const String keys =
+const std::string keys =
   "{help h usage ? |                  | print this message                                                }"
   "{@left          |data/aloeL.jpg    | left view of the stereopair                                       }"
   "{@right         |data/aloeR.jpg    | right view of the stereopair                                      }"
@@ -45,22 +41,22 @@ const String keys =
 
 int main(int argc, char ** argv)
 {
-  CommandLineParser parser(argc, argv, keys);
+  cv::CommandLineParser parser(argc, argv, keys);
   parser.about("Disparity Filtering Demo");
   if (parser.has("help")) {
     parser.printMessage();
     return 0;
   }
 
-  String left_im = parser.get<String>(0);
-  String right_im = parser.get<String>(1);
-  String GT_path = parser.get<String>("GT");
-
-  String dst_path = parser.get<String>("dst_path");
-  String dst_raw_path = parser.get<String>("dst_raw_path");
-  String dst_conf_path = parser.get<String>("dst_conf_path");
-  String algo = parser.get<String>("algorithm");
-  String filter = parser.get<String>("filter");
+  // Read command line arguments
+  std::string left_im = parser.get<std::string>(0);
+  std::string right_im = parser.get<std::string>(1);
+  std::string GT_path = parser.get<std::string>("GT");
+  std::string dst_path = parser.get<std::string>("dst_path");
+  std::string dst_raw_path = parser.get<std::string>("dst_raw_path");
+  std::string dst_conf_path = parser.get<std::string>("dst_conf_path");
+  std::string algo = parser.get<std::string>("algorithm");
+  std::string filter = parser.get<std::string>("filter");
   bool no_display = parser.has("no-display");
   bool no_downscale = parser.has("no-downscale");
   int max_disp = parser.get<int>("max_disparity");
@@ -72,16 +68,21 @@ int main(int argc, char ** argv)
   double fbs_lambda = parser.get<double>("fbs_lambda");
   double vis_mult = parser.get<double>("vis_mult");
 
+  // Set window size for stereo matching
   int wsize;
-  if (parser.get<int>("window_size") >= 0) { //user provided window_size value
+  if (parser.get<int>("window_size") >= 0) {
+    // User provided window_size value
     wsize = parser.get<int>("window_size");
   } else {
     if (algo == "sgbm") {
-      wsize = 3;       //default window size for SGBM
+      // Default window size for SGBM
+      wsize = 3;
     } else if (!no_downscale && algo == "bm" && filter == "wls_conf") {
-      wsize = 7;       //default window size for BM on downscaled views (downscaling is performed only for wls_conf)
+      // Default window size for BM on downscaled views (downscaling is performed only for wls_conf)
+      wsize = 7;
     } else {
-      wsize = 15;       //default window size for BM on full-sized views
+      // Default window size for BM on full-sized views
+      wsize = 15;
     }
   }
 
@@ -91,100 +92,118 @@ int main(int argc, char ** argv)
   }
 
   //! [load_views]
-  Mat left = imread(left_im, IMREAD_COLOR);
+  // Left image
+  cv::Mat left = cv::imread(left_im, cv::IMREAD_COLOR);
   if (left.empty() ) {
-    cout << "Cannot read image file: " << left_im;
+    std::cout << "Cannot read image file: " << left_im;
     return -1;
   }
 
-  Mat right = imread(right_im, IMREAD_COLOR);
+  // Right image
+  cv::Mat right = cv::imread(right_im, cv::IMREAD_COLOR);
   if (right.empty() ) {
-    cout << "Cannot read image file: " << right_im;
+    std::cout << "Cannot read image file: " << right_im;
     return -1;
   }
-  //! [load_views]
 
+  // Ground truth disparity map
   bool noGT;
-  Mat GT_disp;
+  cv::Mat GT_disp;
   if (GT_path == "data/aloeGT.png" && left_im != "data/aloeL.jpg") {
     noGT = true;
   } else {
     noGT = false;
-    if (readGT(GT_path, GT_disp) != 0) {
-      cout << "Cannot read ground truth image file: " << GT_path << endl;
+    if (cv::ximgproc::readGT(GT_path, GT_disp) != 0) {
+      std::cout << "Cannot read ground truth image file: " << GT_path << std::endl;
       return -1;
     }
   }
+  //! [load_views]
 
-  Mat left_for_matcher, right_for_matcher;
-  Mat left_disp, right_disp;
-  Mat filtered_disp, solved_disp, solved_filtered_disp;
-  Mat conf_map = Mat(left.rows, left.cols, CV_8U);
-  conf_map = Scalar(255);
-  Rect ROI;
-  Ptr<DisparityWLSFilter> wls_filter;
+  // Matrices to store the left and right images formatted for stereo matching
+  cv::Mat left_for_matcher, right_for_matcher;
+  // Matrices to store the disparity maps computed for the left and right images
+  cv::Mat left_disp, right_disp;
+  // Matrices for post-processed disparity maps, including filtering and solving steps
+  cv::Mat filtered_disp, solved_disp, solved_filtered_disp;
+  // Confidence map used for disparity filtering, initialized to full confidence (255)
+  cv::Mat conf_map = cv::Mat(left.rows, left.cols, CV_8U);
+  conf_map = cv::Scalar(255);
+  // Region of Interest (ROI) for disparity processing
+  cv::Rect ROI;
+  // Pointer to the WLS (Weighted Least Squares) filter for disparity refinement
+  cv::Ptr<cv::ximgproc::DisparityWLSFilter> wls_filter;
+  // Timing variables
   double matching_time, filtering_time;
   double solving_time = 0;
   if (max_disp <= 0 || max_disp % 16 != 0) {
-    cout << "Incorrect max_disparity value: it should be positive and divisible by 16";
+    std::cout << "Incorrect max_disparity value: it should be positive and divisible by 16";
     return -1;
   }
   if (wsize <= 0 || wsize % 2 != 1) {
-    cout << "Incorrect window_size value: it should be positive and odd";
+    std::cout << "Incorrect window_size value: it should be positive and odd";
     return -1;
   }
 
-  if (filter == "wls_conf") {// filtering with confidence (significantly better quality than wls_no_conf)
+  // Filtering with confidence (significantly better quality than WLS without confidence)
+  if (filter == "wls_conf") {
     if (!no_downscale) {
-      // downscale the views to speed-up the matching stage, as we will need to compute both left
+      // Downscale the views to speed-up the matching stage, as we will need to compute both left
       // and right disparity maps for confidence map computation
       //! [downscale]
       max_disp /= 2;
       if (max_disp % 16 != 0) {
-        max_disp += 16 - (max_disp % 16);
+        max_disp += 16 - (max_disp % 16); // Ensure max_disp is a multiple of 16
       }
-      resize(left, left_for_matcher, Size(), 0.5, 0.5, INTER_LINEAR_EXACT);
-      resize(right, right_for_matcher, Size(), 0.5, 0.5, INTER_LINEAR_EXACT);
+      cv::resize(left, left_for_matcher, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR_EXACT);
+      cv::resize(right, right_for_matcher, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR_EXACT);
       //! [downscale]
+
     } else {
+      // If no downscaling is applied, simply clone the original images
       left_for_matcher = left.clone();
       right_for_matcher = right.clone();
     }
 
     if (algo == "bm") {
-      // We are using StereoBM for faster processing. If speed is not critical, though, StereoSGBM would provide better quality.
-      // The filter instance is created by providing the StereoMatcher instance that we intend to use. Another matcher instance is
-      // returned by the createRightMatcher function. These two matcher instances are then used to compute disparity maps both for
-      // the left and right views, that are required by the filter
+      // Using StereoBM for faster processing. If speed is not critical, StereoSGBM provides better quality
+      // The WLS filter is created using the StereoMatcher instance
+      // Another matcher instance is created for computing the right disparity map
 
       //! [matching]
-      Ptr<StereoBM> left_matcher = StereoBM::create(max_disp, wsize);
-      wls_filter = createDisparityWLSFilter(left_matcher);
-      Ptr<StereoMatcher> right_matcher = createRightMatcher(left_matcher);
+      cv::Ptr<cv::StereoBM> left_matcher = cv::StereoBM::create(max_disp, wsize);
+      wls_filter = cv::ximgproc::createDisparityWLSFilter(left_matcher);
+      cv::Ptr<cv::StereoMatcher> right_matcher = cv::ximgproc::createRightMatcher(left_matcher);
 
-      cvtColor(left_for_matcher, left_for_matcher, COLOR_BGR2GRAY);
-      cvtColor(right_for_matcher, right_for_matcher, COLOR_BGR2GRAY);
+      cv::cvtColor(left_for_matcher, left_for_matcher, cv::COLOR_BGR2GRAY);
+      cv::cvtColor(right_for_matcher, right_for_matcher, cv::COLOR_BGR2GRAY);
 
-      matching_time = (double)getTickCount();
+      matching_time = (double)cv::getTickCount();
+      // Compute disparity maps for both left and right views
       left_matcher->compute(left_for_matcher, right_for_matcher, left_disp);
       right_matcher->compute(right_for_matcher, left_for_matcher, right_disp);
-      matching_time = ((double)getTickCount() - matching_time) / getTickFrequency();
+      matching_time = ((double)cv::getTickCount() - matching_time) / cv::getTickFrequency();
       //! [matching]
+
     } else if (algo == "sgbm") {
-      Ptr<StereoSGBM> left_matcher = StereoSGBM::create(0, max_disp, wsize);
+      // Using StereoSGBM, which provides better quality than StereoBM
+      cv::Ptr<cv::StereoSGBM> left_matcher = cv::StereoSGBM::create(0, max_disp, wsize);
+      // Set the P1 and P2 parameters for the SGBM algorithm
       left_matcher->setP1(24 * wsize * wsize);
       left_matcher->setP2(96 * wsize * wsize);
       left_matcher->setPreFilterCap(63);
-      left_matcher->setMode(StereoSGBM::MODE_SGBM_3WAY);
-      wls_filter = createDisparityWLSFilter(left_matcher);
-      Ptr<StereoMatcher> right_matcher = createRightMatcher(left_matcher);
+      left_matcher->setMode(cv::StereoSGBM::MODE_SGBM_3WAY);
+      wls_filter = cv::ximgproc::createDisparityWLSFilter(left_matcher);
+      cv::Ptr<cv::StereoMatcher> right_matcher = cv::ximgproc::createRightMatcher(left_matcher);
 
-      matching_time = (double)getTickCount();
+      matching_time = (double)cv::getTickCount();
+      // Compute disparity maps for both left and right views
       left_matcher->compute(left_for_matcher, right_for_matcher, left_disp);
       right_matcher->compute(right_for_matcher, left_for_matcher, right_disp);
-      matching_time = ((double)getTickCount() - matching_time) / getTickFrequency();
+      matching_time = ((double)cv::getTickCount() - matching_time) / cv::getTickFrequency();
+
     } else {
-      cout << "Unsupported algorithm";
+      std::cout << "Unsupported algorithm";
       return -1;
     }
     // Disparity maps computed by the respective matcher instances, as well as the source left view are passed to the filter.
@@ -193,195 +212,208 @@ int main(int argc, char ** argv)
     //! [filtering]
     wls_filter->setLambda(lambda);
     wls_filter->setSigmaColor(sigma);
-    filtering_time = (double)getTickCount();
+    filtering_time = (double)cv::getTickCount();
     wls_filter->filter(left_disp, left, filtered_disp, right_disp);
-    filtering_time = ((double)getTickCount() - filtering_time) / getTickFrequency();
+    filtering_time = ((double)cv::getTickCount() - filtering_time) / cv::getTickFrequency();
     //! [filtering]
-    conf_map = wls_filter->getConfidenceMap();
 
-    // Get the ROI that was used in the last filter call:
+    // Retrieve the confidence map
+    conf_map = wls_filter->getConfidenceMap();
+    // Get the ROI that was used in the last filter call
     ROI = wls_filter->getROI();
+
     if (!no_downscale) {
-      // upscale raw disparity and ROI back for a proper comparison:
-      resize(left_disp, left_disp, Size(), 2.0, 2.0, INTER_LINEAR_EXACT);
+      // If downscaling was applied, upscale disparity and ROI for proper comparison
+      cv::resize(left_disp, left_disp, cv::Size(), 2.0, 2.0, cv::INTER_LINEAR_EXACT);
       left_disp = left_disp * 2.0;
-      ROI = Rect(ROI.x * 2, ROI.y * 2, ROI.width * 2, ROI.height * 2);
+      ROI = cv::Rect(ROI.x * 2, ROI.y * 2, ROI.width * 2, ROI.height * 2);
     }
-  } else if (filter == "fbs_conf") {// filtering with fbs and confidence using also wls pre-processing
+  }
+  // Filtering with fbs and confidence using also wls pre-processing
+  else if (filter == "fbs_conf") {
     if (!no_downscale) {
-      // downscale the views to speed-up the matching stage, as we will need to compute both left
+      // Downscale the views to speed-up the matching stage, as we will need to compute both left
       // and right disparity maps for confidence map computation
       //! [downscale_wls]
       max_disp /= 2;
       if (max_disp % 16 != 0) {
         max_disp += 16 - (max_disp % 16);
       }
-      resize(left, left_for_matcher, Size(), 0.5, 0.5);
-      resize(right, right_for_matcher, Size(), 0.5, 0.5);
+      cv::resize(left, left_for_matcher, cv::Size(), 0.5, 0.5);
+      cv::resize(right, right_for_matcher, cv::Size(), 0.5, 0.5);
       //! [downscale_wls]
+
     } else {
+      // Keep the original views
       left_for_matcher = left.clone();
       right_for_matcher = right.clone();
     }
 
     if (algo == "bm") {
+      // Compute disparity maps for both left and right views
       //! [matching_wls]
-      Ptr<StereoBM> left_matcher = StereoBM::create(max_disp, wsize);
-      wls_filter = createDisparityWLSFilter(left_matcher);
-      Ptr<StereoMatcher> right_matcher = createRightMatcher(left_matcher);
+      cv::Ptr<cv::StereoBM> left_matcher = cv::StereoBM::create(max_disp, wsize);
+      wls_filter = cv::ximgproc::createDisparityWLSFilter(left_matcher);
+      cv::Ptr<cv::StereoMatcher> right_matcher = cv::ximgproc::createRightMatcher(left_matcher);
 
-      cvtColor(left_for_matcher, left_for_matcher, COLOR_BGR2GRAY);
-      cvtColor(right_for_matcher, right_for_matcher, COLOR_BGR2GRAY);
+      cv::cvtColor(left_for_matcher, left_for_matcher, cv::COLOR_BGR2GRAY);
+      cv::cvtColor(right_for_matcher, right_for_matcher, cv::COLOR_BGR2GRAY);
 
-      matching_time = (double)getTickCount();
+      matching_time = (double)cv::getTickCount();
       left_matcher->compute(left_for_matcher, right_for_matcher, left_disp);
       right_matcher->compute(right_for_matcher, left_for_matcher, right_disp);
-      matching_time = ((double)getTickCount() - matching_time) / getTickFrequency();
+      matching_time = ((double)cv::getTickCount() - matching_time) / cv::getTickFrequency();
       //! [matching_wls]
+
     } else if (algo == "sgbm") {
-      Ptr<StereoSGBM> left_matcher = StereoSGBM::create(0, max_disp, wsize);
+      cv::Ptr<cv::StereoSGBM> left_matcher = cv::StereoSGBM::create(0, max_disp, wsize);
       left_matcher->setP1(24 * wsize * wsize);
       left_matcher->setP2(96 * wsize * wsize);
       left_matcher->setPreFilterCap(63);
-      left_matcher->setMode(StereoSGBM::MODE_SGBM_3WAY);
-      wls_filter = createDisparityWLSFilter(left_matcher);
-      Ptr<StereoMatcher> right_matcher = createRightMatcher(left_matcher);
+      left_matcher->setMode(cv::StereoSGBM::MODE_SGBM_3WAY);
+      wls_filter = cv::ximgproc::createDisparityWLSFilter(left_matcher);
+      cv::Ptr<cv::StereoMatcher> right_matcher = cv::ximgproc::createRightMatcher(left_matcher);
 
-      matching_time = (double)getTickCount();
+      matching_time = (double)cv::getTickCount();
+      // Compute disparity maps for both left and right views
       left_matcher->compute(left_for_matcher, right_for_matcher, left_disp);
       right_matcher->compute(right_for_matcher, left_for_matcher, right_disp);
-      matching_time = ((double)getTickCount() - matching_time) / getTickFrequency();
+      matching_time = ((double)cv::getTickCount() - matching_time) / cv::getTickFrequency();
+
     } else {
-      cout << "Unsupported algorithm";
+      std::cout << "Unsupported algorithm";
       return -1;
     }
 
     //! [filtering_wls]
     wls_filter->setLambda(lambda);
     wls_filter->setSigmaColor(sigma);
-    filtering_time = (double)getTickCount();
+    filtering_time = (double)cv::getTickCount();
     wls_filter->filter(left_disp, left, filtered_disp, right_disp);
-    filtering_time = ((double)getTickCount() - filtering_time) / getTickFrequency();
+    filtering_time = ((double)cv::getTickCount() - filtering_time) / cv::getTickFrequency();
     //! [filtering_wls]
 
     conf_map = wls_filter->getConfidenceMap();
 
-    Mat left_disp_resized;
+    cv::Mat left_disp_resized;
     resize(left_disp, left_disp_resized, left.size());
 
     // Get the ROI that was used in the last filter call:
     ROI = wls_filter->getROI();
     if (!no_downscale) {
       // upscale raw disparity and ROI back for a proper comparison:
-      resize(left_disp, left_disp, Size(), 2.0, 2.0);
+      resize(left_disp, left_disp, cv::Size(), 2.0, 2.0);
       left_disp = left_disp * 2.0;
       left_disp_resized = left_disp_resized * 2.0;
-      ROI = Rect(ROI.x * 2, ROI.y * 2, ROI.width * 2, ROI.height * 2);
+      ROI = cv::Rect(ROI.x * 2, ROI.y * 2, ROI.width * 2, ROI.height * 2);
     }
 
-#ifdef HAVE_EIGEN
-    //! [filtering_fbs]
+    #ifdef HAVE_EIGEN
+        //! [filtering_fbs]
     solving_time = (double)getTickCount();
     fastBilateralSolverFilter(
-      left, left_disp_resized, conf_map / 255.0f, solved_disp, fbs_spatial,
-      fbs_luma, fbs_chroma, fbs_lambda);
+          left, left_disp_resized, conf_map / 255.0f, solved_disp, fbs_spatial,
+          fbs_luma, fbs_chroma, fbs_lambda);
     solving_time = ((double)getTickCount() - solving_time) / getTickFrequency();
-    //! [filtering_fbs]
+        //! [filtering_fbs]
 
-    //! [filtering_wls2fbs]
+        //! [filtering_wls2fbs]
     fastBilateralSolverFilter(
-      left, filtered_disp, conf_map / 255.0f, solved_filtered_disp,
-      fbs_spatial, fbs_luma, fbs_chroma, fbs_lambda);
-    //! [filtering_wls2fbs]
-#else
+          left, filtered_disp, conf_map / 255.0f, solved_filtered_disp,
+          fbs_spatial, fbs_luma, fbs_chroma, fbs_lambda);
+        //! [filtering_wls2fbs]
+    #else
     (void)fbs_spatial;
     (void)fbs_luma;
     (void)fbs_chroma;
     (void)fbs_lambda;
-#endif
-  } else if (filter == "wls_no_conf") {
-    /* There is no convenience function for the case of filtering with no confidence, so we
-    will need to set the ROI and matcher parameters manually */
+    #endif
 
+  } else if (filter == "wls_no_conf") {
+    // There is no convenience function for the case of filtering with no confidence,
+    // so we will need to set the ROI and matcher parameters manually
     left_for_matcher = left.clone();
     right_for_matcher = right.clone();
 
     if (algo == "bm") {
-      Ptr<StereoBM> matcher = StereoBM::create(max_disp, wsize);
+      cv::Ptr<cv::StereoBM> matcher = cv::StereoBM::create(max_disp, wsize);
       matcher->setTextureThreshold(0);
       matcher->setUniquenessRatio(0);
-      cvtColor(left_for_matcher, left_for_matcher, COLOR_BGR2GRAY);
-      cvtColor(right_for_matcher, right_for_matcher, COLOR_BGR2GRAY);
+      cv::cvtColor(left_for_matcher, left_for_matcher, cv::COLOR_BGR2GRAY);
+      cv::cvtColor(right_for_matcher, right_for_matcher, cv::COLOR_BGR2GRAY);
       ROI = computeROI(left_for_matcher.size(), matcher);
-      wls_filter = createDisparityWLSFilterGeneric(false);
+      wls_filter = cv::ximgproc::createDisparityWLSFilterGeneric(false);
       wls_filter->setDepthDiscontinuityRadius((int)ceil(0.33 * wsize));
 
-      matching_time = (double)getTickCount();
+      matching_time = (double)cv::getTickCount();
       matcher->compute(left_for_matcher, right_for_matcher, left_disp);
-      matching_time = ((double)getTickCount() - matching_time) / getTickFrequency();
+      matching_time = ((double)cv::getTickCount() - matching_time) / cv::getTickFrequency();
+
     } else if (algo == "sgbm") {
-      Ptr<StereoSGBM> matcher = StereoSGBM::create(0, max_disp, wsize);
+      cv::Ptr<cv::StereoSGBM> matcher = cv::StereoSGBM::create(0, max_disp, wsize);
       matcher->setUniquenessRatio(0);
       matcher->setDisp12MaxDiff(1000000);
       matcher->setSpeckleWindowSize(0);
       matcher->setP1(24 * wsize * wsize);
       matcher->setP2(96 * wsize * wsize);
-      matcher->setMode(StereoSGBM::MODE_SGBM_3WAY);
+      matcher->setMode(cv::StereoSGBM::MODE_SGBM_3WAY);
       ROI = computeROI(left_for_matcher.size(), matcher);
-      wls_filter = createDisparityWLSFilterGeneric(false);
+      wls_filter = cv::ximgproc::createDisparityWLSFilterGeneric(false);
       wls_filter->setDepthDiscontinuityRadius((int)ceil(0.5 * wsize));
 
-      matching_time = (double)getTickCount();
+      matching_time = (double)cv::getTickCount();
       matcher->compute(left_for_matcher, right_for_matcher, left_disp);
-      matching_time = ((double)getTickCount() - matching_time) / getTickFrequency();
+      matching_time = ((double)cv::getTickCount() - matching_time) / cv::getTickFrequency();
+
     } else {
-      cout << "Unsupported algorithm";
+      std::cout << "Unsupported algorithm";
       return -1;
     }
 
     wls_filter->setLambda(lambda);
     wls_filter->setSigmaColor(sigma);
-    filtering_time = (double)getTickCount();
-    wls_filter->filter(left_disp, left, filtered_disp, Mat(), ROI);
-    filtering_time = ((double)getTickCount() - filtering_time) / getTickFrequency();
+    filtering_time = (double)cv::getTickCount();
+    wls_filter->filter(left_disp, left, filtered_disp, cv::Mat(), ROI);
+    filtering_time = ((double)cv::getTickCount() - filtering_time) / cv::getTickFrequency();
+
   } else {
-    cout << "Unsupported filter";
+    std::cout << "Unsupported filter";
     return -1;
   }
 
-  //collect and print all the stats:
-  cout.precision(2);
-  cout << "Matching time:  " << matching_time << "s" << endl;
-  cout << "Filtering time: " << filtering_time << "s" << endl;
-  cout << "Solving time: " << solving_time << "s" << endl;
-  cout << endl;
+  // Collect and print all the stats
+  std::cout.precision(2);
+  std::cout << "Matching time:  " << matching_time << "s" << std::endl;
+  std::cout << "Filtering time: " << filtering_time << "s" << std::endl;
+  std::cout << "Solving time: " << solving_time << "s" << std::endl;
+  std::cout << std::endl;
 
   double MSE_before, percent_bad_before, MSE_after, percent_bad_after;
   if (!noGT) {
-    MSE_before = computeMSE(GT_disp, left_disp, ROI);
-    percent_bad_before = computeBadPixelPercent(GT_disp, left_disp, ROI);
-    MSE_after = computeMSE(GT_disp, filtered_disp, ROI);
-    percent_bad_after = computeBadPixelPercent(GT_disp, filtered_disp, ROI);
+    MSE_before = cv::ximgproc::computeMSE(GT_disp, left_disp, ROI);
+    percent_bad_before = cv::ximgproc::computeBadPixelPercent(GT_disp, left_disp, ROI);
+    MSE_after = cv::ximgproc::computeMSE(GT_disp, filtered_disp, ROI);
+    percent_bad_after = cv::ximgproc::computeBadPixelPercent(GT_disp, filtered_disp, ROI);
 
-    cout.precision(5);
-    cout << "MSE before filtering: " << MSE_before << endl;
-    cout << "MSE after filtering:  " << MSE_after << endl;
-    cout << endl;
-    cout.precision(3);
-    cout << "Percent of bad pixels before filtering: " << percent_bad_before << endl;
-    cout << "Percent of bad pixels after filtering:  " << percent_bad_after << endl;
+    std::cout.precision(5);
+    std::cout << "MSE before filtering: " << MSE_before << std::endl;
+    std::cout << "MSE after filtering:  " << MSE_after << std::endl;
+    std::cout << std::endl;
+    std::cout.precision(3);
+    std::cout << "Percent of bad pixels before filtering: " << percent_bad_before << std::endl;
+    std::cout << "Percent of bad pixels after filtering:  " << percent_bad_after << std::endl;
   }
 
   // We use a convenience function getDisparityVis to visualize the disparity maps. The second parameter defines the contrast
   // (all disparity values are scaled by this value in the visualization).
   if (dst_path != "None") {
-    Mat filtered_disp_vis;
-    getDisparityVis(filtered_disp, filtered_disp_vis, vis_mult);
+    cv::Mat filtered_disp_vis;
+    cv::ximgproc::getDisparityVis(filtered_disp, filtered_disp_vis, vis_mult);
     imwrite(dst_path, filtered_disp_vis);
   }
   if (dst_raw_path != "None") {
-    Mat raw_disp_vis;
-    getDisparityVis(left_disp, raw_disp_vis, vis_mult);
+    cv::Mat raw_disp_vis;
+    cv::ximgproc::getDisparityVis(left_disp, raw_disp_vis, vis_mult);
     imwrite(dst_raw_path, raw_disp_vis);
   }
   if (dst_conf_path != "None") {
@@ -389,53 +421,56 @@ int main(int argc, char ** argv)
   }
 
   if (!no_display) {
-    namedWindow("left", WINDOW_AUTOSIZE);
-    imshow("left", left);
-    namedWindow("right", WINDOW_AUTOSIZE);
-    imshow("right", right);
+    cv::namedWindow("left", cv::WINDOW_AUTOSIZE);
+    cv::resize(left, left, left.size() / 2);
+    cv::imshow("left", left);
+    cv::namedWindow("right", cv::WINDOW_AUTOSIZE);
+    cv::resize(right, right, right.size() / 2);
+    cv::imshow("right", right);
 
     if (!noGT) {
-      Mat GT_disp_vis;
-      getDisparityVis(GT_disp, GT_disp_vis, vis_mult);
-      namedWindow("ground-truth disparity", WINDOW_AUTOSIZE);
-      imshow("ground-truth disparity", GT_disp_vis);
+      cv::Mat GT_disp_vis;
+      cv::ximgproc::getDisparityVis(GT_disp, GT_disp_vis, vis_mult);
+      cv::namedWindow("ground-truth disparity", cv::WINDOW_AUTOSIZE);
+      cv::resize(GT_disp_vis, GT_disp_vis, GT_disp_vis.size() / 2);
+      cv::imshow("ground-truth disparity", GT_disp_vis);
     }
 
     //! [visualization]
-    Mat raw_disp_vis;
-    getDisparityVis(left_disp, raw_disp_vis, vis_mult);
-    namedWindow("raw disparity", WINDOW_AUTOSIZE);
-    imshow("raw disparity", raw_disp_vis);
-    Mat filtered_disp_vis;
-    getDisparityVis(filtered_disp, filtered_disp_vis, vis_mult);
-    namedWindow("filtered disparity", WINDOW_AUTOSIZE);
-    imshow("filtered disparity", filtered_disp_vis);
+    cv::Mat raw_disp_vis;
+    cv::ximgproc::getDisparityVis(left_disp, raw_disp_vis, vis_mult);
+    cv::namedWindow("raw disparity", cv::WINDOW_AUTOSIZE);
+    cv::resize(raw_disp_vis, raw_disp_vis, raw_disp_vis.size() / 2);
+    cv::imshow("raw disparity", raw_disp_vis);
+    cv::Mat filtered_disp_vis;
+    cv::ximgproc::getDisparityVis(filtered_disp, filtered_disp_vis, vis_mult);
+    cv::namedWindow("filtered disparity", cv::WINDOW_AUTOSIZE);
+    cv::resize(filtered_disp_vis, filtered_disp_vis, filtered_disp_vis.size() / 2);
+    cv::imshow("filtered disparity", filtered_disp_vis);
 
     if (!solved_disp.empty()) {
-      Mat solved_disp_vis;
-      getDisparityVis(solved_disp, solved_disp_vis, vis_mult);
-      namedWindow("solved disparity", WINDOW_AUTOSIZE);
-      imshow("solved disparity", solved_disp_vis);
+      cv::Mat solved_disp_vis;
+      cv::ximgproc::getDisparityVis(solved_disp, solved_disp_vis, vis_mult);
+      cv::namedWindow("solved disparity", cv::WINDOW_AUTOSIZE);
+      cv::resize(solved_disp_vis, solved_disp_vis, solved_disp_vis.size() / 2);
+      cv::imshow("solved disparity", solved_disp_vis);
 
-      Mat solved_filtered_disp_vis;
-      getDisparityVis(solved_filtered_disp, solved_filtered_disp_vis, vis_mult);
-      namedWindow("solved wls disparity", WINDOW_AUTOSIZE);
-      imshow("solved wls disparity", solved_filtered_disp_vis);
+      cv::Mat solved_filtered_disp_vis;
+      cv::ximgproc::getDisparityVis(solved_filtered_disp, solved_filtered_disp_vis, vis_mult);
+      cv::namedWindow("solved wls disparity", cv::WINDOW_AUTOSIZE);
+      cv::resize(solved_filtered_disp_vis, solved_filtered_disp_vis,
+        solved_filtered_disp_vis.size() / 2);
+      cv::imshow("solved wls disparity", solved_filtered_disp_vis);
     }
 
-    while (1) {
-      char key = (char)waitKey();
-      if (key == 27 || key == 'q' || key == 'Q') {     // 'ESC'
-        break;
-      }
-    }
+    cv::waitKey(0);
     //! [visualization]
   }
 
   return 0;
 }
 
-Rect computeROI(Size2i src_sz, Ptr<StereoMatcher> matcher_instance)
+cv::Rect computeROI(cv::Size2i src_sz, cv::Ptr<cv::StereoMatcher> matcher_instance)
 {
   int min_disparity = matcher_instance->getMinDisparity();
   int num_disparities = matcher_instance->getNumDisparities();
@@ -449,6 +484,6 @@ Rect computeROI(Size2i src_sz, Ptr<StereoMatcher> matcher_instance)
   int ymin = bs2;
   int ymax = src_sz.height - bs2;
 
-  Rect r(xmin, ymin, xmax - xmin, ymax - ymin);
+  cv::Rect r(xmin, ymin, xmax - xmin, ymax - ymin);
   return r;
 }
