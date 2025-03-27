@@ -118,7 +118,7 @@ source ~/.bashrc
 
 The best way to be updated is to install PCL compiling from the source: https://pcl.readthedocs.io/projects/tutorials/en/latest/compiling_pcl_posix.html
 
-It fixes some problems when you try to use Ubuntu 22.04, VTK 9.1, and PCL 1.12.1
+It fixes some problems when you use VTK 9.1
 
 1. Create a folder:
 ```
