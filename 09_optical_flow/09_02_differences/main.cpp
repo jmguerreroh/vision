@@ -21,11 +21,11 @@ int main(int argc, char ** argv)
 
   // Parse command-line arguments
   cv::CommandLineParser parser(argc, argv, keys);
-  
+
   // Retrieve video file path and number of frames to accumulate
   std::string filename = cv::samples::findFile(parser.get<std::string>("@video"));
   int num_frames = parser.get<int>("@frames");
-  
+
   // Check if arguments are valid
   if (!parser.check()) {
     parser.printErrors();
@@ -54,7 +54,7 @@ int main(int argc, char ** argv)
       cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY); // Convert frame to grayscale
       frames.push_back(gray.clone()); // Store grayscale frame
     }
-    
+
     // If the number of captured frames is less than required, stop processing
     if (frames.size() < num_frames) {break;}
 
@@ -76,12 +76,12 @@ int main(int argc, char ** argv)
 
     // Display the accumulated optical flow
     cv::imshow("Accumulated Optical Flow", diff_acc_norm);
-    
+
     // Wait for a key press, exit if 'q' or 'Esc' is pressed
     int key = cv::waitKey(30);
     if (key == 'q' || key == 27) {break;}
   }
-  
+
   // Release the video capture and destroy all windows
   cap.release();
   cv::destroyAllWindows();
