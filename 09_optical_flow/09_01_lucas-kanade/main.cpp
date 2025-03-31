@@ -18,92 +18,122 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/video.hpp>
 
-using namespace cv;
-using namespace std;
-
 int main(int argc, char ** argv)
 {
-  const string about =
+  // Description of the program
+  const std::string about =
     "This sample demonstrates Lucas-Kanade Optical Flow calculation.\n";
-  const string keys =
+
+  // Command-line parser setup
+  const std::string keys =
     "{ h help |      | print this help message }"
     "{ @image | vtest.avi | path to image file }";
-  CommandLineParser parser(argc, argv, keys);
+  cv::CommandLineParser parser(argc, argv, keys);
   parser.about(about);
   if (parser.has("help")) {
     parser.printMessage();
     return 0;
   }
-  string filename = samples::findFile(parser.get<string>("@image"));
+
+  // Get the filename from the command-line argument
+  std::string filename = cv::samples::findFile(parser.get<std::string>("@image"));
   if (!parser.check()) {
     parser.printErrors();
     return 0;
   }
 
-  VideoCapture capture(filename);
+  // Open the video file
+  cv::VideoCapture capture(filename);
   if (!capture.isOpened()) {
-    //error in opening the video input
-    cerr << "Unable to open file!" << endl;
+    // Error opening the video input
+    std::cerr << "Unable to open file!" << std::endl;
     return 0;
   }
 
-  // Create some random colors
-  vector<Scalar> colors;
-  RNG rng;
+  // Generate random colors for tracking points
+  std::vector<cv::Scalar> colors;
+  cv::RNG rng;
   for (int i = 0; i < 100; i++) {
     int r = rng.uniform(0, 256);
     int g = rng.uniform(0, 256);
     int b = rng.uniform(0, 256);
-    colors.push_back(Scalar(r, g, b));
+    colors.push_back(cv::Scalar(r, g, b));
   }
 
-  Mat old_frame, old_gray;
-  vector<Point2f> p0, p1;
+  cv::Mat old_frame, old_gray;
+  std::vector<cv::Point2f> p0, p1;
 
-  // Take first frame and find corners in it
+  // Capture the first frame and detect good feature points
   capture >> old_frame;
-  cvtColor(old_frame, old_gray, COLOR_BGR2GRAY);
-  goodFeaturesToTrack(old_gray, p0, 100, 0.3, 7, Mat(), 7, false, 0.04);
+  cv::cvtColor(old_frame, old_gray, cv::COLOR_BGR2GRAY);
+  // Detect Shi-Tomasi corners in the first frame
+  cv::goodFeaturesToTrack(
+    old_gray,   // Input grayscale image
+    p0,         // Output vector of detected points
+    100,        // Maximum number of corners to detect
+    0.3,        // Quality level (minimum accepted corner quality)
+    7,          // Minimum Euclidean distance between detected corners
+    cv::Mat(),  // Mask (empty means full image)
+    7,          // Block size for computing the gradient covariance matrix
+    false,      // Use Harris detector (false = Shi-Tomasi method)
+    0.04        // Harris detector free parameter (used only if Harris is true)
+  );
 
-  // Create a mask image for drawing purposes
-  Mat mask = Mat::zeros(old_frame.size(), old_frame.type());
+  // Create a mask image for drawing the tracked points
+  cv::Mat mask = cv::Mat::zeros(old_frame.size(), old_frame.type());
 
   while (true) {
-    Mat frame, frame_gray;
+    cv::Mat frame, frame_gray;
 
+    // Capture the next frame
     capture >> frame;
     if (frame.empty()) {
       break;
     }
-    cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
+    cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
 
-    // calculate optical flow
-    vector<uchar> status;
-    vector<float> err;
-    TermCriteria criteria = TermCriteria((TermCriteria::COUNT) +(TermCriteria::EPS), 10, 0.03);
-    calcOpticalFlowPyrLK(old_gray, frame_gray, p0, p1, status, err, Size(15, 15), 2, criteria);
+    // Compute the optical flow using Lucas-Kanade method
+    std::vector<uchar> status; // Status vector: 1 if found, 0 if lost
+    std::vector<float> err;    // Error vector for each point
+    cv::TermCriteria criteria = cv::TermCriteria((cv::TermCriteria::COUNT) +(cv::TermCriteria::EPS),
+      10, 0.03);
+    cv::calcOpticalFlowPyrLK(
+      old_gray,         // Previous grayscale frame
+      frame_gray,       // Current grayscale frame
+      p0,               // Previous points (to track)
+      p1,               // New tracked points (output)
+      status,           // Status of each point (1 = found, 0 = lost)
+      err,              // Error vector
+      cv::Size(15, 15), // Size of search window at each pyramid level
+      2,                // Number of pyramid levels (higher values capture larger motions)
+      criteria          // Termination criteria: stop after 10 iterations or error < 0.03
+    );
 
-    vector<Point2f> good_new;
+    std::vector<cv::Point2f> good_new;
     for (uint i = 0; i < p0.size(); i++) {
-      // Select good points
+      // Select good points where tracking was successful
       if (status[i] == 1) {
         good_new.push_back(p1[i]);
-        // draw the tracks
-        line(mask, p1[i], p0[i], colors[i], 2);
-        circle(frame, p1[i], 5, colors[i], -1);
+        // Draw the movement of tracked points
+        cv::line(mask, p1[i], p0[i], colors[i], 2);
+        cv::circle(frame, p1[i], 5, colors[i], -1);
       }
     }
-    Mat img;
-    add(frame, mask, img);
 
-    imshow("Frame", img);
+    // Overlay tracking lines on the frame
+    cv::Mat img;
+    cv::add(frame, mask, img);
 
-    int keyboard = waitKey(30);
+    // Display the frame
+    cv::imshow("Frame", img);
+
+     // Exit on 'q' or 'Esc' key press
+    int keyboard = cv::waitKey(30);
     if (keyboard == 'q' || keyboard == 27) {
       break;
     }
 
-    // Now update the previous frame and previous points
+    // Update previous frame and previous points for next iteration
     old_gray = frame_gray.clone();
     p0 = good_new;
   }
