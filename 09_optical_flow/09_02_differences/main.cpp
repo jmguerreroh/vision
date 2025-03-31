@@ -13,26 +13,29 @@
 
 int main(int argc, char ** argv)
 {
-
+  // Define command line arguments with default values
   const std::string keys =
     "{ h help |      | print this help message }"
     "{ @video | vtest.avi | path to image file }"
     "{ @frames | 4 | number of frames to accumulate }";
-  cv::CommandLineParser parser(argc, argv, keys);
 
+  // Parse command-line arguments
+  cv::CommandLineParser parser(argc, argv, keys);
+  
+  // Retrieve video file path and number of frames to accumulate
   std::string filename = cv::samples::findFile(parser.get<std::string>("@video"));
   int num_frames = parser.get<int>("@frames");
-
-  std::cout << "Using " << num_frames << " frames" << std::endl;
-
+  
+  // Check if arguments are valid
   if (!parser.check()) {
     parser.printErrors();
     return 0;
   }
 
-
+  // Open the video file
   cv::VideoCapture cap(filename);
   if (!cap.isOpened()) {
+    // Error handling if the video file cannot be opened
     std::cerr << "Error opening video!" << std::endl;
     return 1;
   }
@@ -45,36 +48,41 @@ int main(int argc, char ** argv)
 
     // Capture multiple frames
     for (int k = 0; k < num_frames; ++k) {
-      cap >> frame;
-      if (frame.empty()) {break;}
+      cap >> frame; // Read the next frame
+      if (frame.empty()) {break;} // Exit loop if no more frames
 
-      cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-      frames.push_back(gray.clone());
+      cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY); // Convert frame to grayscale
+      frames.push_back(gray.clone()); // Store grayscale frame
     }
-
+    
+    // If the number of captured frames is less than required, stop processing
     if (frames.size() < num_frames) {break;}
 
-    // Compute accumulated differences
+    // Initialize the accumulated difference matrix with zeros
     diff_acc = cv::Mat::zeros(frames[0].size(), CV_32F);
+
+    // Compute accumulated differences between frames
     for (int k = 1; k < frames.size(); ++k) {
       cv::Mat diff;
-      cv::absdiff(frames[0], frames[k], diff);
-      diff.convertTo(diff, CV_32F);
-      diff_acc += diff;
+      cv::absdiff(frames[0], frames[k], diff); // Compute absolute difference
+      diff.convertTo(diff, CV_32F); // Convert to floating point
+      diff_acc += diff; // Accumulate differences
     }
 
-    // Normalize for visualization
+    // Normalize the accumulated differences for visualization
     cv::Mat diff_acc_norm;
     cv::normalize(diff_acc, diff_acc_norm, 0, 255, cv::NORM_MINMAX);
     diff_acc_norm.convertTo(diff_acc_norm, CV_8U);
 
-    // Show result
+    // Display the accumulated optical flow
     cv::imshow("Accumulated Optical Flow", diff_acc_norm);
-
+    
+    // Wait for a key press, exit if 'q' or 'Esc' is pressed
     int key = cv::waitKey(30);
     if (key == 'q' || key == 27) {break;}
   }
-
+  
+  // Release the video capture and destroy all windows
   cap.release();
   cv::destroyAllWindows();
   return 0;
