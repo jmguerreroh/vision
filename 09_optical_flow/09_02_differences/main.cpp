@@ -63,10 +63,15 @@ int main(int argc, char ** argv)
 
     // Compute accumulated differences between frames
     for (int k = 1; k < frames.size(); ++k) {
+      // Compute absolute difference between frames
       cv::Mat diff;
-      cv::absdiff(frames[0], frames[k], diff); // Compute absolute difference
-      diff.convertTo(diff, CV_32F); // Convert to floating point
-      diff_acc += diff; // Accumulate differences
+      cv::absdiff(frames[0], frames[k], diff);
+      // Convert to floating point
+      diff.convertTo(diff, CV_32F);
+      // Compute alpha value
+      float alpha = k / (num_frames - 1.0f);
+      // Accumulate differences with alpha weight
+      diff_acc += alpha * diff;
     }
 
     // Normalize the accumulated differences for visualization
