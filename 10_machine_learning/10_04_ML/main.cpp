@@ -9,239 +9,231 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/ml.hpp"
 #include "opencv2/highgui.hpp"
-
 #include <stdio.h>
 
-using namespace std;
-using namespace cv;
-using namespace cv::ml;
-
-const Scalar WHITE_COLOR = Scalar(255, 255, 255);
-const string winName = "points";
+// Define constants for colors and window name
+const cv::Scalar WHITE_COLOR = cv::Scalar(255, 255, 255);
+const std::string winName = "points";
 const int testStep = 5;
 
-Mat img, imgDst;
-RNG rng;
+// Declare variables for images, random number generator, and training data
+cv::Mat img, imgDst;
+cv::RNG rng;
 
-vector<Point> trainedPoints;
-vector<int> trainedPointsMarkers;
-const int MAX_CLASSES = 2;
-vector<Vec3b> classColors(MAX_CLASSES);
-int currentClass = 0;
-vector<int> classCounters(MAX_CLASSES);
+// Variables for storing the trained points and their class markers
+std::vector<cv::Point> trainedPoints;
+std::vector<int> trainedPointsMarkers;
+const int MAX_CLASSES = 2;                      // Number of classes
+std::vector<cv::Vec3b> classColors(MAX_CLASSES);// Colors for each class
+int currentClass = 0;                           // Currently selected class
+std::vector<int> classCounters(MAX_CLASSES);    // Counter for each class
 
+// Define flags to enable/disable different classifiers
 #define _NBC_ 1 // normal Bayessian classifier
 #define _KNN_ 1 // k nearest neighbors classifier
 #define _SVM_ 1 // support vectors machine
 #define _DT_  1 // decision tree
 #define _BT_  1 // ADA Boost
-#define _GBT_ 0 // gradient boosted trees
 #define _RF_  1 // random forest
 #define _ANN_ 1 // artificial neural networks
 #define _EM_  1 // expectation-maximization
 
+// Mouse callback function to collect training data
 static void on_mouse(int event, int x, int y, int /*flags*/, void *)
 {
-  if (img.empty() ) {
+  if (img.empty()) {
     return;
   }
 
-  int updateFlag = 0;
+  bool updateFlag = false;
 
-  if (event == EVENT_LBUTTONUP) {
-    trainedPoints.push_back(Point(x, y) );
-    trainedPointsMarkers.push_back(currentClass);
-    classCounters[currentClass]++;
+  if (event == cv::EVENT_LBUTTONUP) {                 // When left mouse button is released
+    trainedPoints.push_back(cv::Point(x, y));         // Add the point to the list
+    trainedPointsMarkers.push_back(currentClass);     // Assign the point to the current class
+    classCounters[currentClass]++;                    // Increment the class counter
     updateFlag = true;
   }
 
-  //draw
+    // If the data is updated, redraw the points on the image
   if (updateFlag) {
-    img = Scalar::all(0);
-
-    // draw points
-    for (size_t i = 0; i < trainedPoints.size(); i++) {
-      Vec3b c = classColors[trainedPointsMarkers[i]];
-      circle(img, trainedPoints[i], 5, Scalar(c), -1);
+    img = cv::Scalar::all(0);     // Clear the image
+    for (std::size_t i = 0; i < trainedPoints.size(); i++) {
+      cv::Vec3b c = classColors[trainedPointsMarkers[i]];
+      cv::circle(img, trainedPoints[i], 5, cv::Scalar(c), -1);       // Draw the point
     }
-
-    imshow(winName, img);
+        // Show the updated image
+    cv::imshow(winName, img);
   }
 }
 
-static Mat prepare_train_samples(const vector<Point> & pts)
+// Prepare training samples in a format suitable for the classifier
+static cv::Mat prepare_train_samples(const std::vector<cv::Point> & pts)
 {
-  Mat samples;
-  Mat(pts).reshape(1, (int)pts.size()).convertTo(samples, CV_32F);
+  cv::Mat samples;
+  cv::Mat(pts).reshape(1, static_cast<int>(pts.size())).convertTo(samples, CV_32F);
   return samples;
 }
 
-static Ptr<TrainData> prepare_train_data()
+// Create the training data object for ML models
+static cv::Ptr<cv::ml::TrainData> prepare_train_data()
 {
-  Mat samples = prepare_train_samples(trainedPoints);
-  return TrainData::create(samples, ROW_SAMPLE, Mat(trainedPointsMarkers));
+  cv::Mat samples = prepare_train_samples(trainedPoints);
+  return cv::ml::TrainData::create(samples, cv::ml::ROW_SAMPLE, cv::Mat(trainedPointsMarkers));
 }
 
-static void predict_and_paint(const Ptr<StatModel> & model, Mat & dst)
+// Predict and paint the decision boundary on the image using a trained model
+static void predict_and_paint(const cv::Ptr<cv::ml::StatModel> & model, cv::Mat & dst)
 {
-  Mat testSample(1, 2, CV_32FC1);
+  cv::Mat testSample(1, 2, CV_32FC1);   // Create a test sample
   for (int y = 0; y < img.rows; y += testStep) {
     for (int x = 0; x < img.cols; x += testStep) {
-      testSample.at<float>(0) = (float)x;
-      testSample.at<float>(1) = (float)y;
-
-      int response = (int)model->predict(testSample);
-      dst.at<Vec3b>(y, x) = classColors[response];
+      testSample.at<float>(0) = static_cast<float>(x);                    // Set the x-coordinate
+      testSample.at<float>(1) = static_cast<float>(y);                    // Set the y-coordinate
+      int response = static_cast<int>(model->predict(testSample));        // Predict the class
+      dst.at<cv::Vec3b>(y, x) = classColors[response];                    // Paint the decision boundary
     }
   }
 }
 
 #if _NBC_
+// Train and apply the Normal Bayes Classifier
 static void find_decision_boundary_NBC()
 {
-  // learn classifier
-  Ptr<NormalBayesClassifier> normalBayesClassifier = StatModel::train<NormalBayesClassifier>(
-    prepare_train_data());
-
-  predict_and_paint(normalBayesClassifier, imgDst);
+  cv::Ptr<cv::ml::NormalBayesClassifier> normalBayesClassifier =
+    cv::ml::StatModel::train<cv::ml::NormalBayesClassifier>(prepare_train_data());     // Train the classifier
+  predict_and_paint(normalBayesClassifier, imgDst);   // Predict and paint the boundary
 }
 #endif
 
+
 #if _KNN_
+// Train and apply the k-Nearest Neighbors classifier
 static void find_decision_boundary_KNN(int K)
 {
-
-  Ptr<KNearest> knn = KNearest::create();
-  knn->setDefaultK(K);
-  knn->setIsClassifier(true);
-  knn->train(prepare_train_data());
-  predict_and_paint(knn, imgDst);
+  cv::Ptr<cv::ml::KNearest> knn = cv::ml::KNearest::create();
+  knn->setDefaultK(K);   // Set the number of neighbors
+  knn->setIsClassifier(true);   // Set as a classifier
+  knn->train(prepare_train_data());   // Train the classifier
+  predict_and_paint(knn, imgDst);   // Predict and paint the boundary
 }
 #endif
 
 #if _SVM_
+// Train and apply the Support Vector Machine classifier
 static void find_decision_boundary_SVM(double C)
 {
-  Ptr<SVM> svm = SVM::create();
-  svm->setType(SVM::C_SVC);
-  svm->setKernel(SVM::POLY);   //SVM::LINEAR;
+  cv::Ptr<cv::ml::SVM> svm = cv::ml::SVM::create();
+  svm->setType(cv::ml::SVM::C_SVC);
+  svm->setKernel(cv::ml::SVM::POLY);   // Set the kernel type - (LINEAR, POLY, RBF)
   svm->setDegree(0.5);
   svm->setGamma(1);
   svm->setCoef0(1);
   svm->setNu(0.5);
   svm->setP(0);
-  svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER + TermCriteria::EPS, 1000, 0.01));
+  svm->setTermCriteria(cv::TermCriteria(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 1000,
+    0.01));
   svm->setC(C);
-  svm->train(prepare_train_data());
-  predict_and_paint(svm, imgDst);
+  svm->train(prepare_train_data());   // Train the classifier
+  predict_and_paint(svm, imgDst);   // Predict and paint the boundary
 
-  Mat sv = svm->getSupportVectors();
+  cv::Mat sv = svm->getSupportVectors();   // Get the support vectors
   for (int i = 0; i < sv.rows; i++) {
     const float * supportVector = sv.ptr<float>(i);
-    circle(
-      imgDst, Point(
-        saturate_cast<int>(supportVector[0]), saturate_cast<int>(
-          supportVector[1])), 5, Scalar(255, 255, 255), -1);
+    circle(imgDst,
+      cv::Point(cv::saturate_cast<int>(supportVector[0]), cv::saturate_cast<int>(supportVector[1])),
+      5, cv::Scalar(255, 255, 255), -1);                                                                                                                 // Draw the support vectors
   }
 }
 #endif
 
 #if _DT_
+// Train and apply the Decision Tree classifier
 static void find_decision_boundary_DT()
 {
-  Ptr<DTrees> dtree = DTrees::create();
+  cv::Ptr<cv::ml::DTrees> dtree = cv::ml::DTrees::create();
   dtree->setMaxDepth(8);
   dtree->setMinSampleCount(2);
   dtree->setUseSurrogates(false);
-  dtree->setCVFolds(0);   // the number of cross-validation folds
+  dtree->setCVFolds(0);                 // the number of cross-validation folds
   dtree->setUse1SERule(false);
   dtree->setTruncatePrunedTree(false);
-  dtree->train(prepare_train_data());
-  predict_and_paint(dtree, imgDst);
+  dtree->train(prepare_train_data());   // Train the classifier
+  predict_and_paint(dtree, imgDst);     // Predict and paint the boundary
 }
 #endif
 
 #if _BT_
+// Train and apply the Boosting classifier
 static void find_decision_boundary_BT()
 {
-  Ptr<Boost> boost = Boost::create();
-  boost->setBoostType(Boost::DISCRETE);
+  cv::Ptr<cv::ml::Boost> boost = cv::ml::Boost::create();
+  boost->setBoostType(cv::ml::Boost::DISCRETE);
   boost->setWeakCount(100);
   boost->setWeightTrimRate(0.95);
   boost->setMaxDepth(2);
   boost->setUseSurrogates(false);
-  boost->setPriors(Mat());
-  boost->train(prepare_train_data());
-  predict_and_paint(boost, imgDst);
+  boost->setPriors(cv::Mat());
+  boost->train(prepare_train_data()); // Train the classifier
+  predict_and_paint(boost, imgDst); // Predict and paint the boundary
 }
 
-#endif
-
-#if _GBT_
-static void find_decision_boundary_GBT()
-{
-  GBTrees::Params params(GBTrees::DEVIANCE_LOSS,    // loss_function_type
-    100,                      // weak_count
-    0.1f,                      // shrinkage
-    1.0f,                      // subsample_portion
-    2,                      // max_depth
-    false                      // use_surrogates )
-  );
-
-  Ptr<GBTrees> gbtrees = StatModel::train<GBTrees>(prepare_train_data(), params);
-  predict_and_paint(gbtrees, imgDst);
-}
 #endif
 
 #if _RF_
+// Train and apply the Random Forest classifier
 static void find_decision_boundary_RF()
 {
-  Ptr<RTrees> rtrees = RTrees::create();
+  cv::Ptr<cv::ml::RTrees> rtrees = cv::ml::RTrees::create();
   rtrees->setMaxDepth(4);
   rtrees->setMinSampleCount(2);
   rtrees->setRegressionAccuracy(0.f);
   rtrees->setUseSurrogates(false);
   rtrees->setMaxCategories(16);
-  rtrees->setPriors(Mat());
+  rtrees->setPriors(cv::Mat());
   rtrees->setCalculateVarImportance(false);
   rtrees->setActiveVarCount(1);
-  rtrees->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 5, 0));
-  rtrees->train(prepare_train_data());
-  predict_and_paint(rtrees, imgDst);
+  rtrees->setTermCriteria(cv::TermCriteria(cv::TermCriteria::MAX_ITER, 5, 0));
+  rtrees->train(prepare_train_data()); // Train the classifier
+  predict_and_paint(rtrees, imgDst); // Predict and paint the boundary
 }
 #endif
 
 #if _ANN_
-static void find_decision_boundary_ANN(const Mat & layer_sizes)
+// Train and apply the Artificial Neural Network classifier
+static void find_decision_boundary_ANN(const cv::Mat & layer_sizes)
 {
-  Mat trainClasses = Mat::zeros( (int)trainedPoints.size(), (int)classColors.size(), CV_32FC1);
+  cv::Mat trainClasses = cv::Mat::zeros((int)trainedPoints.size(), (int)classColors.size(),
+    CV_32FC1);  // Create the class labels
   for (int i = 0; i < trainClasses.rows; i++) {
-    trainClasses.at<float>(i, trainedPointsMarkers[i]) = 1.f;
+    trainClasses.at<float>(i, trainedPointsMarkers[i]) = 1.f; // Set the class label
   }
 
-  Mat samples = prepare_train_samples(trainedPoints);
-  Ptr<TrainData> tdata = TrainData::create(samples, ROW_SAMPLE, trainClasses);
+  cv::Mat samples = prepare_train_samples(trainedPoints);
+  cv::Ptr<cv::ml::TrainData> tdata = cv::ml::TrainData::create(samples, cv::ml::ROW_SAMPLE,
+    trainClasses);
 
-  Ptr<ANN_MLP> ann = ANN_MLP::create();
-  ann->setLayerSizes(layer_sizes);
-  ann->setActivationFunction(ANN_MLP::SIGMOID_SYM, 1, 1);
-  ann->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER + TermCriteria::EPS, 300, FLT_EPSILON));
-  ann->setTrainMethod(ANN_MLP::BACKPROP, 0.001);
-  ann->train(tdata);
-  predict_and_paint(ann, imgDst);
+  cv::Ptr<cv::ml::ANN_MLP> ann = cv::ml::ANN_MLP::create();
+  ann->setLayerSizes(layer_sizes); // Set the layer sizes
+  ann->setActivationFunction(cv::ml::ANN_MLP::SIGMOID_SYM, 1, 1);
+  ann->setTermCriteria(cv::TermCriteria(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 300,
+    FLT_EPSILON));
+  ann->setTrainMethod(cv::ml::ANN_MLP::BACKPROP, 0.001);
+  ann->train(tdata); // Train the classifier
+  predict_and_paint(ann, imgDst); // Predict and paint the boundary
 }
 #endif
 
 #if _EM_
+// Train and apply the Expectation-Maximization classifier
 static void find_decision_boundary_EM()
 {
   img.copyTo(imgDst);
 
-  Mat samples = prepare_train_samples(trainedPoints);
+  cv::Mat samples = prepare_train_samples(trainedPoints);
 
   int i, j, nmodels = (int)classColors.size();
-  vector<Ptr<EM>> em_models(nmodels);
-  Mat modelSamples;
+  std::vector<cv::Ptr<cv::ml::EM>> em_models(nmodels);
+  cv::Mat modelSamples;
 
   for (i = 0; i < nmodels; i++) {
     const int componentCount = 3;
@@ -253,20 +245,20 @@ static void find_decision_boundary_EM()
       }
     }
 
-    // learn models
+    // Learn models
     if (!modelSamples.empty() ) {
-      Ptr<EM> em = EM::create();
+      cv::Ptr<cv::ml::EM> em = cv::ml::EM::create();
       em->setClustersNumber(componentCount);
-      em->setCovarianceMatrixType(EM::COV_MAT_DIAGONAL);
-      em->trainEM(modelSamples, noArray(), noArray(), noArray());
+      em->setCovarianceMatrixType(cv::ml::EM::COV_MAT_DIAGONAL);
+      em->trainEM(modelSamples, cv::noArray(), cv::noArray(), cv::noArray());
       em_models[i] = em;
     }
   }
 
-  // classify coordinate plane points using the bayes classifier, i.e.
+  // Classify coordinate plane points using the bayes classifier, i.e.
   // y(x) = arg max_i=1_modelsCount likelihoods_i(x)
-  Mat testSample(1, 2, CV_32FC1);
-  Mat logLikelihoods(1, nmodels, CV_64FC1, Scalar(-DBL_MAX));
+  cv::Mat testSample(1, 2, CV_32FC1);
+  cv::Mat logLikelihoods(1, nmodels, CV_64FC1, cv::Scalar(-DBL_MAX));
 
   for (int y = 0; y < img.rows; y += testStep) {
     for (int x = 0; x < img.cols; x += testStep) {
@@ -275,12 +267,12 @@ static void find_decision_boundary_EM()
 
       for (i = 0; i < nmodels; i++) {
         if (!em_models[i].empty() ) {
-          logLikelihoods.at<double>(i) = em_models[i]->predict2(testSample, noArray())[0];
+          logLikelihoods.at<double>(i) = em_models[i]->predict2(testSample, cv::noArray())[0];
         }
       }
-      Point maxLoc;
-      minMaxLoc(logLikelihoods, 0, 0, 0, &maxLoc);
-      imgDst.at<Vec3b>(y, x) = classColors[maxLoc.x];
+      cv::Point maxLoc;
+      cv::minMaxLoc(logLikelihoods, 0, 0, 0, &maxLoc);
+      imgDst.at<cv::Vec3b>(y, x) = classColors[maxLoc.x];
     }
   }
 }
@@ -288,29 +280,33 @@ static void find_decision_boundary_EM()
 
 int main()
 {
-  cout << "Use:" << endl
-       << "  key '0' .. '1' - switch to class #n" << endl
-       << "  left mouse button - to add new point;" << endl
-       << "  key 'r' - to run the ML model;" << endl
-       << "  key 'i' - to init (clear) the data." << endl << endl;
+  std::cout << "Use:" << std::endl
+            << "  key '0' .. '1' - switch to class #n" << std::endl
+            << "  left mouse button - to add new point;" << std::endl
+            << "  key 'r' - to run the ML model;" << std::endl
+            << "  key 'i' - to init (clear) the data." << std::endl << std::endl;
 
+  // Initialize image and UI elements
   cv::namedWindow("points", 1);
   img.create(480, 640, CV_8UC3);
   imgDst.create(480, 640, CV_8UC3);
 
-  imshow("points", img);
-  setMouseCallback("points", on_mouse);
+  cv::imshow("points", img);
+  cv::setMouseCallback("points", on_mouse);
 
-  classColors[0] = Vec3b(0, 255, 0);
-  classColors[1] = Vec3b(0, 0, 255);
+  // Initialize colors for the classes
+  classColors[0] = cv::Vec3b(0, 255, 0);
+  classColors[1] = cv::Vec3b(0, 0, 255);
 
-  for (;; ) {
-    char key = (char)waitKey();
+  bool finish = false;
+  while (!finish) {
+    // Wait for user input
+    char key = (char)cv::waitKey();
 
-    if (key == 27) {break;}
+    if (key == 27) {finish = true;} // Exit on 'Esc' key
 
     if (key == 'i') {    // init
-      img = Scalar::all(0);
+      img = cv::Scalar::all(0);
 
       trainedPoints.clear();
       trainedPointsMarkers.clear();
@@ -325,16 +321,18 @@ int main()
 
     if (key == 'r') {    // run
       double minVal = 0;
-      minMaxLoc(classCounters, &minVal, 0, 0, 0);
+      cv::minMaxLoc(classCounters, &minVal, 0, 0, 0);
       if (minVal == 0) {
         printf("each class should have at least 1 point\n");
         continue;
       }
       img.copyTo(imgDst);
+
 #if _NBC_
       find_decision_boundary_NBC();
       imshow("NormalBayesClassifier", imgDst);
 #endif
+
 #if _KNN_
       find_decision_boundary_KNN(3);
       imshow("kNN", imgDst);
@@ -363,18 +361,13 @@ int main()
       imshow("BT", imgDst);
 #endif
 
-#if _GBT_
-      find_decision_boundary_GBT();
-      imshow("GBT", imgDst);
-#endif
-
 #if _RF_
       find_decision_boundary_RF();
       imshow("RF", imgDst);
 #endif
 
 #if _ANN_
-      Mat layer_sizes1(1, 3, CV_32SC1);
+      cv::Mat layer_sizes1(1, 3, CV_32SC1);
       layer_sizes1.at<int>(0) = 2;
       layer_sizes1.at<int>(1) = 5;
       layer_sizes1.at<int>(2) = (int)classColors.size();

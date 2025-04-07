@@ -2,7 +2,7 @@
  * KMeans demo sample
  * @author José Miguel Guerrero
  *
- * https://github.com/opencv/opencv/blob/master/samples/cpp/kmeans.cpp
+ * Reference: https://github.com/opencv/opencv/blob/master/samples/cpp/kmeans.cpp
  */
 
 #include "opencv2/highgui.hpp"
@@ -10,73 +10,79 @@
 #include "opencv2/imgproc.hpp"
 #include <iostream>
 
-using namespace cv;
-using namespace std;
-
-int main(int /*argc*/, char ** /*argv*/)
+int main()
 {
   const int MAX_CLUSTERS = 5;
-  Scalar colorTab[] =
-  {
-    Scalar(0, 0, 255),
-    Scalar(0, 255, 0),
-    Scalar(255, 100, 100),
-    Scalar(255, 0, 255),
-    Scalar(0, 255, 255)
+
+  // Define colors for clusters
+  cv::Scalar colorTab[] = {
+    cv::Scalar(0, 0, 255),    // Red
+    cv::Scalar(0, 255, 0),    // Green
+    cv::Scalar(255, 100, 100),
+    cv::Scalar(255, 0, 255),  // Magenta
+    cv::Scalar(0, 255, 255)   // Yellow
   };
 
-  Mat img(500, 500, CV_8UC3);
-  RNG rng(12345);
+  cv::Mat img(500, 500, CV_8UC3);
+  cv::RNG rng(12345); // Random number generator
 
-  for (;; ) {
+  bool finish = false;
+  while (!finish) {
     int k, clusterCount = rng.uniform(2, MAX_CLUSTERS + 1);
     int i, sampleCount = rng.uniform(1, 1001);
-    Mat points(sampleCount, 1, CV_32FC2), labels;
+    cv::Mat points(sampleCount, 1, CV_32FC2), labels;
 
-    clusterCount = MIN(clusterCount, sampleCount);
-    std::vector<Point2f> centers;
+    clusterCount = std::min(clusterCount, sampleCount);
+    std::vector<cv::Point2f> centers;
 
-    /* generate random sample from multigaussian distribution */
+    // Generate random sample points from a multi-Gaussian distribution
     for (k = 0; k < clusterCount; k++) {
-      Point center;
+      cv::Point center;
       center.x = rng.uniform(0, img.cols);
       center.y = rng.uniform(0, img.rows);
-      Mat pointChunk = points.rowRange(
+      cv::Mat pointChunk = points.rowRange(
         k * sampleCount / clusterCount,
         k == clusterCount - 1 ? sampleCount :
         (k + 1) * sampleCount / clusterCount);
       rng.fill(
-        pointChunk, RNG::NORMAL, Scalar(center.x, center.y),
-        Scalar(img.cols * 0.05, img.rows * 0.05));
+        pointChunk, cv::RNG::NORMAL, cv::Scalar(center.x, center.y),
+        cv::Scalar(img.cols * 0.05, img.rows * 0.05));
     }
 
-    randShuffle(points, 1, &rng);
+    // Shuffle the sample points randomly
+    cv::randShuffle(points, 1, &rng);
 
-    double compactness = kmeans(
+    // Apply Kmeans clustering algorithm
+    double compactness = cv::kmeans(
       points, clusterCount, labels,
-      TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0),
-      3, KMEANS_PP_CENTERS, centers);
+      cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 10, 1.0),
+      3, cv::KMEANS_PP_CENTERS, centers);
 
-    img = Scalar::all(0);
+    // Clear the image
+    img = cv::Scalar::all(0);
 
+    // Draw sample points with cluster colors
     for (i = 0; i < sampleCount; i++) {
       int clusterIdx = labels.at<int>(i);
-      Point ipt = points.at<Point2f>(i);
-      circle(img, ipt, 2, colorTab[clusterIdx], FILLED, LINE_AA);
+      cv::Point ipt = points.at<cv::Point2f>(i);
+      cv::circle(img, ipt, 2, colorTab[clusterIdx], cv::FILLED, cv::LINE_AA);
     }
 
-    for (i = 0; i < (int)centers.size(); ++i) {
-      Point2f c = centers[i];
-      circle(img, c, 40, colorTab[i], 1, LINE_AA);
+    // Draw cluster centers
+    for (i = 0; i < static_cast<int>(centers.size()); ++i) {
+      cv::Point2f c = centers[i];
+      cv::circle(img, c, 40, colorTab[i], 1, cv::LINE_AA);
     }
 
-    cout << "Compactness: " << compactness << endl;
+    std::cout << "Compactness: " << compactness << std::endl;
 
-    imshow("clusters", img);
+    // Display the clustered image
+    cv::imshow("clusters", img);
 
-    char key = (char)waitKey();
-    if (key == 27 || key == 'q' || key == 'Q') {    // 'ESC'
-      break;
+    // Wait for user input, exit on 'ESC' or 'q'
+    char key = static_cast<char>(cv::waitKey());
+    if (key == 27 || key == 'q' || key == 'Q') {
+      finish = true;
     }
   }
 
