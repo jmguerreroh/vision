@@ -1,4 +1,4 @@
-# Makefile for OpenCV image reading example
+# Makefile for OpenCV video processing example
 # Author: José Miguel Guerrero Hernández
 
 # Compiler settings
@@ -10,7 +10,7 @@ OPENCV    = $(shell pkg-config opencv4 --cflags --libs)
 
 # Source file and target
 SRC    = main.cpp
-TARGET = read_image
+TARGET = video
 
 # Default target: build executable
 all: $(TARGET)

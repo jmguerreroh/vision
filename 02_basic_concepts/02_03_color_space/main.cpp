@@ -1,57 +1,116 @@
 /**
- * Color spaces example
- * @author José Miguel Guerrero
+ * @file main.cpp
+ * @brief Color spaces conversion in OpenCV
+ * @author José Miguel Guerrero Hernández
+ *
+ * This example demonstrates:
+ * - How to convert between different color spaces using cvtColor()
+ * - BGR, HSV, LAB, YCrCb, and Grayscale color spaces
+ *
+ * @note Color Spaces in OpenCV:
+ *       - BGR: Blue, Green, Red (default in OpenCV, not RGB!)
+ *       - HSV: Hue, Saturation, Value (useful for color-based segmentation)
+ *       - LAB: Lightness, A (green-red), B (blue-yellow) - perceptually uniform
+ *       - YCrCb: Luminance (Y), Chrominance Red (Cr), Chrominance Blue (Cb)
+ *       - Grayscale: Single channel intensity
  */
 
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include <iostream>
-#include <math.h>
-
-using namespace cv;
-using namespace std;
 
 int main(int argc, char ** argv)
 {
-  // Load an image
-  Mat src = imread("../../data/RGB.jpg", IMREAD_COLOR);
-  if (src.empty() ) {
-    cout << "Could not open or find the image!\n" << endl;
-    cout << "Usage: " << argv[0] << " <Input image>" << endl;
+  // Load the image
+  const std::string imagePath = "../../data/RGB.jpg";
+
+  // Load image in BGR color format (default)
+  cv::Mat image;
+  if (argc > 1) {
+    image = cv::imread(argv[1], cv::IMREAD_COLOR);
+  } else {
+    image = cv::imread(imagePath, cv::IMREAD_COLOR);
+  }
+
+  // Verify that the image was loaded successfully
+  // An empty image indicates an error (file not found, invalid format, etc.)
+  if (image.empty()) {
+    std::cerr << "Error: Could not load image from: "
+              << (argc > 1 ? argv[1] : imagePath) << std::endl;
+    std::cerr << "Please verify the file exists and the path is correct." << std::endl;
     return -1;
   }
 
-  // Split BGR channels
-  vector<Mat> BGR_channels;
-  split(src, BGR_channels);
+  std::cout << "Image loaded: " << image.cols << "x" << image.rows << " pixels" << std::endl;
+  std::cout << "Original color space: BGR (3 channels)" << std::endl;
 
-  // Resize images and concatenate them
-  int tam = 2;
-  int h = src.size().height / tam, w = src.size().width / tam;
+  // Convert to different color spaces
+  //
+  // cvtColor() converts an image from one color space to another.
+  // Syntax: cvtColor(input, output, conversion_code)
 
-  cv::resize(src, src, Size(h, w), 0, 0, INTER_LANCZOS4);
-  cv::resize(BGR_channels[0], BGR_channels[0], Size(w, h), 0, 0, INTER_LANCZOS4);
-  cv::resize(BGR_channels[1], BGR_channels[1], Size(w, h), 0, 0, INTER_LANCZOS4);
-  cv::resize(BGR_channels[2], BGR_channels[2], Size(w, h), 0, 0, INTER_LANCZOS4);
+  // BGR to Grayscale
+  // Grayscale uses a weighted sum: Y = 0.299*R + 0.587*G + 0.114*B
+  cv::Mat grayscale;
+  cv::cvtColor(image, grayscale, cv::COLOR_BGR2GRAY);
 
-  cv::Mat win_mat1_rgb(cv::Size(BGR_channels[0].size().height, BGR_channels[0].size().width * 2),
-    CV_8UC3);
-  cv::Mat win_mat2_rgb(cv::Size(
-      win_mat1_rgb.size().height,
-      (win_mat1_rgb.size().width + BGR_channels[1].size().width)), CV_8UC3);
-  cv::hconcat(BGR_channels[0], BGR_channels[1], win_mat1_rgb);
-  cv::hconcat(win_mat1_rgb, BGR_channels[2], win_mat2_rgb);
+  // BGR to HSV
+  // HSV is useful for color detection/segmentation:
+  //   H (Hue): 0-179 (color type: 0=red, 60=green, 120=blue)
+  //   S (Saturation): 0-255 (color purity)
+  //   V (Value): 0-255 (brightness)
+  cv::Mat hsv;
+  cv::cvtColor(image, hsv, cv::COLOR_BGR2HSV);
 
-  // Show image
-  namedWindow("BGR Original", WINDOW_AUTOSIZE);
-  imshow("BGR Original", src);
-  cv::imshow("BGR Channels", win_mat2_rgb);
+  // BGR to LAB
+  // LAB is perceptually uniform (distances correlate with human perception):
+  //   L (Lightness): 0-255
+  //   A: Green (-) to Red (+)
+  //   B: Blue (-) to Yellow (+)
+  cv::Mat lab;
+  cv::cvtColor(image, lab, cv::COLOR_BGR2Lab);
 
-  // Changing original image to HSV using cvtColor
-  Mat HSV_opencv;
-  cvtColor(src, HSV_opencv, COLOR_BGR2HSV);
-  imshow("HSV OpenCV", HSV_opencv);
+  // BGR to YCrCb
+  // Used in video compression (JPEG, MPEG):
+  //   Y (Luma): Brightness information
+  //   Cr: Red chrominance component
+  //   Cb: Blue chrominance component
+  cv::Mat ycrcb;
+  cv::cvtColor(image, ycrcb, cv::COLOR_BGR2YCrCb);
 
-  waitKey(0);
+  // Display all color spaces
+  cv::imshow("Original (BGR)", image);
+  cv::imshow("Grayscale", grayscale);
+  cv::imshow("HSV", hsv);
+  cv::imshow("LAB", lab);
+  cv::imshow("YCrCb", ycrcb);
+
+  // Split and display HSV channels
+  //
+  // Visualizing individual channels helps understand each color space.
+  std::vector<cv::Mat> hsvChannels;
+  cv::split(hsv, hsvChannels);
+
+  cv::imshow("HSV - Hue", hsvChannels[0]);
+  cv::imshow("HSV - Saturation", hsvChannels[1]);
+  cv::imshow("HSV - Value", hsvChannels[2]);
+
+  // Demonstrate reverse conversion
+  //
+  // You can convert back to BGR for display or further processing.
+  cv::Mat bgrFromHsv;
+  cv::cvtColor(hsv, bgrFromHsv, cv::COLOR_HSV2BGR);
+  cv::imshow("BGR (converted back from HSV)", bgrFromHsv);
+
+  std::cout << "\nDisplaying:" << std::endl;
+  std::cout << "  - Original BGR image" << std::endl;
+  std::cout << "  - Grayscale conversion" << std::endl;
+  std::cout << "  - HSV color space (+ individual H, S, V channels)" << std::endl;
+  std::cout << "  - LAB color space" << std::endl;
+  std::cout << "  - YCrCb color space" << std::endl;
+  std::cout << "  - BGR reconstructed from HSV" << std::endl;
+  std::cout << "\nPress any key to exit..." << std::endl;
+
+  cv::waitKey(0);
   return 0;
 }
