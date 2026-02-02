@@ -1,20 +1,27 @@
-CC = "g++"
+# Makefile for Haar Wavelet Transform example
+# Author: José Miguel Guerrero Hernández
 
-PROJECT1 = wavelets_haar
-PROJECT2 = wavelets_mahavir
+# Compiler settings
+CXX       = g++
+CXXFLAGS  = -Wall -Wextra -std=c++17 -O2
 
-SRC1 = main_haar.cpp
-SRC2 = main_mahavir.cpp
+# OpenCV configuration (using pkg-config)
+OPENCV    = $(shell pkg-config opencv4 --cflags --libs)
 
-LIBS = `pkg-config opencv4 --cflags --libs`
+# Source file and target
+SRC    = main.cpp
+TARGET = wavelets_haar
 
-all : $(PROJECT1) $(PROJECT2)
+# Default target: build executable
+all: $(TARGET)
 
-$(PROJECT1) : $(SRC1)
-	$(CC) $(SRC1) -o $(PROJECT1) $(LIBS)
-	
-$(PROJECT2) : $(SRC2)
-	$(CC) $(SRC2) -o $(PROJECT2) $(LIBS)
+# Build main.cpp
+$(TARGET): $(SRC)
+	$(CXX) $(CXXFLAGS) $< -o $@ $(OPENCV)
 
-clean :
-	rm -rf *.o $(PROJECT1) $(PROJECT2)
+# Clean build artifacts
+clean:
+	rm -f $(TARGET)
+
+# Declare phony targets (not actual files)
+.PHONY: all clean

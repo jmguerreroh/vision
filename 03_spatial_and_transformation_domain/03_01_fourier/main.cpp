@@ -1,6 +1,20 @@
 /**
- * Discrete Fourier Transform - sample code
- * @author José Miguel Guerrero
+ * @file main.cpp
+ * @brief Discrete Fourier Transform (DFT) in OpenCV
+ * @author José Miguel Guerrero Hernández
+ *
+ * This example demonstrates:
+ * - How to compute the Discrete Fourier Transform (DFT) of an image
+ * - How to visualize the frequency spectrum (magnitude)
+ * - How to shift quadrants for centered spectrum display
+ * - How to reconstruct the image using Inverse DFT (IDFT)
+ *
+ * @note The Fourier Transform decomposes an image into its frequency components:
+ *       - Low frequencies: Smooth regions, gradual changes
+ *       - High frequencies: Edges, sharp transitions, noise
+ *
+ *       The magnitude spectrum shows how much of each frequency is present.
+ *       The phase spectrum (not shown here) contains structural information.
  */
 
 #include "opencv2/core.hpp"
@@ -9,134 +23,213 @@
 #include "opencv2/highgui.hpp"
 #include <iostream>
 
-using namespace cv;
-using namespace std;
-
-static void help(char ** argv)
+/**
+ * @brief Displays usage information
+ * @param argv Command line arguments
+ */
+void printHelp(char ** argv)
 {
-  cout << endl
-       << "This program demonstrated the use of the discrete Fourier transform (DFT). " << endl
-       << "The dft of an image is taken and it's power spectrum is displayed." << endl << endl
-       << "Usage:" << endl
-       << argv[0] << " [image_name -- default images/lena.jpg]" << endl << endl;
+  std::cout << "\n"
+            << "Discrete Fourier Transform (DFT) Demo\n"
+            << "=====================================\n"
+            << "This program computes the DFT of an image and displays its power spectrum.\n\n"
+            << "Usage: " << argv[0] << " [image_path]\n"
+            << "  image_path: Path to input image (default: lena.jpg)\n\n";
 }
 
-// Compute the Discrete Fourier Transform
-Mat computeDFT(const Mat & image)
+/**
+ * @brief Computes the Discrete Fourier Transform of an image
+ * @param image Input grayscale image
+ * @return Complex matrix containing DFT result (real and imaginary parts)
+ *
+ * The DFT converts a spatial domain image to frequency domain.
+ * The result is a complex matrix where each element contains:
+ *   - Real part: cosine component amplitude
+ *   - Imaginary part: sine component amplitude
+ */
+cv::Mat computeDFT(const cv::Mat & image)
 {
-  // Expand the image to an optimal size - power-of-two.
-  Mat padded;
-  int m = getOptimalDFTSize(image.rows);
-  int n = getOptimalDFTSize(image.cols);     // on the border add zero values
-  copyMakeBorder(
-    image, padded, 0, m - image.rows, 0, n - image.cols, BORDER_CONSTANT, Scalar::all(0));
+  // Step 1: Expand image to optimal size for faster DFT computation
+  // DFT is fastest when array size is a power of 2, or factors of 2, 3, and 5
+  cv::Mat padded;
+  int optimalRows = cv::getOptimalDFTSize(image.rows);
+  int optimalCols = cv::getOptimalDFTSize(image.cols);
 
-  // Create a matrix for the real part of the image by converting the padded image to float
-  Mat realPart = Mat_<float>(padded);
+  // Pad with zeros on the right and bottom borders
+  cv::copyMakeBorder(image, padded,
+                     0, optimalRows - image.rows,
+                     0, optimalCols - image.cols,
+                     cv::BORDER_CONSTANT, cv::Scalar::all(0));
 
-  // Create a matrix for the imaginary part of the complex values filled with zeros
-  Mat imaginaryPart = Mat::zeros(padded.size(), CV_32F);
+  // Step 2: Create complex matrix with real and imaginary parts
+  // Real part: the padded image converted to float
+  cv::Mat realPart;
+  padded.convertTo(realPart, CV_32F);
 
-  // Combine the real and imaginary parts into a single complex matrix
-  Mat planes[] = {realPart, imaginaryPart};
-  Mat complexI;
-  merge(planes, 2, complexI); // The resulting complex matrix has real and imaginary parts
+  // Imaginary part: zeros (input image has no imaginary component)
+  cv::Mat imaginaryPart = cv::Mat::zeros(padded.size(), CV_32F);
 
-  // Make the Discrete Fourier Transform
-  dft(complexI, complexI, DFT_COMPLEX_OUTPUT);        // this way the result may fit in the source matrix
-  return complexI;
+  // Step 3: Merge into a 2-channel complex matrix
+  cv::Mat planes[] = {realPart, imaginaryPart};
+  cv::Mat complexImage;
+  cv::merge(planes, 2, complexImage);
+
+  // Step 4: Compute the DFT
+  // DFT_COMPLEX_OUTPUT ensures output has both real and imaginary parts
+  cv::dft(complexImage, complexImage, cv::DFT_COMPLEX_OUTPUT);
+
+  return complexImage;
 }
 
-// Crop and rearrange
-Mat fftShift(const Mat & magI)
+/**
+ * @brief Shifts the zero-frequency component to the center of the spectrum
+ * @param magI Input magnitude/complex image
+ * @return Shifted image with DC component at center
+ *
+ * After DFT, the zero-frequency (DC) component is at the corners.
+ * This function rearranges quadrants so DC is at the center,
+ * which is the conventional way to display frequency spectra.
+ *
+ * Before shift:          After shift:
+ * +-------+-------+      +-------+-------+
+ * | Q0    | Q1    |      | Q3    | Q2    |
+ * | (DC)  |       |      |       |       |
+ * +-------+-------+  =>  +-------+-------+
+ * | Q2    | Q3    |      | Q1    | Q0    |
+ * |       |       |      |       | (DC)  |
+ * +-------+-------+      +-------+-------+
+ */
+cv::Mat fftShift(const cv::Mat & magI)
 {
-  Mat magI_copy = magI.clone();
-  // crop the spectrum, if it has an odd number of rows or columns
-  magI_copy = magI_copy(Rect(0, 0, magI_copy.cols & -2, magI_copy.rows & -2));
+  cv::Mat result = magI.clone();
 
-  // rearrange the quadrants of Fourier image  so that the origin is at the image center
-  int cx = magI_copy.cols / 2;
-  int cy = magI_copy.rows / 2;
+  // Crop if odd number of rows or columns
+  result = result(cv::Rect(0, 0, result.cols & -2, result.rows & -2));
 
-  Mat q0(magI_copy, Rect(0, 0, cx, cy));     // Top-Left - Create a ROI per quadrant
-  Mat q1(magI_copy, Rect(cx, 0, cx, cy));    // Top-Right
-  Mat q2(magI_copy, Rect(0, cy, cx, cy));    // Bottom-Left
-  Mat q3(magI_copy, Rect(cx, cy, cx, cy));   // Bottom-Right
+  // Calculate center point
+  int cx = result.cols / 2;
+  int cy = result.rows / 2;
 
-  Mat tmp;                             // swap quadrants (Top-Left with Bottom-Right)
-  q0.copyTo(tmp);
+  // Define the four quadrants as ROIs (Region of Interest)
+  cv::Mat q0(result, cv::Rect(0, 0, cx, cy));    // Top-Left
+  cv::Mat q1(result, cv::Rect(cx, 0, cx, cy));   // Top-Right
+  cv::Mat q2(result, cv::Rect(0, cy, cx, cy));   // Bottom-Left
+  cv::Mat q3(result, cv::Rect(cx, cy, cx, cy));  // Bottom-Right
+
+  // Swap quadrants diagonally
+  cv::Mat tmp;
+  q0.copyTo(tmp);  // Q0 <-> Q3
   q3.copyTo(q0);
   tmp.copyTo(q3);
 
-  q1.copyTo(tmp);                      // swap quadrant (Top-Right with Bottom-Left)
+  q1.copyTo(tmp);  // Q1 <-> Q2
   q2.copyTo(q1);
   tmp.copyTo(q2);
 
-  return magI_copy;
+  return result;
 }
 
-
-// Calculate dft spectrum
-Mat spectrum(const Mat & complexI)
+/**
+ * @brief Computes the magnitude spectrum from a complex DFT result
+ * @param complexI Complex matrix from DFT
+ * @return Normalized magnitude spectrum ready for display
+ *
+ * The magnitude spectrum shows the amplitude of each frequency component.
+ * Formula: magnitude = sqrt(Re^2 + Im^2)
+ *
+ * Logarithmic scale is applied because the dynamic range is too large
+ * for display: log(1 + magnitude)
+ */
+cv::Mat computeSpectrum(const cv::Mat & complexI)
 {
-  Mat complexImg = complexI.clone();
-  // Shift quadrants
-  Mat shift_complex = fftShift(complexImg);
+  cv::Mat complexImg = complexI.clone();
 
-  // Transform the real and complex values to magnitude
-  // compute the magnitude and switch to logarithmic scale
-  // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
-  Mat planes_spectrum[2];
-  split(shift_complex, planes_spectrum);         // planes_spectrum[0] = Re(DFT(I)), planes_spectrum[1] = Im(DFT(I))
-  magnitude(planes_spectrum[0], planes_spectrum[1], planes_spectrum[0]);  // planes_spectrum[0] = magnitude
-  Mat spectrum = planes_spectrum[0];
+  // Step 1: Shift to center the DC component
+  cv::Mat shiftedComplex = fftShift(complexImg);
 
-  // Switch to a logarithmic scale
-  spectrum += Scalar::all(1);
-  log(spectrum, spectrum);
+  // Step 2: Split into real and imaginary parts
+  cv::Mat planes[2];
+  cv::split(shiftedComplex, planes);
+  // planes[0] = Real part, planes[1] = Imaginary part
 
-  // Normalize
-  normalize(spectrum, spectrum, 0, 1, NORM_MINMAX);   // Transform the matrix with float values into a
-                                                      // viewable image form (float between values 0 and 1)
-  return spectrum;
+  // Step 3: Compute magnitude: sqrt(Re^2 + Im^2)
+  cv::Mat magnitudeImage;
+  cv::magnitude(planes[0], planes[1], magnitudeImage);
+
+  // Step 4: Apply logarithmic scale for better visualization
+  // Without log, bright spots would dominate and details would be invisible
+  magnitudeImage += cv::Scalar::all(1);  // Avoid log(0)
+  cv::log(magnitudeImage, magnitudeImage);
+
+  // Step 5: Normalize to range [0, 1] for display
+  cv::normalize(magnitudeImage, magnitudeImage, 0, 1, cv::NORM_MINMAX);
+
+  return magnitudeImage;
 }
 
 int main(int argc, char ** argv)
 {
-  help(argv);
+  printHelp(argv);
+
+  // Load the image
+  //
+  // cv::samples::findFile helps locate the image file in OpenCV sample directories.
   const char * filename = argc >= 2 ? argv[1] : "lena.jpg";
-  Mat I = imread(samples::findFile(filename), IMREAD_GRAYSCALE);
-  if (I.empty()) {
-    cout << "Error opening image" << endl;
+  cv::Mat image = cv::imread(cv::samples::findFile(filename), cv::IMREAD_GRAYSCALE);
+
+  if (image.empty()) {
+    std::cerr << "Error: Could not open image '" << filename << "'" << std::endl;
     return EXIT_FAILURE;
   }
 
-  // Compute the Discrete fourier transform
-  Mat complexImg = computeDFT(I);
+  std::cout << "Image loaded: " << image.cols << "x" << image.rows << " pixels" << std::endl;
 
-  // Get the spectrum
-  Mat spectrum_original = spectrum(complexImg);
+  // Compute the Discrete Fourier Transform
+  cv::Mat complexImage = computeDFT(image);
+  std::cout << "DFT computed successfully" << std::endl;
 
-  // Crop and rearrange
-  Mat shift_complex = fftShift(complexImg);   // Rearrange quadrants - Spectrum with low values at center - Theory mode
-  // doSomethingWithTheSpectrum(shift_complex);
-  Mat rearrange = fftShift(shift_complex);   // Rearrange quadrants - Spectrum with low values at corners - OpenCV mode
+  // Compute and display the magnitude spectrum
+  cv::Mat spectrumOriginal = computeSpectrum(complexImage);
 
-  // Get the spectrum after the processing
-  Mat spectrum_filter = spectrum(rearrange);
+  // Demonstrate quadrant shifting
+  //
+  // First shift: Move DC to center (for processing/visualization)
+  cv::Mat shiftedComplex = fftShift(complexImage);  // DC at center
 
-  // Original image
-  imshow("Input Image", I);
-  // Show the spectrums
-  imshow("Spectrum original", spectrum_original);
-  imshow("Spectrum filter", spectrum_filter);
+  // Here you could apply frequency domain filters:
+  //   Low-pass filter: Keep center, remove edges (blur)
+  //   High-pass filter: Remove center, keep edges (sharpen)
+  //   Band-pass filter: Keep specific frequency range
 
-  // Calculating the idft
-  Mat inverseTransform;
-  idft(rearrange, inverseTransform, cv::DFT_INVERSE | cv::DFT_REAL_OUTPUT);
-  normalize(inverseTransform, inverseTransform, 0, 1, NORM_MINMAX);
-  imshow("Reconstructed", inverseTransform);
+  // Second shift: Move DC back to corners (for inverse DFT)
+  cv::Mat rearranged = fftShift(shiftedComplex);    // DC back to corners
 
-  waitKey(0);
+  // Compute and display the magnitude spectrum after rearrangement
+  cv::Mat spectrumAfter = computeSpectrum(rearranged);
+
+  // Reconstruct image using Inverse DFT
+  //
+  // IDFT converts frequency domain back to spatial domain.
+  // DFT_INVERSE: Perform inverse transform
+  // DFT_REAL_OUTPUT: Output only real part (discard small imaginary residue)
+  cv::Mat reconstructed;
+  cv::idft(rearranged, reconstructed, cv::DFT_INVERSE | cv::DFT_REAL_OUTPUT);
+  cv::normalize(reconstructed, reconstructed, 0, 1, cv::NORM_MINMAX);
+
+  // Display results
+  cv::imshow("Original Image", image);
+  cv::imshow("Magnitude Spectrum", spectrumOriginal);
+  cv::imshow("Spectrum After Processing", spectrumAfter);
+  cv::imshow("Reconstructed (IDFT)", reconstructed);
+
+  std::cout << "\nWindows displayed:" << std::endl;
+  std::cout << "  - Original grayscale image" << std::endl;
+  std::cout << "  - Magnitude spectrum (centered)" << std::endl;
+  std::cout << "  - Magnitude spectrum after rearrangement" << std::endl;
+  std::cout << "  - Reconstructed image from IDFT" << std::endl;
+  std::cout << "\nPress any key to exit..." << std::endl;
+
+  cv::waitKey(0);
+
   return EXIT_SUCCESS;
 }

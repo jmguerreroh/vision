@@ -1,12 +1,27 @@
-CC = "g++"
-PROJECT = neighborhood
+# Makefile for Neighborhood Transformations example
+# Author: José Miguel Guerrero Hernández
 
-SRC = main.cpp
+# Compiler settings
+CXX       = g++
+CXXFLAGS  = -Wall -Wextra -std=c++17 -O2
 
-LIBS = `pkg-config opencv4 --cflags --libs`
+# OpenCV configuration (using pkg-config)
+OPENCV    = $(shell pkg-config opencv4 --cflags --libs)
 
-$(PROJECT) : $(SRC)
-	$(CC) $(SRC) -o $(PROJECT) $(LIBS)
+# Source file and target
+SRC    = main.cpp
+TARGET = neighborhood
 
-clean :
-	rm -rf *.o $(PROJECT)
+# Default target: build executable
+all: $(TARGET)
+
+# Build main.cpp
+$(TARGET): $(SRC)
+	$(CXX) $(CXXFLAGS) $< -o $@ $(OPENCV)
+
+# Clean build artifacts
+clean:
+	rm -f $(TARGET)
+
+# Declare phony targets (not actual files)
+.PHONY: all clean
