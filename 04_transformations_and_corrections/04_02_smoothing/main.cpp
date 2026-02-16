@@ -1,100 +1,192 @@
 /**
- * Smoothing - sample code
- * @author José Miguel Guerrero
+ * @file main.cpp
+ * @brief Smoothing/Blurring filters demonstration using OpenCV
+ * @author José Miguel Guerrero Hernández
  *
- * https://docs.opencv.org/3.4/dc/dd3/tutorial_gausian_median_blur_bilateral_filter.html
+ * This example demonstrates various smoothing techniques:
+ * - Homogeneous (Normalized Box) Filter: simple averaging
+ * - Gaussian Filter: weighted average, reduces high-frequency noise
+ * - Median Filter: replaces pixel with median of neighbors, good for salt-and-pepper noise
+ * - Bilateral Filter: edge-preserving smoothing
+ *
+ * @note Each filter is applied with increasing kernel sizes to show the effect.
+ * @see https://docs.opencv.org/3.4/dc/dd3/tutorial_gausian_median_blur_bilateral_filter.html
  */
 
 #include <iostream>
+#include <string>
 #include "opencv2/imgproc.hpp"
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/highgui.hpp"
 
-using namespace std;
-using namespace cv;
+// Configuration constants
+namespace Config
+{
+constexpr int DELAY_CAPTION = 1500;           // Delay for caption display (ms)
+constexpr int DELAY_BLUR = 100;               // Delay between blur iterations (ms)
+constexpr int MAX_KERNEL_LENGTH = 31;         // Maximum kernel size
+const cv::Size IMAGE_SIZE(512, 512);          // Standard display size
+const std::string WINDOW_NAME = "Smoothing Demo";
 
-int DELAY_CAPTION = 1500;
-int DELAY_BLUR = 100;
-int MAX_KERNEL_LENGTH = 31;
+// Bilateral filter parameters
+constexpr double BILATERAL_SIGMA_COLOR_MULTIPLIER = 2.0;    // Color space sigma multiplier
+constexpr double BILATERAL_SIGMA_SPACE_DIVISOR = 2.0;       // Coordinate space sigma divisor
+}
 
-Mat src; Mat dst;
-char window_name[] = "Smoothing Demo";
-int display_caption(const char * caption);
-int display_dst(int delay);
+/**
+ * @brief Displays a caption message on a black background
+ * @param src Source image used to determine display size
+ * @param caption Text message to display
+ * @return true if user pressed a key (to exit), false otherwise
+ */
+bool displayCaption(const cv::Mat & src, const std::string & caption)
+{
+  cv::Mat display = cv::Mat::zeros(src.size(), src.type());
+  cv::putText(display, caption,
+              cv::Point(src.cols / 4, src.rows / 2),
+              cv::FONT_HERSHEY_COMPLEX, 1, cv::Scalar(255, 255, 255));
+  cv::imshow(Config::WINDOW_NAME, display);
+  return cv::waitKey(Config::DELAY_CAPTION) >= 0;
+}
+
+/**
+ * @brief Displays an image with optional kernel size information overlay
+ * @param img Image to display
+ * @param kernelSize Kernel size to show in overlay (0 to hide)
+ * @return true if user pressed a key (to exit), false otherwise
+ */
+bool displayResult(const cv::Mat & img, int kernelSize = 0)
+{
+  cv::Mat display = img.clone();
+
+  // Show kernel size in top-left corner
+  if (kernelSize > 0) {
+    std::string text = "Kernel: " + std::to_string(kernelSize) + "x" + std::to_string(kernelSize);
+    cv::putText(display, text, cv::Point(10, 30),
+                cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+  }
+
+  cv::imshow(Config::WINDOW_NAME, display);
+  return cv::waitKey(Config::DELAY_BLUR) >= 0;
+}
+
+/**
+ * @brief Applies homogeneous (normalized box) blur with increasing kernel sizes
+ * @param src Input source image to blur
+ * @return true if user pressed a key (to exit), false otherwise
+ */
+bool demoHomogeneousBlur(const cv::Mat & src)
+{
+  if (displayCaption(src, "Homogeneous Blur")) {return true;}
+  std::cout << "  Homogeneous Blur (normalized box filter)..." << std::endl;
+
+  cv::Mat dst;
+  for (int k = 1; k < Config::MAX_KERNEL_LENGTH; k += 2) {
+    cv::blur(src, dst, cv::Size(k, k));
+    if (displayResult(dst, k)) {return true;}
+  }
+  return false;
+}
+
+/**
+ * @brief Applies Gaussian blur with increasing kernel sizes
+ * @param src Input source image to blur
+ * @return true if user pressed a key (to exit), false otherwise
+ */
+bool demoGaussianBlur(const cv::Mat & src)
+{
+  if (displayCaption(src, "Gaussian Blur")) {return true;}
+  std::cout << "  Gaussian Blur (weighted average)..." << std::endl;
+
+  cv::Mat dst;
+  for (int k = 1; k < Config::MAX_KERNEL_LENGTH; k += 2) {
+    // sigmaX=0, sigmaY=0: automatically calculated from kernel size
+    cv::GaussianBlur(src, dst, cv::Size(k, k), 0, 0);
+    if (displayResult(dst, k)) {return true;}
+  }
+  return false;
+}
+
+/**
+ * @brief Applies median blur with increasing kernel sizes
+ * @param src Input source image to blur
+ * @return true if user pressed a key (to exit), false otherwise
+ */
+bool demoMedianBlur(const cv::Mat & src)
+{
+  if (displayCaption(src, "Median Blur")) {return true;}
+  std::cout << "  Median Blur (good for salt-and-pepper noise)..." << std::endl;
+
+  cv::Mat dst;
+  for (int k = 1; k < Config::MAX_KERNEL_LENGTH; k += 2) {
+    cv::medianBlur(src, dst, k);
+    if (displayResult(dst, k)) {return true;}
+  }
+  return false;
+}
+
+/**
+ * @brief Applies bilateral filter with increasing kernel sizes
+ * @param src Input source image to filter
+ * @return true if user pressed a key (to exit), false otherwise
+ *
+ * @note Bilateral filter parameters:
+ *   - d: Diameter of pixel neighborhood (kernel size)
+ *   - sigmaColor: Filter sigma in color space (larger = more colors mixed)
+ *   - sigmaSpace: Filter sigma in coordinate space (larger = farther pixels influence)
+ */
+bool demoBilateralBlur(const cv::Mat & src)
+{
+  if (displayCaption(src, "Bilateral Filter")) {return true;}
+  std::cout << "  Bilateral Filter (edge-preserving)..." << std::endl;
+
+  cv::Mat dst;
+  for (int k = 1; k < Config::MAX_KERNEL_LENGTH; k += 2) {
+    // Bilateral filter smooths while preserving edges
+    // sigmaColor scales with kernel size to maintain edge detection
+    // sigmaSpace inversely scales to control spatial influence
+    double sigmaColor = k * Config::BILATERAL_SIGMA_COLOR_MULTIPLIER;
+    double sigmaSpace = k / Config::BILATERAL_SIGMA_SPACE_DIVISOR;
+    cv::bilateralFilter(src, dst, k, sigmaColor, sigmaSpace);
+    if (displayResult(dst, k)) {return true;}
+  }
+  return false;
+}
 
 int main(int argc, char ** argv)
 {
-  namedWindow(window_name, WINDOW_AUTOSIZE);
+  // Load image
+  const std::string filename = (argc >= 2) ? argv[1] : "lena.jpg";
+  cv::Mat src = cv::imread(cv::samples::findFile(filename), cv::IMREAD_COLOR);
 
-  // Read image
-  const char * filename = argc >= 2 ? argv[1] : "lena.jpg";
-  src = imread(samples::findFile(filename), IMREAD_COLOR);
   if (src.empty()) {
-    printf(" Error opening image\n");
-    printf(" Usage:\n %s [image_name-- default lena.jpg] \n", argv[0]);
-    return EXIT_FAILURE;
-  }
-  resize(src, src, Size(512, 512));
-
-  // Show message
-  if (display_caption("Original Image") != 0) {return 0;}
-  dst = src.clone();
-  // Show original image
-  if (display_dst(DELAY_CAPTION) != 0) {return 0;}
-
-  // Show message
-  if (display_caption("Homogeneous Blur") != 0) {return 0;}
-  // Show blur image using Normalized Block Filter with different kernel sizes
-  for (int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2) {
-    blur(src, dst, Size(i, i), Point(-1, -1) );
-    if (display_dst(DELAY_BLUR) != 0) {return 0;}
+    std::cerr << "Error: Could not open image!" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " [image_path]" << std::endl;
+    return -1;
   }
 
-  // Show message
-  if (display_caption("Gaussian Blur") != 0) {return 0;}
-  // Show blur image using Gaussian Filter with different kernel sizes
-  for (int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2) {
-    GaussianBlur(src, dst, Size(i, i), 0, 0);
-    if (display_dst(DELAY_BLUR) != 0) {return 0;}
-  }
+  // Resize to standard size for consistent display
+  cv::resize(src, src, Config::IMAGE_SIZE);
 
-  // Show message
-  if (display_caption("Median Blur") != 0) {return 0;}
-  // Show blur image using Median Filter with different kernel sizes
-  for (int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2) {
-    medianBlur(src, dst, i);
-    if (display_dst(DELAY_BLUR) != 0) {return 0;}
-  }
+  std::cout << "=== Smoothing Filters Demo ===" << std::endl;
+  std::cout << "Image: " << filename << " (" << src.cols << "x" << src.rows << ")" << std::endl;
+  std::cout << "Press any key to skip to next filter..." << std::endl;
 
-  // Show message
-  if (display_caption("Bilateral Blur") != 0) {return 0;}
-  // Show blur image using Bilateral Filter with different kernel sizes
-  for (int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2) {
-    bilateralFilter(src, dst, i, i * 2, i / 2);
-    if (display_dst(DELAY_BLUR) != 0) {return 0;}
-  }
+  cv::namedWindow(Config::WINDOW_NAME, cv::WINDOW_AUTOSIZE);
 
-  // Show message
-  display_caption("Done!");
-  return 0;
-}
+  // Show original
+  if (displayCaption(src, "Original Image")) {return 0;}
+  if (displayResult(src)) {return 0;}
 
-// Show message during a time
-int display_caption(const char * caption)
-{
-  dst = Mat::zeros(src.size(), src.type() );
-  putText(
-    dst, caption,
-    Point(src.cols / 4, src.rows / 2),
-    FONT_HERSHEY_COMPLEX, 1, Scalar(255, 255, 255) );
-  return display_dst(DELAY_CAPTION);
-}
+  // Run all blur demos
+  if (demoHomogeneousBlur(src)) {return 0;}
+  if (demoGaussianBlur(src)) {return 0;}
+  if (demoMedianBlur(src)) {return 0;}
+  if (demoBilateralBlur(src)) {return 0;}
 
-// Show image with delay - if any key is pressed the program is closed
-int display_dst(int delay)
-{
-  imshow(window_name, dst);
-  int c = waitKey(delay);
-  if (c >= 0) {return -1;}
+  // Done
+  displayCaption(src, "Done!");
+  std::cout << "Demo completed." << std::endl;
+
   return 0;
 }

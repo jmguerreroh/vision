@@ -1,122 +1,191 @@
 /**
- * Histogram equalization - sample code
- * @author José Miguel Guerrero
+ * @file main.cpp
+ * @brief Histogram calculation and equalization demonstration using OpenCV
+ * @author José Miguel Guerrero Hernández
  *
- * https://docs.opencv.org/3.4/d8/dbc/tutorial_histogram_calculation.html
+ * This example demonstrates:
+ * - Histogram calculation for BGR color channels
+ * - Histogram visualization with line plots
+ * - Histogram equalization per channel
+ *
+ * @see https://docs.opencv.org/3.4/d8/dbc/tutorial_histogram_calculation.html
  */
 
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 #include <iostream>
+#include <vector>
+#include <array>
 
-using namespace std;
-using namespace cv;
+// Histogram configuration
+namespace Config
+{
+constexpr int HIST_SIZE = 256;              // Number of bins (intensity levels)
+constexpr int HIST_WIDTH = 512;             // Display width in pixels
+constexpr int HIST_HEIGHT = 400;            // Display height in pixels
+constexpr float HIST_MIN_RANGE = 0.0f;      // Minimum intensity value
+constexpr float HIST_MAX_RANGE = 256.0f;    // Maximum intensity value
+constexpr int NUM_BGR_CHANNELS = 3;         // Number of BGR channels
+}
+
+/**
+ * @brief Get BGR color for channel visualization
+ * @param channel Channel index (0=Blue, 1=Green, 2=Red)
+ * @return Scalar color for drawing
+ */
+cv::Scalar getChannelColor(int channel)
+{
+  static const std::array<cv::Scalar, Config::NUM_BGR_CHANNELS> COLORS = {
+    cv::Scalar(255, 0, 0),   // Blue
+    cv::Scalar(0, 255, 0),   // Green
+    cv::Scalar(0, 0, 255)    // Red
+  };
+  return COLORS[channel];
+}
+
+/**
+ * @brief Calculate histograms for all channels of an image
+ * @param channels Vector of single-channel images (BGR planes)
+ * @return Vector of histogram matrices
+ */
+std::vector<cv::Mat> calculateHistograms(const std::vector<cv::Mat> & channels)
+{
+  std::vector<cv::Mat> histograms(channels.size());
+
+  // Define histogram range [min, max)
+  const float histRange[] = {Config::HIST_MIN_RANGE, Config::HIST_MAX_RANGE};
+  const float * histRangePtr = histRange;
+  const int channels_idx = 0;  // Process channel 0 of each image
+
+  for (size_t i = 0; i < channels.size(); i++) {
+    // cv::calcHist(images, nimages, channels, mask, hist, dims, histSize, ranges, uniform, accumulate)
+    //   images:     Pointer to source images (here: single channel)
+    //   nimages:    Number of source images (1)
+    //   channels:   Channel indices to process (0 = first channel)
+    //   mask:       Optional mask (cv::Mat() = no mask, use all pixels)
+    //   hist:       Output histogram matrix
+    //   dims:       Histogram dimensionality (1 = 1D histogram)
+    //   histSize:   Number of bins per dimension (256 for 8-bit images)
+    //   ranges:     Array of value ranges per dimension ([0, 256))
+    //   uniform:    true = bins are equally spaced
+    //   accumulate: false = clear histogram before computing
+    cv::calcHist(&channels[i], 1, &channels_idx, cv::Mat(), histograms[i],
+                 1, &Config::HIST_SIZE, &histRangePtr, true, false);
+  }
+
+  return histograms;
+}
+
+/**
+ * @brief Draw histogram visualization for all channels
+ * @param histograms Vector of histogram matrices (one per channel)
+ * @return Image with drawn histogram lines
+ */
+cv::Mat drawHistogram(const std::vector<cv::Mat> & histograms)
+{
+  cv::Mat histImage(Config::HIST_HEIGHT, Config::HIST_WIDTH, CV_8UC3, cv::Scalar(0, 0, 0));
+  const int binWidth = cvRound(static_cast<double>(Config::HIST_WIDTH) / Config::HIST_SIZE);
+
+  // Normalize histograms to fit display height
+  std::vector<cv::Mat> normalized(histograms.size());
+  for (size_t i = 0; i < histograms.size(); i++) {
+    cv::normalize(histograms[i], normalized[i], 0, Config::HIST_HEIGHT, cv::NORM_MINMAX);
+  }
+
+  // Draw lines for each channel
+  for (int x = 1; x < Config::HIST_SIZE; x++) {
+    for (size_t ch = 0; ch < normalized.size(); ch++) {
+      const int y1 = Config::HIST_HEIGHT - cvRound(normalized[ch].at<float>(x - 1));
+      const int y2 = Config::HIST_HEIGHT - cvRound(normalized[ch].at<float>(x));
+
+      cv::line(histImage,
+               cv::Point(binWidth * (x - 1), y1),
+               cv::Point(binWidth * x, y2),
+               getChannelColor(ch), 2);
+    }
+  }
+
+  return histImage;
+}
+
+/**
+ * @brief Apply histogram equalization to all channels
+ * @param channels Vector of single-channel images
+ * @return Vector of equalized channels
+ *
+ * @note Histogram equalization is applied independently to each channel.
+ *       For color images, this may cause color shifts. Consider using
+ *       equalizeHist on the V channel of HSV or L channel of Lab for
+ *       better color preservation.
+ */
+std::vector<cv::Mat> equalizeChannels(const std::vector<cv::Mat> & channels)
+{
+  std::vector<cv::Mat> equalized(channels.size());
+
+  for (size_t i = 0; i < channels.size(); i++) {
+    // cv::equalizeHist(src, dst)
+    //   src: Input 8-bit single-channel image
+    //   dst: Output image with equalized histogram (same size and type)
+    //
+    // Algorithm:
+    //   1. Calculate histogram of input image
+    //   2. Normalize histogram so sum = number of pixels
+    //   3. Compute cumulative distribution function (CDF)
+    //   4. Map original pixel values using normalized CDF as lookup table
+    //
+    // Result: Spreads intensity values across full range [0, 255]
+    //         improving contrast in images with narrow intensity range
+    cv::equalizeHist(channels[i], equalized[i]);
+  }
+
+  return equalized;
+}
 
 int main(int argc, char ** argv)
 {
-  // Read image
-  CommandLineParser parser(argc, argv, "{@input | lena.jpg | input image}");
-  Mat src = imread(samples::findFile(parser.get<String>("@input") ), IMREAD_COLOR);
-  if (src.empty() ) {
-    return EXIT_FAILURE;
+  // Load image
+  cv::CommandLineParser parser(argc, argv, "{@input | lena.jpg | input image}");
+  cv::Mat src = cv::imread(cv::samples::findFile(parser.get<cv::String>("@input")),
+    cv::IMREAD_COLOR);
+
+  if (src.empty()) {
+    std::cerr << "Error: Could not load input image" << std::endl;
+    return -1;
   }
 
-  // Split BGR planes
-  vector<Mat> bgr_planes;
-  split(src, bgr_planes);
+  std::cout << "=== Histogram Equalization Demo ===" << std::endl;
+  std::cout << "Image: " << src.cols << "x" << src.rows << " pixels" << std::endl;
 
-  // Establish the number of bins
-  int histSize = 256;
-  // Set the ranges ( for B,G,R) )
-  float range[] = {0, 256};       //the upper boundary is exclusive
-  const float * histRange = {range};
-  bool uniform = true, accumulate = false;
+  // Split into BGR channels
+  std::vector<cv::Mat> bgrChannels;
+  cv::split(src, bgrChannels);
 
-  // Compute the histograms for each channel
-  Mat b_hist, g_hist, r_hist;
-  calcHist(&bgr_planes[0], 1, 0, Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
-  calcHist(&bgr_planes[1], 1, 0, Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
-  calcHist(&bgr_planes[2], 1, 0, Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
+  // Calculate and draw original histogram
+  std::vector<cv::Mat> histograms = calculateHistograms(bgrChannels);
+  cv::Mat histImage = drawHistogram(histograms);
 
-  // Draw the histograms for B, G and R
-  int hist_w = 512, hist_h = 400;
-  int bin_w = cvRound( (double) hist_w / histSize);
+  // Display original
+  cv::imshow("Original Image", src);
+  cv::imshow("Original Histogram", histImage);
 
-  Mat histImage(hist_h, hist_w, CV_8UC3, Scalar(0, 0, 0) );
+  // Equalize each channel
+  std::vector<cv::Mat> equalizedChannels = equalizeChannels(bgrChannels);
 
-  // normalize the histograms between 0 and histImage.rows
-  normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-  normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-  normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+  // Calculate and draw equalized histogram
+  std::vector<cv::Mat> histogramsEq = calculateHistograms(equalizedChannels);
+  cv::Mat histImageEq = drawHistogram(histogramsEq);
 
-  // Draw the intensity line for histograms
-  for (int i = 1; i < histSize; i++) {
-    line(
-      histImage, Point(bin_w * (i - 1), hist_h - cvRound(b_hist.at<float>(i - 1)) ),
-      Point(bin_w * (i), hist_h - cvRound(b_hist.at<float>(i)) ),
-      Scalar(255, 0, 0), 2, 8, 0);
-    line(
-      histImage, Point(bin_w * (i - 1), hist_h - cvRound(g_hist.at<float>(i - 1)) ),
-      Point(bin_w * (i), hist_h - cvRound(g_hist.at<float>(i)) ),
-      Scalar(0, 255, 0), 2, 8, 0);
-    line(
-      histImage, Point(bin_w * (i - 1), hist_h - cvRound(r_hist.at<float>(i - 1)) ),
-      Point(bin_w * (i), hist_h - cvRound(r_hist.at<float>(i)) ),
-      Scalar(0, 0, 255), 2, 8, 0);
-  }
+  // Merge equalized channels back
+  cv::Mat equalizedImage;
+  cv::merge(equalizedChannels, equalizedImage);
 
-  // Show images
-  imshow("Source image", src);
-  imshow("calcHist Source", histImage);
+  // Display equalized
+  cv::imshow("Equalized Image", equalizedImage);
+  cv::imshow("Equalized Histogram", histImageEq);
 
-  // Equalization
-  Mat b_eqhist, g_eqhist, r_eqhist;
-  equalizeHist(bgr_planes[0], b_eqhist);
-  equalizeHist(bgr_planes[1], g_eqhist);
-  equalizeHist(bgr_planes[2], r_eqhist);
+  std::cout << "\nPress any key to exit..." << std::endl;
+  cv::waitKey(0);
 
-  // Compute the histograms for each channel
-  Mat b_histeq, g_histeq, r_histeq;
-  calcHist(&b_eqhist, 1, 0, Mat(), b_histeq, 1, &histSize, &histRange, uniform, accumulate);
-  calcHist(&g_eqhist, 1, 0, Mat(), g_histeq, 1, &histSize, &histRange, uniform, accumulate);
-  calcHist(&r_eqhist, 1, 0, Mat(), r_histeq, 1, &histSize, &histRange, uniform, accumulate);
-
-  // normalize the histograms between 0 and histImage.rows
-  Mat histImageEq(hist_h, hist_w, CV_8UC3, Scalar(0, 0, 0) );
-  normalize(b_histeq, b_histeq, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-  normalize(g_histeq, g_histeq, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-  normalize(r_histeq, r_histeq, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-
-  // Draw the intensity line for equalized histograms
-  for (int i = 1; i < histSize; i++) {
-    line(
-      histImageEq, Point(bin_w * (i - 1), hist_h - cvRound(b_histeq.at<float>(i - 1)) ),
-      Point(bin_w * (i), hist_h - cvRound(b_histeq.at<float>(i)) ),
-      Scalar(255, 0, 0), 2, 8, 0);
-    line(
-      histImageEq, Point(bin_w * (i - 1), hist_h - cvRound(g_histeq.at<float>(i - 1)) ),
-      Point(bin_w * (i), hist_h - cvRound(g_histeq.at<float>(i)) ),
-      Scalar(0, 255, 0), 2, 8, 0);
-    line(
-      histImageEq, Point(bin_w * (i - 1), hist_h - cvRound(r_histeq.at<float>(i - 1)) ),
-      Point(bin_w * (i), hist_h - cvRound(r_histeq.at<float>(i)) ),
-      Scalar(0, 0, 255), 2, 8, 0);
-  }
-
-  // Create Equalized image
-  vector<Mat> equalized;
-  equalized.push_back(b_eqhist);
-  equalized.push_back(g_eqhist);
-  equalized.push_back(r_eqhist);
-  // Merge channels
-  Mat equalized_image;
-  merge(equalized, equalized_image);
-
-  // Show images
-  imshow("Equalized image", equalized_image);
-  imshow("calcHist Equalized", histImageEq);
-  waitKey();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

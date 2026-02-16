@@ -1,18 +1,27 @@
-CC = "g++"
-PROJECT = transformation
+# Makefile for Geometric Transformations example
+# Author: José Miguel Guerrero Hernández
 
-SRC1 = resize
-SRC2 = rotation
-SRC3 = translation
-SRC4 = inclination
+# Compiler settings
+CXX       = g++
+CXXFLAGS  = -Wall -Wextra -std=c++17 -O2
 
-LIBS = `pkg-config opencv4 --cflags --libs`
+# OpenCV configuration (using pkg-config)
+OPENCV    = $(shell pkg-config opencv4 --cflags --libs)
 
-$(PROJECT) : $(SRC1).cpp $(SRC2).cpp $(SRC3).cpp $(SRC4).cpp
-	$(CC) $(SRC1).cpp -o $(SRC1) $(LIBS)
-	$(CC) $(SRC2).cpp -o $(SRC2) $(LIBS)
-	$(CC) $(SRC3).cpp -o $(SRC3) $(LIBS)
-	$(CC) $(SRC4).cpp -o $(SRC4) $(LIBS)
+# Source files and targets
+SRC       = main.cpp
+TARGET    = geometric_transformations
 
-clean :
-	rm -rf *.o resize rotation translation inclination
+# Default target: build the executable
+all: $(TARGET)
+
+# Build the executable
+$(TARGET): $(SRC)
+	$(CXX) $(CXXFLAGS) $< -o $@ $(OPENCV)
+
+# Clean build artifacts
+clean:
+	rm -f $(TARGET)
+
+# Declare phony targets (not actual files)
+.PHONY: all clean
