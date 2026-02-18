@@ -144,24 +144,21 @@ cv::Mat computeSpectrum(const cv::Mat & complexI)
 {
   cv::Mat complexImg = complexI.clone();
 
-  // Step 1: Shift to center the DC component
-  cv::Mat shiftedComplex = fftShift(complexImg);
-
-  // Step 2: Split into real and imaginary parts
+  // Step 1: Split into real and imaginary parts
   cv::Mat planes[2];
-  cv::split(shiftedComplex, planes);
+  cv::split(complexImg, planes);
   // planes[0] = Real part, planes[1] = Imaginary part
 
-  // Step 3: Compute magnitude: sqrt(Re^2 + Im^2)
+  // Step 2: Compute magnitude: sqrt(Re^2 + Im^2)
   cv::Mat magnitudeImage;
   cv::magnitude(planes[0], planes[1], magnitudeImage);
 
-  // Step 4: Apply logarithmic scale for better visualization
+  // Step 3: Apply logarithmic scale for better visualization
   // Without log, bright spots would dominate and details would be invisible
   magnitudeImage += cv::Scalar::all(1);  // Avoid log(0)
   cv::log(magnitudeImage, magnitudeImage);
 
-  // Step 5: Normalize to range [0, 1] for display
+  // Step 4: Normalize to range [0, 1] for display
   cv::normalize(magnitudeImage, magnitudeImage, 0, 1, cv::NORM_MINMAX);
 
   return magnitudeImage;
@@ -196,6 +193,9 @@ int main(int argc, char ** argv)
   // First shift: Move DC to center (for processing/visualization)
   cv::Mat shiftedComplex = fftShift(complexImage);  // DC at center
 
+  // Compute and display the magnitude spectrum after first shift
+  cv::Mat spectrumShifted = computeSpectrum(shiftedComplex);
+
   // Here you could apply frequency domain filters:
   //   Low-pass filter: Keep center, remove edges (blur)
   //   High-pass filter: Remove center, keep edges (sharpen)
@@ -218,8 +218,9 @@ int main(int argc, char ** argv)
 
   // Display results
   cv::imshow("Original Image", image);
-  cv::imshow("Magnitude Spectrum", spectrumOriginal);
-  cv::imshow("Spectrum After Processing", spectrumAfter);
+  cv::imshow("Spectrum Before DC Shift", spectrumOriginal);
+  cv::imshow("Spectrum After DC Shift", spectrumShifted);
+  cv::imshow("Spectrum After Rearrangement", spectrumAfter);
   cv::imshow("Reconstructed (IDFT)", reconstructed);
 
   std::cout << "\nWindows displayed:" << std::endl;
