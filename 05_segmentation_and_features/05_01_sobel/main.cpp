@@ -86,7 +86,7 @@ int main(int argc, char ** argv)
   // Compute gradients in X and Y directions using CV_16S to handle negative values
   cv::Sobel(src, sobel_grad_x, CV_16S, 1, 0, 3);    // Gradient in X (detects vertical edges)
   cv::Sobel(src, sobel_grad_y, CV_16S, 0, 1, 3);    // Gradient in Y (detects horizontal edges)
-  cv::Sobel(src, sobel_grad_xy, CV_16S, 1, 1, 3);   // Combined gradient (diagonal edges)
+  cv::Sobel(src, sobel_grad_xy, CV_16S, 1, 1, 3);   // Gradient in XY (detects diagonal edges)
 
   // Convert gradients to absolute values (8-bit unsigned)
   // This handles negative gradient values and scales to displayable range
