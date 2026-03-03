@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
   cv::imshow("Original", src);
   cv::imshow("Manual: Gradient X (vertical edges)", manual_abs_grad_x);
   cv::imshow("Manual: Gradient Y (horizontal edges)", manual_abs_grad_y);
-  cv::imshow("Manual: Combined Edges", manual_grad_combined);
+  cv::imshow("Manual: Combined Edges (horizontal + vertical)", manual_grad_combined);
 
   // ========================================
   // Method 2: OpenCV Sobel function
@@ -79,18 +79,20 @@ int main(int argc, char ** argv)
   //   dx, dy: order of derivative in x and y direction
   //   ksize: size of Sobel kernel (1, 3, 5, or 7)
   //   ddepth: output image depth (CV_16S recommended to avoid overflow)
-  cv::Mat sobel_grad_x, sobel_grad_y;
-  cv::Mat sobel_abs_grad_x, sobel_abs_grad_y;
+  cv::Mat sobel_grad_x, sobel_grad_y, sobel_grad_xy;
+  cv::Mat sobel_abs_grad_x, sobel_abs_grad_y, sobel_abs_grad_xy;
   cv::Mat sobel_grad_combined;
 
   // Compute gradients in X and Y directions using CV_16S to handle negative values
-  cv::Sobel(src, sobel_grad_x, CV_16S, 1, 0, 3);   // Gradient in X (detects vertical edges)
-  cv::Sobel(src, sobel_grad_y, CV_16S, 0, 1, 3);   // Gradient in Y (detects horizontal edges)
+  cv::Sobel(src, sobel_grad_x, CV_16S, 1, 0, 3);    // Gradient in X (detects vertical edges)
+  cv::Sobel(src, sobel_grad_y, CV_16S, 0, 1, 3);    // Gradient in Y (detects horizontal edges)
+  cv::Sobel(src, sobel_grad_xy, CV_16S, 1, 1, 3);   // Combined gradient (diagonal edges)
 
   // Convert gradients to absolute values (8-bit unsigned)
   // This handles negative gradient values and scales to displayable range
   cv::convertScaleAbs(sobel_grad_x, sobel_abs_grad_x);
   cv::convertScaleAbs(sobel_grad_y, sobel_abs_grad_y);
+  cv::convertScaleAbs(sobel_grad_xy, sobel_abs_grad_xy);
 
   // Approximate total gradient magnitude using weighted sum
   cv::addWeighted(sobel_abs_grad_x, 0.5, sobel_abs_grad_y, 0.5, 0, sobel_grad_combined);
@@ -98,7 +100,8 @@ int main(int argc, char ** argv)
   // Display results from OpenCV Sobel method
   cv::imshow("Sobel: Gradient X (vertical edges)", sobel_abs_grad_x);
   cv::imshow("Sobel: Gradient Y (horizontal edges)", sobel_abs_grad_y);
-  cv::imshow("Sobel: Combined Edges", sobel_grad_combined);
+  cv::imshow("Sobel: Gradient XY (diagonal edges)", sobel_abs_grad_xy);
+  cv::imshow("Sobel: Combined Edges (horizontal + vertical)", sobel_grad_combined);
 
   // Wait for user input and exit
   cv::waitKey();
