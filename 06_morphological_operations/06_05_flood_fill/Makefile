@@ -1,4 +1,4 @@
-# Makefile for Erosion and Dilation example
+# Makefile for Flood Fill example
 # Author: José Miguel Guerrero Hernández
 
 # Compiler settings
@@ -10,7 +10,7 @@ OPENCV    = $(shell pkg-config opencv4 --cflags --libs)
 
 # Source file and target
 SRC    = main.cpp
-TARGET = erode_dilate
+TARGET = flood_fill
 
 # Default target: build executable
 all: $(TARGET)

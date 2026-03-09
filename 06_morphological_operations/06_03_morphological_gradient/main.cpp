@@ -1,10 +1,10 @@
 /**
  * @file main.cpp
- * @brief Erosion and Dilation - sample code demonstrating basic morphological operations
+ * @brief Morphological contours - sample code for extracting internal and external contours
  * @author José Miguel Guerrero Hernández
- * @note This program demonstrates how to apply erosion and dilation morphological
- *       operations using different structuring elements (rectangular, cross, ellipse)
- *       with adjustable kernel sizes via trackbars.
+ * @note This program demonstrates how to extract contours using morphological operations.
+ *       Internal contours: original - eroded image
+ *       External contours: dilated image - original
  */
 
 #include <cstdlib>
@@ -12,21 +12,20 @@
 #include "opencv2/highgui.hpp"
 #include <iostream>
 
-
 // Configuration constants
 namespace Config
 {
 constexpr int MAX_OPERATOR = 1;
 constexpr int MAX_ELEM = 2;
 constexpr int MAX_KERNEL_SIZE = 21;
-const char * WINDOW_NAME = "Erode and Dilate Demo";
-const char * TRACKBAR_OPERATOR = "Operator: 0: Erode - 1: Dilate";
+const char * WINDOW_NAME = "Morphological Contours Demo";
+const char * TRACKBAR_OPERATOR = "Operator: 0: In - 1: Out";
 const char * TRACKBAR_ELEMENT = "Element: 0: Rect - 1: Cross - 2: Ellipse";
 const char * TRACKBAR_KERNEL = "Kernel size: 2n +1";
 }
 
 /**
- * @brief Application state for morphological operations
+ * @brief Application state for morphological contour extraction
  */
 struct MorphApp
 {
@@ -38,14 +37,18 @@ struct MorphApp
 MorphApp app;
 
 /**
- * @brief Callback function for trackbar events - applies erosion or dilation
+ * @brief Callback function for trackbar events - extracts morphological contours
  * @param[in] Unused parameter required by OpenCV callback signature
  * @param[in] Unused user data pointer
  *
- * Erosion: Shrinks bright regions and removes small white noise
- * Dilation: Expands bright regions and fills small holes
+ * Morphological contour extraction:
+ *   Internal contour: src - erode(src) -> shows the inner edge of objects
+ *   External contour: dilate(src) - src -> shows the outer edge of objects
+ *
+ * This is equivalent to the morphological gradient but allows separate
+ * visualization of internal and external boundaries.
  */
-void erode_dilate(int, void *)
+void morphological_contours(int, void *)
 {
   // Get current trackbar positions
   int morph_operator = cv::getTrackbarPos(Config::TRACKBAR_OPERATOR, Config::WINDOW_NAME);
@@ -53,24 +56,21 @@ void erode_dilate(int, void *)
   int morph_size = cv::getTrackbarPos(Config::TRACKBAR_KERNEL, Config::WINDOW_NAME);
 
   // Create the structuring element
-  // morph_elem: The shape of the structuring element:
-  //    cv::MORPH_RECT (rectangular)
-  //    cv::MORPH_ELLIPSE (elliptical)
-  //    cv::MORPH_CROSS (cross-shaped)
-  // Size: 2 * morph_size + 1 ensures an odd size for a well-defined center
-  // Anchor: cv::Point(morph_size, morph_size) specifies the center of the kernel
   cv::Mat element = cv::getStructuringElement(
         morph_elem,
         cv::Size(2 * morph_size + 1, 2 * morph_size + 1),
         cv::Point(morph_size, morph_size));
 
-  // Apply the selected morphological operation
-  // Erosion: Minimum filter - replaces each pixel with the minimum in the neighborhood
-  // Dilation: Maximum filter - replaces each pixel with the maximum in the neighborhood
   if (morph_operator == 0) {
+    // Internal contours: original minus eroded
+    // This highlights the pixels that would be removed by erosion
     cv::erode(app.src, app.dst, element);
+    app.dst = app.src - app.dst;
   } else {
+    // External contours: dilated minus original
+    // This highlights the pixels that would be added by dilation
     cv::dilate(app.src, app.dst, element);
+    app.dst = app.dst - app.src;
   }
 
   cv::imshow(Config::WINDOW_NAME, app.dst);
@@ -79,7 +79,7 @@ void erode_dilate(int, void *)
 int main(int argc, char ** argv)
 {
   // Parse command line arguments
-  cv::CommandLineParser parser(argc, argv, "{@input | crop.png | input image}");
+  cv::CommandLineParser parser(argc, argv, "{@input | horse.png | input image}");
   app.src = cv::imread(cv::samples::findFile(parser.get<std::string>("@input")), cv::IMREAD_COLOR);
 
   if (app.src.empty()) {
@@ -93,18 +93,19 @@ int main(int argc, char ** argv)
 
   // Create trackbars for interactive control
   cv::createTrackbar(Config::TRACKBAR_OPERATOR, Config::WINDOW_NAME,
-    nullptr, Config::MAX_OPERATOR, erode_dilate);
+    nullptr, Config::MAX_OPERATOR, morphological_contours);
   cv::createTrackbar(Config::TRACKBAR_ELEMENT, Config::WINDOW_NAME,
-    nullptr, Config::MAX_ELEM, erode_dilate);
+    nullptr, Config::MAX_ELEM, morphological_contours);
   cv::createTrackbar(Config::TRACKBAR_KERNEL, Config::WINDOW_NAME,
-    nullptr, Config::MAX_KERNEL_SIZE, erode_dilate);
+    nullptr, Config::MAX_KERNEL_SIZE, morphological_contours);
 
   // Set initial kernel size to 1
   cv::setTrackbarPos(Config::TRACKBAR_KERNEL, Config::WINDOW_NAME, 1);
 
   // Apply initial operation
-  erode_dilate(0, nullptr);
+  morphological_contours(0, nullptr);
 
   cv::waitKey(0);
+
   return EXIT_SUCCESS;
 }
