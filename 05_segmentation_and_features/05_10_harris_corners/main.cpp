@@ -7,6 +7,7 @@
  * @see https://docs.opencv.org/3.4/d4/d7d/tutorial_harris_detector.html
  */
 
+#include <cstdlib>
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include <iostream>

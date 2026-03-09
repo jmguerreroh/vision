@@ -25,9 +25,11 @@
  *   - Panorama stitching
  */
 
+#include <cstdlib>
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -361,7 +363,8 @@ void showDescriptorInfo()
     std::cout << "  Descriptor (first " << Config::DESCRIPTOR_BYTES_TO_SHOW
               << " bytes): ";
     for (int j = 0; j < Config::DESCRIPTOR_BYTES_TO_SHOW && j < descriptors.cols; ++j) {
-      printf("%02x ", descriptors.at<uchar>(i, j));
+      std::cout << std::hex << std::setfill('0') << std::setw(2)
+                << static_cast<int>(descriptors.at<uchar>(i, j)) << " ";
     }
     std::cout << "..." << std::endl << std::endl;
   }

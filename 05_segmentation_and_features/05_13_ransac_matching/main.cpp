@@ -7,6 +7,7 @@
  * @see https://github.com/spmallick/learnopencv/tree/master/ImageAlignment-FeatureBased
  */
 
+#include <cstdlib>
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp>
 #include <iostream>

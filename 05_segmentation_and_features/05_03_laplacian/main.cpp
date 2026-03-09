@@ -7,6 +7,7 @@
  *       and detects edges in all directions simultaneously.
  */
 
+#include <cstdlib>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
@@ -14,14 +15,14 @@
 int main(int argc, char ** argv)
 {
   // Load input image
-  const std::string imagePath = argc >= 2 ? argv[1] : "lena.jpg";
-  cv::Mat src = cv::imread(cv::samples::findFile(imagePath), cv::IMREAD_COLOR);
+  const std::string image_path = argc >= 2 ? argv[1] : "lena.jpg";
+  cv::Mat src = cv::imread(cv::samples::findFile(image_path), cv::IMREAD_COLOR);
 
   if (src.empty()) {
     std::cerr << "Error: Could not open or find the image!" << std::endl;
-    std::cerr << "Path: " << imagePath << std::endl;
+    std::cerr << "Path: " << image_path << std::endl;
     std::cerr << "Usage: " << argv[0] << " <Input image>" << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   // Resize to standard dimensions
@@ -95,5 +96,5 @@ int main(int argc, char ** argv)
   // Wait for user input and exit
   cv::waitKey();
 
-  return 0;
+  return EXIT_SUCCESS;
 }

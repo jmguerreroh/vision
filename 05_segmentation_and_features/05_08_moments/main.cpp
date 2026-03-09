@@ -7,6 +7,7 @@
  * @see https://docs.opencv.org/3.4/d8/d23/classcv_1_1Moments.html
  */
 
+#include <cstdlib>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>

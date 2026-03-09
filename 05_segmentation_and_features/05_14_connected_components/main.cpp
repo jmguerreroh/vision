@@ -17,6 +17,7 @@
  *   - ConnectedComponents: Automatic, finds ALL regions at once
  */
 
+#include <cstdlib>
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <vector>

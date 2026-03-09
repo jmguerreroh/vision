@@ -9,6 +9,7 @@
  *       4) Hysteresis thresholding for edge tracking
  */
 
+#include <cstdlib>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
@@ -23,7 +24,7 @@ int main(int argc, char ** argv)
     std::cerr << "Error: Could not open or find the image!" << std::endl;
     std::cerr << "Path: " << image_path << std::endl;
     std::cerr << "Usage: " << argv[0] << " <Input image>" << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   // Convert to grayscale (Canny requires single-channel image)
@@ -69,5 +70,5 @@ int main(int argc, char ** argv)
   // Wait for user input and exit
   cv::waitKey(0);
 
-  return 0;
+  return EXIT_SUCCESS;
 }

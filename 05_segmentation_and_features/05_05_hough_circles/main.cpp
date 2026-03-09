@@ -17,6 +17,7 @@
  *          complexity from O(n³) to O(n²).
  */
 
+#include <cstdlib>
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
@@ -33,7 +34,7 @@ int main(int argc, char ** argv)
     std::cerr << "Error: Could not open or find the image!" << std::endl;
     std::cerr << "Path: " << filename << std::endl;
     std::cerr << "Usage: " << argv[0] << " <Input image>" << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   // ========================================
@@ -113,5 +114,5 @@ int main(int argc, char ** argv)
   // Wait for user input and exit
   cv::waitKey();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
