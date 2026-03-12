@@ -7,15 +7,15 @@
  *          shapes by iteratively removing boundary pixels while preserving topology.
  *
  *          8-neighborhood labeling (used in conditions):
- *            P9  P2  P3
- *            P8  P1  P4
- *            P7  P6  P5
+ *            P8  P1  P2
+ *            P7  P0  P3
+ *            P6  P5  P4
  *
  *          Algorithm conditions for pixel removal:
- *          1. 2 <= N(P1) <= 6  (N = number of white neighbors)
- *          2. S(P1) = 1        (S = number of 0->1 transitions in P2..P9..P2)
- *          3. Step 1: P2*P4*P6 = 0 AND P4*P6*P8 = 0
- *             Step 2: P2*P4*P8 = 0 AND P2*P6*P8 = 0
+ *          1. 2 <= N(P0) <= 6  (N = number of white neighbors)
+ *          2. S(P0) = 1        (S = number of 0->1 transitions in P1..P8..P1)
+ *          3. Step 1: P1*P3*P5 = 0 AND P3*P5*P7 = 0
+ *             Step 2: P1*P3*P7 = 0 AND P1*P5*P7 = 0
  *
  *          This example compares manual implementation with OpenCV's
  *          cv::ximgproc::thinning() (requires opencv_contrib).
@@ -28,8 +28,8 @@
 #include <vector>
 #include <chrono>
 
-// 8-neighborhood offsets in clockwise order starting from P2 (top)
-// Index: 0=P2, 1=P3, 2=P4, 3=P5, 4=P6, 5=P7, 6=P8, 7=P9
+// 8-neighborhood offsets in clockwise order starting from P1 (top)
+// Index: 0=P1, 1=P2, 2=P3, 3=P4, 4=P5, 5=P6, 6=P7, 7=P8
 const int DX[] = {-1, -1, 0, 1, 1, 1, 0, -1};
 const int DY[] = {0, 1, 1, 1, 0, -1, -1, -1};
 
@@ -91,11 +91,11 @@ int countTransitions(const cv::Mat & img, int x, int y)
  */
 bool canRemove(const cv::Mat & img, int x, int y, int step)
 {
-  // Get neighbor values (P2=idx0, P3=idx1, ..., P9=idx7)
-  int p2 = getNeighbor(img, x, y, 0);
-  int p4 = getNeighbor(img, x, y, 2);
-  int p6 = getNeighbor(img, x, y, 4);
-  int p8 = getNeighbor(img, x, y, 6);
+  // Get neighbor values (P1=idx0, P2=idx1, ..., P8=idx7)
+  int p1 = getNeighbor(img, x, y, 0);
+  int p3 = getNeighbor(img, x, y, 2);
+  int p5 = getNeighbor(img, x, y, 4);
+  int p7 = getNeighbor(img, x, y, 6);
 
   int neighbors = countNeighbors(img, x, y);
   int transitions = countTransitions(img, x, y);
@@ -107,11 +107,11 @@ bool canRemove(const cv::Mat & img, int x, int y, int step)
 
   // Condition 3 (different for each step)
   if (step == 1) {
-    // Step 1: P2*P4*P6 = 0 AND P4*P6*P8 = 0
-    return (p2 * p4 * p6 == 0) && (p4 * p6 * p8 == 0);
+    // Step 1: P1*P3*P5 = 0 AND P3*P5*P7 = 0
+    return (p1 * p3 * p5 == 0) && (p3 * p5 * p7 == 0);
   } else {
-    // Step 2: P2*P4*P8 = 0 AND P2*P6*P8 = 0
-    return (p2 * p4 * p8 == 0) && (p2 * p6 * p8 == 0);
+    // Step 2: P1*P3*P7 = 0 AND P1*P5*P7 = 0
+    return (p1 * p3 * p7 == 0) && (p1 * p5 * p7 == 0);
   }
 }
 

@@ -43,7 +43,7 @@ struct FloodFillApp
   cv::Mat mask;         // Fill mask (2 pixels larger than image)
 
   int fill_mode = 1;     // 0=simple, 1=fixed range, 2=floating range
-  int connectivity = 4; // 4 or 8 connectivity
+  int connectivity = 4;  // 4 or 8 connectivity
   bool is_color = true;  // Color or grayscale mode
   bool use_mask = false; // Show mask window
   int mask_value = 255;  // Value written to mask for filled pixels
