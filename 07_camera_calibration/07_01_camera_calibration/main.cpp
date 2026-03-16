@@ -6,6 +6,7 @@
  * Images from: https://github.com/niconielsen32/ComputerVision
  */
 
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <opencv2/calib3d.hpp>
@@ -46,7 +47,7 @@ int main(int argc, char ** argv)
   (void)argv;
 
   // Get filenames
-  std::vector<cv::String> file_names;
+  std::vector<std::string> file_names;
   cv::glob("../../data/calibration_images/Image*.png", file_names, false);
 
   if (file_names.empty()) {
@@ -76,16 +77,17 @@ int main(int argc, char ** argv)
   // 3D points (object points). Each image has a vector of 3D points
   std::vector<std::vector<cv::Point3f>> chess_board_3d;
   // File names for images where the chessboard pattern was successfully found
-  std::vector<cv::String> calibrated_files;
+  std::vector<std::string> calibrated_files;
 
   // Detect feature points
-  for (auto const & f : file_names) {
-    std::cout << std::string(f) << std::endl;
+  for (std::size_t i = 0; i < file_names.size(); i++) {
+    std::cout << "[" << (i + 1) << "/" << file_names.size() << "] "
+              << std::string(file_names[i]) << std::endl;
 
     // Read in the image
-    original = cv::imread(f);
+    original = cv::imread(file_names[i]);
     if (original.empty()) {
-      std::cerr << "Error: could not read " << f << std::endl;
+      std::cerr << "Error: could not read " << file_names[i] << std::endl;
       continue;
     }
     frame_size = original.size();
@@ -121,13 +123,15 @@ int main(int argc, char ** argv)
       chess_board_2d.push_back(corners);
       chess_board_3d.push_back(chess_board_3d_corners);
       // Save file name for display and reprojection error analysis
-      calibrated_files.push_back(f);
+      calibrated_files.push_back(file_names[i]);
 
       // Display
       cv::drawChessboardCorners(original, chess_board_size, corners, pattern_found);
       cv::resize(original, original, cv::Size(original.cols / 2, original.rows / 2));
       cv::imshow("chessboard detection", original);
       cv::waitKey(400);
+    } else {
+      std::cerr << "Warning: chessboard pattern not found in " << file_names[i] << std::endl;
     }
   }
 
@@ -146,7 +150,7 @@ int main(int argc, char ** argv)
   //    k3: radial distortion coefficient third order
   cv::Vec<float, 5> dist_coeffs(0, 0, 0, 0, 0);
 
-  // rvects and tvects are the rotation and translation vectors for each view
+  // rvecs and tvecs are the rotation and translation vectors for each view
   std::vector<cv::Mat> rvecs, tvecs;
 
   // Flags for calibration
@@ -180,7 +184,13 @@ int main(int argc, char ** argv)
   // Get first image and apply lens correction using undistort
   // This method is not recommended for real-time applications
   cv::Mat first_img = cv::imread(calibrated_files[0], cv::IMREAD_COLOR);
+  auto t_start = std::chrono::high_resolution_clock::now();
+  // Undistort the image: initUndistortRectifyMap and remap every time
   cv::undistort(first_img, undistorted, K, dist_coeffs);
+  auto t_end = std::chrono::high_resolution_clock::now();
+  double undistort_ms =
+    std::chrono::duration<double, std::milli>(t_end - t_start).count();
+  std::cout << "undistort time: " << undistort_ms << " ms" << std::endl;
 
   // Display
   compare_images("Comparison no RT", first_img, undistorted);
@@ -200,8 +210,10 @@ int main(int argc, char ** argv)
   );
 
   // Show lens corrected images (only for images where the pattern was found)
+  double total_remap_ms = 0.0;
   for (std::size_t i = 0; i < calibrated_files.size(); i++) {
-    std::cout << std::string(calibrated_files[i]) << std::endl;
+    std::cout << "[" << (i + 1) << "/" << calibrated_files.size() << "] "
+              << std::string(calibrated_files[i]) << std::endl;
 
     original = cv::imread(calibrated_files[i], cv::IMREAD_COLOR);
 
@@ -209,6 +221,7 @@ int main(int argc, char ** argv)
     cv::drawFrameAxes(original, K, dist_coeffs, rvecs[i], tvecs[i], 120, 10);
 
     // Remap the image using the precomputed interpolation maps
+    auto t_remap_start = std::chrono::high_resolution_clock::now();
     cv::remap(
       original,         // Input distorted image
       undistorted,      // Output undistorted image
@@ -216,10 +229,17 @@ int main(int argc, char ** argv)
       map_y,            // Precomputed y-coordinates map
       cv::INTER_LINEAR  // Interpolation method
     );
+    auto t_remap_end = std::chrono::high_resolution_clock::now();
+    double remap_ms =
+      std::chrono::duration<double, std::milli>(t_remap_end - t_remap_start).count();
+    total_remap_ms += remap_ms;
 
     // Display
     compare_images("Comparison RT", original, undistorted);
   }
+
+  std::cout << "Average remap time: "
+            << total_remap_ms / calibrated_files.size() << " ms" << std::endl;
 
   return EXIT_SUCCESS;
 }
