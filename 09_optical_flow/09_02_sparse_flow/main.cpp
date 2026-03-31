@@ -1,16 +1,21 @@
 /**
- * Optical flow using Lucas-Kanade demo sample
- * @author José Miguel Guerrero
+ * @file main.cpp
+ * @brief Sparse optical flow using Lucas-Kanade pyramid method
+ * @author José Miguel Guerrero Hernández
  *
- * https://docs.opencv.org/3.4/d4/dee/tutorial_optical_flow.html
+ * @details Tracks feature points across video frames using the Lucas-Kanade
+ *          optical flow algorithm with image pyramids for multi-scale support.
  *
- * OpenCV provides all these in a single function, cv.calcOpticalFlowPyrLK(). Here, we create a simple application which tracks some points in a video.
- * To decide the points, we use cv.goodFeaturesToTrack(). We take the first frame, detect some Shi-Tomasi corner points in it, then we iteratively track
- * those points using Lucas-Kanade optical flow. For the function cv.calcOpticalFlowPyrLK() we pass the previous frame, previous points and next frame.
- * It returns next points along with some status numbers which has a value of 1 if next point is found, else zero. We iteratively pass these next points
- * as previous points in next step. See the code below:
+ *          Algorithm:
+ *          1. Detect Shi-Tomasi corner points in the first frame
+ *          2. For each subsequent frame, track points using calcOpticalFlowPyrLK()
+ *          3. Draw motion trails connecting previous and current positions
+ *          4. Update tracked points for the next iteration
+ *
+ * @see https://docs.opencv.org/3.4/d4/dee/tutorial_optical_flow.html
  */
 
+#include <cstdlib>
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -20,34 +25,32 @@
 
 int main(int argc, char ** argv)
 {
-  // Description of the program
+
+  // Command-line parser setup
   const std::string about =
     "This sample demonstrates Lucas-Kanade Optical Flow calculation.\n";
 
-  // Command-line parser setup
   const std::string keys =
     "{ h help |      | print this help message }"
-    "{ @image | vtest.avi | path to image file }";
+    "{ @image | ../../data/vtest.avi | path to image file }";
   cv::CommandLineParser parser(argc, argv, keys);
   parser.about(about);
   if (parser.has("help")) {
     parser.printMessage();
-    return 0;
+    return EXIT_SUCCESS;
   }
 
-  // Get the filename from the command-line argument
   std::string filename = cv::samples::findFile(parser.get<std::string>("@image"));
   if (!parser.check()) {
     parser.printErrors();
-    return 0;
+    return EXIT_FAILURE;
   }
 
-  // Open the video file
+  // Open video file
   cv::VideoCapture capture(filename);
   if (!capture.isOpened()) {
-    // Error opening the video input
     std::cerr << "Unable to open file!" << std::endl;
-    return 0;
+    return EXIT_FAILURE;
   }
 
   // Generate random colors for tracking points
@@ -60,12 +63,13 @@ int main(int argc, char ** argv)
     colors.push_back(cv::Scalar(r, g, b));
   }
 
+  // Capture first frame and detect good feature points
   cv::Mat old_frame, old_gray;
   std::vector<cv::Point2f> p0, p1;
 
-  // Capture the first frame and detect good feature points
   capture >> old_frame;
   cv::cvtColor(old_frame, old_gray, cv::COLOR_BGR2GRAY);
+
   // Detect Shi-Tomasi corners in the first frame
   cv::goodFeaturesToTrack(
     old_gray,   // Input grayscale image
@@ -82,6 +86,7 @@ int main(int argc, char ** argv)
   // Create a mask image for drawing the tracked points
   cv::Mat mask = cv::Mat::zeros(old_frame.size(), old_frame.type());
 
+  // Main processing loop
   while (true) {
     cv::Mat frame, frame_gray;
 
@@ -95,8 +100,8 @@ int main(int argc, char ** argv)
     // Compute the optical flow using Lucas-Kanade method
     std::vector<uchar> status; // Status vector: 1 if found, 0 if lost
     std::vector<float> err;    // Error vector for each point
-    cv::TermCriteria criteria = cv::TermCriteria((cv::TermCriteria::COUNT) +(cv::TermCriteria::EPS),
-      10, 0.03);
+    cv::TermCriteria criteria = cv::TermCriteria(
+      (cv::TermCriteria::COUNT) +(cv::TermCriteria::EPS), 10, 0.03);
     cv::calcOpticalFlowPyrLK(
       old_gray,         // Previous grayscale frame
       frame_gray,       // Current grayscale frame
@@ -110,7 +115,7 @@ int main(int argc, char ** argv)
     );
 
     std::vector<cv::Point2f> good_new;
-    for (uint i = 0; i < p0.size(); i++) {
+    for (size_t i = 0; i < p0.size(); i++) {
       // Select good points where tracking was successful
       if (status[i] == 1) {
         good_new.push_back(p1[i]);
@@ -127,7 +132,7 @@ int main(int argc, char ** argv)
     // Display the frame
     cv::imshow("Frame", img);
 
-     // Exit on 'q' or 'Esc' key press
+    // Exit on 'q' or 'Esc' key press
     int keyboard = cv::waitKey(30);
     if (keyboard == 'q' || keyboard == 27) {
       break;
@@ -137,4 +142,6 @@ int main(int argc, char ** argv)
     old_gray = frame_gray.clone();
     p0 = good_new;
   }
+
+  return EXIT_SUCCESS;
 }
