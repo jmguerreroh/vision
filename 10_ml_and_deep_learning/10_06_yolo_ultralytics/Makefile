@@ -1,4 +1,4 @@
-# Makefile for YOLO v4-tiny simple example
+# Makefile for YOLO11 (Ultralytics) example
 # Author: José Miguel Guerrero Hernández
 
 # Compiler settings
@@ -10,7 +10,7 @@ OPENCV    = $(shell pkg-config opencv4 --cflags --libs)
 
 # Source file and target
 SRC    = main.cpp
-TARGET = yolov4
+TARGET = yolo11
 
 # Default target: build executable
 all: $(TARGET)
