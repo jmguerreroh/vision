@@ -15,7 +15,7 @@
 int main(int argc, char ** argv)
 {
   // Load input image
-  const std::string image_path = argc >= 2 ? argv[1] : "lena.jpg";
+  const std::string image_path = argc >= 2 ? argv[1] : "../../data/lena.jpg";
   cv::Mat src = cv::imread(cv::samples::findFile(image_path), cv::IMREAD_GRAYSCALE);
 
   if (src.empty()) {
@@ -105,7 +105,7 @@ int main(int argc, char ** argv)
   cv::imshow("Sobel: Combined Edges (horizontal + vertical)", sobel_grad_combined);
 
   // Wait for user input and exit
-  cv::waitKey();
+  cv::waitKey(0);
 
   return EXIT_SUCCESS;
 }

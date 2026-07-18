@@ -355,7 +355,8 @@ void pairAlign(
     "icp_status_text", vp_2);
   p->spinOnce(100);
 
-  Eigen::Matrix4f Ti = Eigen::Matrix4f::Identity(), prev = Eigen::Matrix4f::Identity(), targetToSource;
+  Eigen::Matrix4f Ti = Eigen::Matrix4f::Identity(), prev = Eigen::Matrix4f::Identity(),
+    targetToSource;
   PointCloudWithNormals::Ptr reg_result = points_with_normals_src;
   reg.setMaximumIterations(2);
 

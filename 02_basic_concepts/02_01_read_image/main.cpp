@@ -22,12 +22,13 @@
  */
 
 #include <opencv2/highgui.hpp>
+#include <cstdlib>
 #include <iostream>
 
 int main(int argc, char ** argv)
 {
   // Path to the image file (relative to the execution directory)
-  const std::string imagePath = "../../data/lena.jpg";
+  const std::string image_path = "../../data/lena.jpg";
 
   // cv::Mat is OpenCV's main structure for storing images
   // Mat = Matrix, represents an image as a matrix of pixels
@@ -41,18 +42,18 @@ int main(int argc, char ** argv)
   //     * cv::IMREAD_GRAYSCALE (0): Load image in grayscale
   //     * cv::IMREAD_UNCHANGED (-1): Load image with alpha channel if present
   if (argc > 1) {
-    image = cv::imread(argv[1], cv::IMREAD_COLOR);
+    image = cv::imread(cv::samples::findFile(argv[1]), cv::IMREAD_COLOR);
   } else {
-    image = cv::imread(imagePath, cv::IMREAD_COLOR);
+    image = cv::imread(cv::samples::findFile(image_path), cv::IMREAD_COLOR);
   }
 
   // Verify that the image was loaded successfully
   // An empty image indicates an error (file not found, invalid format, etc.)
   if (image.empty()) {
     std::cerr << "Error: Could not load image from: "
-              << (argc > 1 ? argv[1] : imagePath) << std::endl;
+              << (argc > 1 ? argv[1] : image_path) << std::endl;
     std::cerr << "Please verify the file exists and the path is correct." << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   // Display basic information about the loaded image
@@ -77,5 +78,5 @@ int main(int argc, char ** argv)
 
   // Windows are automatically destroyed when the program ends
   // You can also use cv::destroyAllWindows() to close them explicitly
-  return 0;
+  return EXIT_SUCCESS;
 }

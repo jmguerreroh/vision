@@ -56,7 +56,8 @@ typedef pcl::Normal NormalType;
 typedef pcl::ReferenceFrame RFType;
 typedef pcl::SHOT352 DescriptorType;
 
-struct AppConfig {
+struct AppConfig
+{
   std::string model_filename;
   std::string scene_filename;
   bool show_keypoints = false;
@@ -334,13 +335,15 @@ int main(int argc, char ** argv)
     std::cerr << "[Error] Cannot load model: " << config.model_filename << std::endl;
     return EXIT_FAILURE;
   }
-  std::cout << "  Model: " << config.model_filename << " (" << model->size() << " points)" << std::endl;
+  std::cout << "  Model: " << config.model_filename << " (" << model->size() << " points)" <<
+    std::endl;
 
   if (pcl::io::loadPCDFile(config.scene_filename, *scene) < 0) {
     std::cerr << "[Error] Cannot load scene: " << config.scene_filename << std::endl;
     return EXIT_FAILURE;
   }
-  std::cout << "  Scene: " << config.scene_filename << " (" << scene->size() << " points)" << std::endl;
+  std::cout << "  Scene: " << config.scene_filename << " (" << scene->size() << " points)" <<
+    std::endl;
 
   if (config.use_cloud_resolution) {
     std::cout << "\nComputing cloud resolution..." << std::endl;

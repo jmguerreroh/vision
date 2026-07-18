@@ -17,7 +17,7 @@
 int main(int argc, char ** argv)
 {
   // Load input image in color
-  const std::string image_path = argc >= 2 ? argv[1] : "lena.jpg";
+  const std::string image_path = argc >= 2 ? argv[1] : "../../data/lena.jpg";
   cv::Mat image = cv::imread(cv::samples::findFile(image_path), cv::IMREAD_COLOR);
 
   if (image.empty()) {

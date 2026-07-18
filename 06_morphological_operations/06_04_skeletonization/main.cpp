@@ -205,7 +205,7 @@ int main(int argc, char ** argv)
 {
   // Load image from argument or default
   const char * filename = argc >= 2 ? argv[1] : "../../data/star.jpg";
-  cv::Mat original = cv::imread(filename, cv::IMREAD_GRAYSCALE);
+  cv::Mat original = cv::imread(cv::samples::findFile(filename), cv::IMREAD_GRAYSCALE);
 
   if (original.empty()) {
     std::cerr << "Error: Cannot load image: " << filename << std::endl;

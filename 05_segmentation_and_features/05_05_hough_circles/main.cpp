@@ -18,9 +18,9 @@
  */
 
 #include <cstdlib>
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/imgproc.hpp"
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <vector>
 #include <iostream>
 
@@ -112,7 +112,7 @@ int main(int argc, char ** argv)
   cv::imshow("4. Detected Circles", result);
 
   // Wait for user input and exit
-  cv::waitKey();
+  cv::waitKey(0);
 
   return EXIT_SUCCESS;
 }

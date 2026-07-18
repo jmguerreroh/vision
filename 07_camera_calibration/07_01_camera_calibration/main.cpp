@@ -20,7 +20,7 @@
  * @param distorted Original distorted image
  * @param undistorted Corrected undistorted image
  */
-void compare_images(
+void compareImages(
   const std::string & title, const cv::Mat & distorted, const cv::Mat & undistorted)
 {
   cv::Mat dist_copy, undist_copy;
@@ -193,7 +193,7 @@ int main(int argc, char ** argv)
   std::cout << "undistort time: " << undistort_ms << " ms" << std::endl;
 
   // Display
-  compare_images("Comparison no RT", first_img, undistorted);
+  compareImages("Comparison no RT", first_img, undistorted);
 
   // For real-time applications, we can use the remap method
   // Precompute lens correction interpolation
@@ -235,7 +235,7 @@ int main(int argc, char ** argv)
     total_remap_ms += remap_ms;
 
     // Display
-    compare_images("Comparison RT", original, undistorted);
+    compareImages("Comparison RT", original, undistorted);
   }
 
   std::cout << "Average remap time: "

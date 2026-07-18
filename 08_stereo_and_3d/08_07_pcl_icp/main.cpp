@@ -261,7 +261,8 @@ int main(int argc, char ** argv)
   }
 
   // Convert the aligned cloud to pointer format for visualization
-  pcl::PointCloud<pcl::PointXYZ>::Ptr aligned_cloud(new pcl::PointCloud<pcl::PointXYZ>(final_cloud));
+  pcl::PointCloud<pcl::PointXYZ>::Ptr aligned_cloud(new pcl::PointCloud<pcl::PointXYZ>(
+    final_cloud));
 
   // Show aligned points
   std::cout << "\nAligned cloud has " << aligned_cloud->size() << " points:" << std::endl;

@@ -9,9 +9,9 @@
  */
 
 #include <cstdlib>
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/imgproc.hpp"
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <iostream>
 #include <vector>
 
@@ -110,6 +110,6 @@ int main(int argc, char ** argv)
   cv::imshow("5. Probabilistic Hough Lines", probabilistic_hough_result);
 
   // Wait for user input and exit
-  cv::waitKey();
+  cv::waitKey(0);
   return EXIT_SUCCESS;
 }

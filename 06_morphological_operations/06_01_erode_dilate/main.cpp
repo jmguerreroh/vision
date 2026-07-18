@@ -45,7 +45,7 @@ MorphApp app;
  * Erosion: Shrinks bright regions and removes small white noise
  * Dilation: Expands bright regions and fills small holes
  */
-void erode_dilate(int, void *)
+void erodeDilate(int, void *)
 {
   // Get current trackbar positions
   int morph_operator = cv::getTrackbarPos(Config::TRACKBAR_OPERATOR, Config::WINDOW_NAME);
@@ -79,7 +79,7 @@ void erode_dilate(int, void *)
 int main(int argc, char ** argv)
 {
   // Parse command line arguments
-  cv::CommandLineParser parser(argc, argv, "{@input | crop.png | input image}");
+  cv::CommandLineParser parser(argc, argv, "{@input | ../../data/crop.png | input image}");
   app.src = cv::imread(cv::samples::findFile(parser.get<std::string>("@input")), cv::IMREAD_COLOR);
 
   if (app.src.empty()) {
@@ -93,17 +93,17 @@ int main(int argc, char ** argv)
 
   // Create trackbars for interactive control
   cv::createTrackbar(Config::TRACKBAR_OPERATOR, Config::WINDOW_NAME,
-    nullptr, Config::MAX_OPERATOR, erode_dilate);
+    nullptr, Config::MAX_OPERATOR, erodeDilate);
   cv::createTrackbar(Config::TRACKBAR_ELEMENT, Config::WINDOW_NAME,
-    nullptr, Config::MAX_ELEM, erode_dilate);
+    nullptr, Config::MAX_ELEM, erodeDilate);
   cv::createTrackbar(Config::TRACKBAR_KERNEL, Config::WINDOW_NAME,
-    nullptr, Config::MAX_KERNEL_SIZE, erode_dilate);
+    nullptr, Config::MAX_KERNEL_SIZE, erodeDilate);
 
   // Set initial kernel size to 1
   cv::setTrackbarPos(Config::TRACKBAR_KERNEL, Config::WINDOW_NAME, 1);
 
   // Apply initial operation
-  erode_dilate(0, nullptr);
+  erodeDilate(0, nullptr);
 
   cv::waitKey(0);
   return EXIT_SUCCESS;

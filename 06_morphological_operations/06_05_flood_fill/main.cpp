@@ -158,7 +158,7 @@ int main(int argc, char ** argv)
   // Parse command line
   cv::CommandLineParser parser(argc, argv,
     "{help h||Show help message}"
-    "{@image|fruits.jpg|Input image}");
+    "{@image|../../data/fruits.jpg|Input image}");
 
   if (parser.has("help")) {
     parser.printMessage();

@@ -87,10 +87,10 @@ int main(int argc, char ** argv)
   // Apply different thresholding methods
   // Fixed threshold methods (all use the same threshold value: 127)
   cv::Mat binary = applyThreshold(gray, FIXED_THRESH, cv::THRESH_BINARY, "BINARY");
-  cv::Mat binaryInv = applyThreshold(gray, FIXED_THRESH, cv::THRESH_BINARY_INV, "BINARY_INV");
+  cv::Mat binary_inv = applyThreshold(gray, FIXED_THRESH, cv::THRESH_BINARY_INV, "BINARY_INV");
   cv::Mat trunc = applyThreshold(gray, FIXED_THRESH, cv::THRESH_TRUNC, "TRUNC");
-  cv::Mat toZero = applyThreshold(gray, FIXED_THRESH, cv::THRESH_TOZERO, "TOZERO");
-  cv::Mat toZeroInv = applyThreshold(gray, FIXED_THRESH, cv::THRESH_TOZERO_INV, "TOZERO_INV");
+  cv::Mat to_zero = applyThreshold(gray, FIXED_THRESH, cv::THRESH_TOZERO, "TOZERO");
+  cv::Mat to_zero_inv = applyThreshold(gray, FIXED_THRESH, cv::THRESH_TOZERO_INV, "TOZERO_INV");
 
   // Automatic threshold methods (threshold value is computed automatically)
   // OTSU: Best for bimodal histograms (two distinct peaks)
@@ -104,9 +104,9 @@ int main(int argc, char ** argv)
   // ========================================
 
   // Create labeled original image for grid
-  cv::Mat originalBGR;
-  cv::resize(src, originalBGR, gray.size());
-  cv::putText(originalBGR, "ORIGINAL", cv::Point(10, 25),
+  cv::Mat original_bgr;
+  cv::resize(src, original_bgr, gray.size());
+  cv::putText(original_bgr, "ORIGINAL", cv::Point(10, 25),
               cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 0), 2);
 
   // Create comparison grid using hconcat/vconcat
@@ -115,8 +115,8 @@ int main(int argc, char ** argv)
   // Row 1: Original | Binary | Binary_Inv | Otsu
   // Row 2: Trunc    | ToZero | ToZero_Inv | Triangle
   cv::Mat row1, row2, comparison;
-  cv::hconcat(std::vector<cv::Mat>{originalBGR, binary, binaryInv, otsu}, row1);
-  cv::hconcat(std::vector<cv::Mat>{trunc, toZero, toZeroInv, triangle}, row2);
+  cv::hconcat(std::vector<cv::Mat>{original_bgr, binary, binary_inv, otsu}, row1);
+  cv::hconcat(std::vector<cv::Mat>{trunc, to_zero, to_zero_inv, triangle}, row2);
   cv::vconcat(row1, row2, comparison);
 
   // Resize for display if too large

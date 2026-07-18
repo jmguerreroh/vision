@@ -51,7 +51,7 @@ MorphApp app;
  *   cv::MORPH_TOPHAT   - Difference between original and opened image (bright regions)
  *   cv::MORPH_BLACKHAT - Difference between closed and original image (dark regions)
  */
-void morphological_operations(int, void *)
+void morphologicalOperations(int, void *)
 {
   // Get current trackbar positions
   int morph_operator = cv::getTrackbarPos(Config::TRACKBAR_OPERATOR, Config::WINDOW_NAME);
@@ -79,7 +79,7 @@ void morphological_operations(int, void *)
 int main(int argc, char ** argv)
 {
   // Parse command line arguments
-  cv::CommandLineParser parser(argc, argv, "{@input | crop.png | input image}");
+  cv::CommandLineParser parser(argc, argv, "{@input | ../../data/crop.png | input image}");
   app.src = cv::imread(cv::samples::findFile(parser.get<std::string>("@input")), cv::IMREAD_COLOR);
 
   if (app.src.empty()) {
@@ -93,17 +93,17 @@ int main(int argc, char ** argv)
 
   // Create trackbars for interactive control
   cv::createTrackbar(Config::TRACKBAR_OPERATOR, Config::WINDOW_NAME,
-    nullptr, Config::MAX_OPERATOR, morphological_operations);
+    nullptr, Config::MAX_OPERATOR, morphologicalOperations);
   cv::createTrackbar(Config::TRACKBAR_ELEMENT, Config::WINDOW_NAME,
-    nullptr, Config::MAX_ELEM, morphological_operations);
+    nullptr, Config::MAX_ELEM, morphologicalOperations);
   cv::createTrackbar(Config::TRACKBAR_KERNEL, Config::WINDOW_NAME,
-    nullptr, Config::MAX_KERNEL_SIZE, morphological_operations);
+    nullptr, Config::MAX_KERNEL_SIZE, morphologicalOperations);
 
   // Set initial kernel size to 1
   cv::setTrackbarPos(Config::TRACKBAR_KERNEL, Config::WINDOW_NAME, 1);
 
   // Apply initial operation
-  morphological_operations(0, nullptr);
+  morphologicalOperations(0, nullptr);
 
   cv::waitKey(0);
 

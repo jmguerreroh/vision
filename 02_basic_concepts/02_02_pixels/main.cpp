@@ -13,30 +13,31 @@
  *       Channel 0 = Blue, Channel 1 = Green, Channel 2 = Red
  */
 
-#include "opencv2/imgproc.hpp"
-#include "opencv2/highgui.hpp"
+#include <cstdlib>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 #include <iostream>
 
 int main(int argc, char ** argv)
 {
   // Load and display the image
-  const std::string imagePath = "../../data/lena.jpg";
+  const std::string image_path = "../../data/lena.jpg";
 
   // Load image in BGR color format (default)
   cv::Mat image;
   if (argc > 1) {
-    image = cv::imread(argv[1], cv::IMREAD_COLOR);
+    image = cv::imread(cv::samples::findFile(argv[1]), cv::IMREAD_COLOR);
   } else {
-    image = cv::imread(imagePath, cv::IMREAD_COLOR);
+    image = cv::imread(cv::samples::findFile(image_path), cv::IMREAD_COLOR);
   }
 
   // Verify that the image was loaded successfully
   // An empty image indicates an error (file not found, invalid format, etc.)
   if (image.empty()) {
     std::cerr << "Error: Could not load image from: "
-              << (argc > 1 ? argv[1] : imagePath) << std::endl;
+              << (argc > 1 ? argv[1] : image_path) << std::endl;
     std::cerr << "Please verify the file exists and the path is correct." << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   std::cout << "Image loaded: " << image.cols << "x" << image.rows << " pixels" << std::endl;
@@ -45,7 +46,9 @@ int main(int argc, char ** argv)
   cv::namedWindow("Pixel Demo", cv::WINDOW_AUTOSIZE);
   cv::imshow("Pixel Demo", image);
 
+  // ========================================
   // Method 1 - Direct pixel access using Vec3b
+  // ========================================
   //
   // Vec3b is a vector of 3 unsigned chars (bytes), representing BGR values.
   // Access: image.at<Vec3b>(row, col)[channel]
@@ -57,20 +60,22 @@ int main(int argc, char ** argv)
   std::cout << "\n--- Method 1: Direct access with Vec3b ---" << std::endl;
   std::cout << "First 5 pixels (B G R):" << std::endl;
 
-  int pixelCount = 0;
-  for (int row = 0; row < image.rows && pixelCount < 5; row++) {
-    for (int col = 0; col < image.cols && pixelCount < 5; col++) {
+  int pixel_count = 0;
+  for (int row = 0; row < image.rows && pixel_count < 5; row++) {
+    for (int col = 0; col < image.cols && pixel_count < 5; col++) {
       // Access BGR values using Vec3b
       cv::Vec3b pixel = image.at<cv::Vec3b>(row, col);
       std::cout << "  Pixel[" << row << "," << col << "]: "
-                << (int)pixel[0] << " "         // Blue
-                << (int)pixel[1] << " "         // Green
-                << (int)pixel[2] << std::endl;  // Red
-      pixelCount++;
+                << static_cast<int>(pixel[0]) << " "         // Blue
+                << static_cast<int>(pixel[1]) << " "         // Green
+                << static_cast<int>(pixel[2]) << std::endl;  // Red
+      pixel_count++;
     }
   }
 
+  // ========================================
   // Method 2 - Channel separation using split()
+  // ========================================
   //
   // split() separates a multi-channel image into individual single-channel images.
   // This is useful when you need to process each channel independently.
@@ -83,15 +88,15 @@ int main(int argc, char ** argv)
 
   // Display first 5 pixels from separated channels
   std::cout << "First 5 pixels (B G R) from split channels:" << std::endl;
-  pixelCount = 0;
-  for (int row = 0; row < image.rows && pixelCount < 5; row++) {
-    for (int col = 0; col < image.cols && pixelCount < 5; col++) {
+  pixel_count = 0;
+  for (int row = 0; row < image.rows && pixel_count < 5; row++) {
+    for (int col = 0; col < image.cols && pixel_count < 5; col++) {
       // Access each channel as a separate grayscale image
       std::cout << "  Pixel[" << row << "," << col << "]: "
-                << (int)channels[0].at<uchar>(row, col) << " "        // Blue channel
-                << (int)channels[1].at<uchar>(row, col) << " "        // Green channel
-                << (int)channels[2].at<uchar>(row, col) << std::endl; // Red channel
-      pixelCount++;
+                << static_cast<int>(channels[0].at<uchar>(row, col)) << " "        // Blue channel
+                << static_cast<int>(channels[1].at<uchar>(row, col)) << " "        // Green channel
+                << static_cast<int>(channels[2].at<uchar>(row, col)) << std::endl; // Red channel
+      pixel_count++;
     }
   }
 
@@ -114,5 +119,5 @@ int main(int argc, char ** argv)
   std::cout << "\nPress any key to exit..." << std::endl;
   cv::waitKey(0);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
