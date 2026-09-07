@@ -22,8 +22,8 @@ source ~/.bashrc
 > distribution package these are usually included; if you built OpenCV from
 > source, follow the *Installation from source* section below and pass
 > `OPENCV_EXTRA_MODULES_PATH`. The examples that need them are:
-> `07_05_skeletonization`, `08_02_pose_estimation`, `09_02_stereo_disparity`
-> and `09_04_opencv_icp`.
+> `09_05_skeletonization`, `10_02_pose_estimation`, `11_02_stereo_disparity`
+> and `11_04_opencv_icp`.
 
 ### Building all examples at once (recommended)
 
@@ -39,7 +39,7 @@ Executables are in `vision_examples/bin/`. For example:
 ```bash
 ./02_01_read_image
 ./03_01_dft_frequencies
-./09_02_stereo_disparity
+./11_02_stereo_disparity
 ```
 
 > Note: default paths assume that the examples are running from the vision_examples/bin directory.
@@ -82,7 +82,7 @@ cmake --build build
 
 ### Building the ROS 2 examples (Chapter 12)
 
-The examples of Chapter 12 live in `12_vision_ros2/` like every other chapter,
+The examples of Chapter 12 live in `14_vision_ros2/` like every other chapter,
 but they are **not** part of the build above: they are ROS 2 packages, not
 standalone programs, so they are built with `colcon` and run with `ros2 run`.
 The top-level `CMakeLists.txt` ignores them on purpose, so the rest of the
@@ -90,8 +90,8 @@ repository still builds without a ROS 2 installation.
 
 ```bash
 cd <repository root>
-rosdep install --from-paths 12_vision_ros2 --ignore-src -r -y
-colcon build --base-paths 12_vision_ros2 --symlink-install
+rosdep install --from-paths 14_vision_ros2 --ignore-src -r -y
+colcon build --base-paths 14_vision_ros2 --symlink-install
 source install/setup.bash
 ```
 
