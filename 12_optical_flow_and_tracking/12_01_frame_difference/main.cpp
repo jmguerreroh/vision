@@ -21,12 +21,39 @@
  *            Space: Pause/resume
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
+
+namespace
+{
+// The video of the chapter is 1920x1080, and a window that size does not fit on
+// a normal screen. The processing always runs at full resolution: only the copy
+// sent to the screen is reduced, with INTER_AREA, the interpolation meant for
+// shrinking. On a smaller video this does nothing
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+// Returns the copy that goes to the screen, already reduced. Whatever is drawn
+// on the result keeps its size in screen pixels, so labels are written here and
+// not on the full-resolution frame: drawn before the reduction they shrink with
+// it and stop being readable
+cv::Mat fitToScreen(const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    return image.clone();
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  return reduced;
+}
+}  // namespace
 
 /**
  * @brief Apply colormap to grayscale motion image
@@ -46,16 +73,17 @@ cv::Mat applyHeatmap(const cv::Mat & gray)
  * @param numFrames Number of frames being accumulated
  * @param useColor Whether color mode is enabled
  * @param fps Current frames per second
+ * @param x0 Left edge to write from, so the text lands on the right half
  */
-void drawInfo(cv::Mat & img, int num_frames, bool use_color, double fps)
+void drawInfo(cv::Mat & img, int num_frames, bool use_color, double fps, int x0)
 {
   std::string info = "Frames: " + std::to_string(num_frames) +
     " | Color: " + (use_color ? "ON" : "OFF") +
     " | FPS: " + std::to_string(static_cast<int>(fps));
-  cv::putText(img, info, cv::Point(10, 25),
+  cv::putText(img, info, cv::Point(x0 + 10, 25),
               cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 0), 2);
   cv::putText(img, "+/-: frames | c: color | Space: pause | q: quit",
-              cv::Point(10, img.rows - 10),
+              cv::Point(x0 + 10, img.rows - 10),
               cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(200, 200, 200), 1);
 }
 
@@ -64,7 +92,7 @@ int main(int argc, char ** argv)
   // Command-line parser
   const std::string keys =
     "{help h | | Show this help message}"
-    "{@video | ../../data/vtest.avi | Input video file}"
+    "{@video | ../../data/853889-hd_1920_1080_25fps.mp4 | Input video file}"
     "{frames f | 4 | Number of frames to accumulate (2-20)}";
 
   cv::CommandLineParser parser(argc, argv, keys);
@@ -161,18 +189,21 @@ int main(int argc, char ** argv)
         tick_start = cv::getTickCount();
       }
 
-      // Draw info and show
-      drawInfo(display, num_frames, use_color, fps);
-
       // Show original frame alongside motion
       cv::Mat original;
       cv::cvtColor(frames.back(), original, cv::COLOR_GRAY2BGR);
-      cv::putText(original, "Current Frame", cv::Point(10, 25),
-                  cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 0), 2);
 
       cv::Mat combined;
       cv::hconcat(original, display, combined);
-      cv::imshow("Motion Detection", combined);
+
+      // The labels are written on the reduced copy and not on the frame. Drawn
+      // before the reduction they shrink with it: on this 1920x1080 video that
+      // is a factor of 0.42, and a 0.6 font ends up under 6 px tall
+      cv::Mat view = fitToScreen(combined);
+      cv::putText(view, "Current Frame", cv::Point(10, 25),
+                  cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 0), 2);
+      drawInfo(view, num_frames, use_color, fps, view.cols / 2);
+      cv::imshow("Motion Detection", view);
     }
 
     // Handle keyboard input

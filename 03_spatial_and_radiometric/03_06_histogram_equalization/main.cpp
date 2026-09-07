@@ -29,17 +29,25 @@ namespace
 // with INTER_AREA, which is the interpolation meant for shrinking
 constexpr int MAX_DISPLAY_SIDE = 800;
 
-void showFit(const std::string & window, const cv::Mat & image)
+// Returns the copy that goes to the screen, already reduced. Whatever is drawn
+// on the result keeps its size in screen pixels, so labels are written here and
+// not on the full-resolution frame: drawn before the reduction they shrink with
+// it and stop being readable
+cv::Mat fitToScreen(const cv::Mat & image)
 {
   const int side = std::max(image.cols, image.rows);
   if (side <= MAX_DISPLAY_SIDE || image.empty()) {
-    cv::imshow(window, image);
-    return;
+    return image.clone();
   }
   const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
   cv::Mat reduced;
   cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
-  cv::imshow(window, reduced);
+  return reduced;
+}
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  cv::imshow(window, fitToScreen(image));
 }
 }  // namespace
 

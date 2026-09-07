@@ -46,17 +46,35 @@ namespace
 // with INTER_AREA, which is the interpolation meant for shrinking
 constexpr int MAX_DISPLAY_SIDE = 800;
 
-void showFit(const std::string & window, const cv::Mat & image)
+// Returns the copy that goes to the screen, already reduced. Whatever is drawn
+// on the result keeps its size in screen pixels, so labels are written here and
+// not on the full-resolution frame: drawn before the reduction they shrink with
+// it and stop being readable
+cv::Mat fitToScreen(const cv::Mat & image)
 {
   const int side = std::max(image.cols, image.rows);
   if (side <= MAX_DISPLAY_SIDE || image.empty()) {
-    cv::imshow(window, image);
-    return;
+    return image.clone();
   }
   const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
   cv::Mat reduced;
   cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
-  cv::imshow(window, reduced);
+  return reduced;
+}
+
+// Text drawn on the full-resolution image shrinks with the on-screen reduction.
+// Raising the font by the same factor makes it land at the size it was written
+// for. Labels anchored to a region cannot simply be drawn after the reduction,
+// because their position comes from the coordinates of the full-size image
+double fontFor(const cv::Mat & image, double base)
+{
+  const int side = std::max(image.cols, image.rows);
+  return side <= MAX_DISPLAY_SIDE ? base : base * side / MAX_DISPLAY_SIDE;
+}
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  cv::imshow(window, fitToScreen(image));
 }
 }  // namespace
 
@@ -80,7 +98,7 @@ cv::Mat applyThreshold(const cv::Mat & src, double thresh, int type, const std::
   // Cast to int for cleaner display (e.g., "127" instead of "127.000000")
   std::string text = label + " (T=" + std::to_string(static_cast<int>(computed)) + ")";
   cv::putText(dst, text, cv::Point(10, 25),
-              cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 0), 2);
+              cv::FONT_HERSHEY_SIMPLEX, fontFor(dst, 0.6), cv::Scalar(0, 255, 0), 2);
 
   return dst;
 }
@@ -163,7 +181,7 @@ int main(int argc, char ** argv)
   cv::Mat adaptive;
   cv::cvtColor(adaptive_raw, adaptive, cv::COLOR_GRAY2BGR);
   cv::putText(adaptive, "ADAPTIVE (local)", cv::Point(10, 25),
-              cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 0), 2);
+              cv::FONT_HERSHEY_SIMPLEX, fontFor(adaptive, 0.6), cv::Scalar(0, 255, 0), 2);
 
   // ========================================
   // Visualization: Create Comparison Grid
@@ -173,7 +191,7 @@ int main(int argc, char ** argv)
   cv::Mat original_bgr;
   cv::resize(src, original_bgr, gray.size());
   cv::putText(original_bgr, "ORIGINAL", cv::Point(10, 25),
-              cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 0), 2);
+              cv::FONT_HERSHEY_SIMPLEX, fontFor(original_bgr, 0.6), cv::Scalar(0, 255, 0), 2);
 
   // Create comparison grid using hconcat/vconcat
   // hconcat: horizontal concatenation (places images side by side in a row)

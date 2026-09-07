@@ -14,6 +14,7 @@ datos**: cada conjunto conserva la licencia de su fuente original.
 | Renders de Blender | `Blender_Suzanne1.jpg`, `Blender_Suzanne2.jpg` | renders propios del modelo Suzanne de Blender | CC0 del modelo; renders propios |
 | Fotografias del libro | `aerial_view.png`, `building_facade.png`, `chess.png`, `coins.png`, `futbol.png`, `maize.jpg`, `smarties.png`, `starry_night.png` | autor del libro | MIT, como el resto del repositorio |
 | Material propio | `page_uneven.png`, `test_chart.png`, `coins.jpg`, `create_checkerboard.py`, `create_shapes.py`, `shapes.png`, `checkerboard.png`, `calibration_images/`, `aruco/`, `pcl_data/`, ficheros `.yml`/`.xml` generados por los ejemplos | autor del libro | MIT, como el resto del repositorio |
+| Video del capitulo 12 | `853889-hd_1920_1080_25fps.mp4` | [Pexels 853889](https://www.pexels.com/video/853889/) | Creative Commons Zero |
 | Modelos DNN | `dnn/`, `models/` | descargados por los guiones de cada ejemplo (Darknet, Ultralytics) | licencia de cada modelo (consultar su fuente) |
 
 Notas:

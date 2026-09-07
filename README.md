@@ -170,12 +170,25 @@ printed. `data/building_facade.png`, `coins.png`, `chess.png`, `smarties.png`,
 `aerial_view.png`, `starry_night.png` and `futbol.png` are the very files that
 the figure-generating scripts of the book read.
 
-Those photographs are around 1400 px on the long side, which does not fit on a
-normal screen once an example opens four or five windows. Every example that
-uses them reduces **only what it sends to the screen**, with `INTER_AREA` and a
-long side of 800 px; the processing always runs at full resolution. The
-reduction is a no-op on smaller images, so passing your own image changes
-nothing.
+The optical flow examples of chapter 12 default to the same video, the overhead
+shot of a busy square that the book credits to Pexels 853889.
+
+Those photographs are around 1400 px on the long side, and the video is Full HD,
+which does not fit on a normal screen once an example opens four or five
+windows. Every example that uses them reduces **only what it sends to the
+screen**, with `INTER_AREA` and a long side of 800 px; the processing always
+runs at full resolution. The reduction is a no-op on smaller inputs, so passing
+your own image changes nothing.
+
+Text is written on the reduced copy, or with the font raised by the same factor
+when it is a label anchored to a region, so that it stays readable instead of
+shrinking with the picture.
+
+The one exception to processing at full resolution is `12_03_dense_flow`:
+Farneback costs 392 ms per frame at 1920x1080, ten times the 40 ms a 25 fps
+video allows, so it reduces the frames by `--scale` (0.5 by default, the same
+factor the book uses for its figures) before computing the flow. Pass
+`--scale=1.0` to see the difference.
 
 ### Checking the repository
 

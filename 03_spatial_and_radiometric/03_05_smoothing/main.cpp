@@ -29,17 +29,35 @@ namespace
 // with INTER_AREA, which is the interpolation meant for shrinking
 constexpr int MAX_DISPLAY_SIDE = 800;
 
-void showFit(const std::string & window, const cv::Mat & image)
+// Returns the copy that goes to the screen, already reduced. Whatever is drawn
+// on the result keeps its size in screen pixels, so labels are written here and
+// not on the full-resolution frame: drawn before the reduction they shrink with
+// it and stop being readable
+cv::Mat fitToScreen(const cv::Mat & image)
 {
   const int side = std::max(image.cols, image.rows);
   if (side <= MAX_DISPLAY_SIDE || image.empty()) {
-    cv::imshow(window, image);
-    return;
+    return image.clone();
   }
   const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
   cv::Mat reduced;
   cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
-  cv::imshow(window, reduced);
+  return reduced;
+}
+
+// Text drawn on the full-resolution image shrinks with the on-screen reduction.
+// Raising the font by the same factor makes it land at the size it was written
+// for. Labels anchored to a region cannot simply be drawn after the reduction,
+// because their position comes from the coordinates of the full-size image
+double fontFor(const cv::Mat & image, double base)
+{
+  const int side = std::max(image.cols, image.rows);
+  return side <= MAX_DISPLAY_SIDE ? base : base * side / MAX_DISPLAY_SIDE;
+}
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  cv::imshow(window, fitToScreen(image));
 }
 }  // namespace
 
@@ -68,7 +86,7 @@ bool displayCaption(const cv::Mat & src, const std::string & caption)
   cv::Mat display = cv::Mat::zeros(src.size(), src.type());
   cv::putText(display, caption,
               cv::Point(src.cols / 4, src.rows / 2),
-              cv::FONT_HERSHEY_COMPLEX, 1, cv::Scalar(255, 255, 255));
+              cv::FONT_HERSHEY_COMPLEX, fontFor(display, 1), cv::Scalar(255, 255, 255));
   showFit(Config::WINDOW_NAME, display);
   return cv::waitKey(Config::DELAY_CAPTION) >= 0;
 }
@@ -87,7 +105,7 @@ bool displayResult(const cv::Mat & img, int kernelSize = 0)
   if (kernelSize > 0) {
     std::string text = "Kernel: " + std::to_string(kernelSize) + "x" + std::to_string(kernelSize);
     cv::putText(display, text, cv::Point(10, 30),
-                cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+                cv::FONT_HERSHEY_SIMPLEX, fontFor(display, 0.7), cv::Scalar(0, 255, 0), 2);
   }
 
   showFit(Config::WINDOW_NAME, display);

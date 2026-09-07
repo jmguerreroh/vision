@@ -15,6 +15,8 @@
  * @see https://docs.opencv.org/3.4/d4/dee/tutorial_optical_flow.html
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <opencv2/core.hpp>
@@ -22,6 +24,36 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/video.hpp>
+
+namespace
+{
+// The video of the chapter is 1920x1080, and a window that size does not fit on
+// a normal screen. The processing always runs at full resolution: only the copy
+// sent to the screen is reduced, with INTER_AREA, the interpolation meant for
+// shrinking. On a smaller video this does nothing
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+// Returns the copy that goes to the screen, already reduced. Whatever is drawn
+// on the result keeps its size in screen pixels, so labels are written here and
+// not on the full-resolution frame: drawn before the reduction they shrink with
+// it and stop being readable
+cv::Mat fitToScreen(const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    return image.clone();
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  return reduced;
+}
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  cv::imshow(window, fitToScreen(image));
+}
+}  // namespace
 
 int main(int argc, char ** argv)
 {
@@ -32,7 +64,7 @@ int main(int argc, char ** argv)
 
   const std::string keys =
     "{help h | | Show this help message}"
-    "{@input | ../../data/vtest.avi | Input file}";
+    "{@input | ../../data/853889-hd_1920_1080_25fps.mp4 | Input file}";
   cv::CommandLineParser parser(argc, argv, keys);
   parser.about(about);
   if (parser.has("help")) {
@@ -131,7 +163,7 @@ int main(int argc, char ** argv)
     cv::add(frame, mask, img);
 
     // Display the frame
-    cv::imshow("Frame", img);
+    showFit("Frame", img);
 
     // Exit on 'q' or 'Esc' key press
     int keyboard = cv::waitKey(30);

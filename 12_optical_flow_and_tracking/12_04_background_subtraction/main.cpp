@@ -16,6 +16,7 @@
  * to permanent scene changes, and can flag shadows separately.
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -25,6 +26,36 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
+namespace
+{
+// The video of the chapter is 1920x1080, and a window that size does not fit on
+// a normal screen. The processing always runs at full resolution: only the copy
+// sent to the screen is reduced, with INTER_AREA, the interpolation meant for
+// shrinking. On a smaller video this does nothing
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+// Returns the copy that goes to the screen, already reduced. Whatever is drawn
+// on the result keeps its size in screen pixels, so labels are written here and
+// not on the full-resolution frame: drawn before the reduction they shrink with
+// it and stop being readable
+cv::Mat fitToScreen(const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    return image.clone();
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  return reduced;
+}
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  cv::imshow(window, fitToScreen(image));
+}
+}  // namespace
 
 namespace Config
 {
@@ -39,7 +70,7 @@ int main(int argc, char ** argv)
   // Command-line parser (same pattern as 12_01)
   const std::string keys =
     "{help h | | Show this help message}"
-    "{@video | ../../data/vtest.avi | Input video file}";
+    "{@video | ../../data/853889-hd_1920_1080_25fps.mp4 | Input video file}";
   cv::CommandLineParser parser(argc, argv, keys);
   if (parser.has("help")) {
     parser.printMessage();
@@ -127,20 +158,23 @@ int main(int argc, char ** argv)
         ++objects;
       }
 
-      cv::putText(detections, "Moving objects: " + std::to_string(objects),
-                  cv::Point(10, 25), cv::FONT_HERSHEY_SIMPLEX, 0.7,
-                  cv::Scalar(0, 255, 0), 2);
 
       // The learned background itself can be inspected -- useful to check
       // whether stopped objects are being absorbed into the model
       cv::Mat background;
       subtractor->getBackgroundImage(background);
 
-      cv::imshow("1. Frame + detections", detections);
-      cv::imshow("2. Raw MOG2 mask (gray = shadow)", foreground_mask);
-      cv::imshow("3. Cleaned foreground", moving);
+      // The counter is written on the reduced copy: drawn on the frame it would
+      // shrink with it and, at this resolution, stop being readable
+      cv::Mat view = fitToScreen(detections);
+      cv::putText(view, "Moving objects: " + std::to_string(objects),
+                  cv::Point(10, 25), cv::FONT_HERSHEY_SIMPLEX, 0.7,
+                  cv::Scalar(0, 255, 0), 2);
+      cv::imshow("1. Frame + detections", view);
+      showFit("2. Raw MOG2 mask (gray = shadow)", foreground_mask);
+      showFit("3. Cleaned foreground", moving);
       if (!background.empty()) {
-        cv::imshow("4. Learned background model", background);
+        showFit("4. Learned background model", background);
       }
     }
 
