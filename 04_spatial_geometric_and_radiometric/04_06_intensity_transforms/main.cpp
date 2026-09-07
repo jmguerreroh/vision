@@ -82,10 +82,11 @@ void compareCost(const cv::Mat & src, double gamma)
   cv::Mat per_pixel = src.clone();
 
   const double start_direct = static_cast<double>(cv::getTickCount());
-  for (int i = 0; i < per_pixel.rows; i++) {
-    uchar * row = per_pixel.ptr<uchar>(i);
-    for (int j = 0; j < per_pixel.cols * per_pixel.channels(); j++) {
-      row[j] = cv::saturate_cast<uchar>(std::pow(row[j] / 255.0, gamma) * 255.0);
+  for (int y = 0; y < per_pixel.rows; y++) {
+    uchar * row = per_pixel.ptr<uchar>(y);
+    // Indice plano sobre la fila: recorre columnas por canales, no columnas
+    for (int n = 0; n < per_pixel.cols * per_pixel.channels(); n++) {
+      row[n] = cv::saturate_cast<uchar>(std::pow(row[n] / 255.0, gamma) * 255.0);
     }
   }
   const double direct_ms =

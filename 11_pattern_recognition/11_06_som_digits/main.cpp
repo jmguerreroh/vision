@@ -96,11 +96,11 @@ int bestMatchingUnit(const cv::Mat & weights, const cv::Mat & sample, double & d
 {
   int best = 0;
   double best_distance = std::numeric_limits<double>::max();
-  for (int j = 0; j < weights.rows; ++j) {
-    const double d = cv::norm(sample, weights.row(j), cv::NORM_L2);
+  for (int i = 0; i < weights.rows; ++i) {
+    const double d = cv::norm(sample, weights.row(i), cv::NORM_L2);
     if (d < best_distance) {
       best_distance = d;
-      best = j;
+      best = i;
     }
   }
   distance = best_distance;

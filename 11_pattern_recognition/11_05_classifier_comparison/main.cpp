@@ -459,9 +459,9 @@ static void findDecisionBoundaryEM()
 
     model_samples.release();
     // Collect all training points belonging to class i
-    for (int j = 0; j < samples.rows; j++) {
-      if (app.trained_points_markers[j] == i) {
-        model_samples.push_back(samples.row(j));
+    for (int k = 0; k < samples.rows; k++) {
+      if (app.trained_points_markers[k] == i) {
+        model_samples.push_back(samples.row(k));
       }
     }
 
