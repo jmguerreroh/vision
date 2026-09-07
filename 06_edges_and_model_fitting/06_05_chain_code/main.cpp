@@ -269,12 +269,27 @@ int main(int argc, char ** argv)
     const std::vector<int> chain_code = computeChainCode(contours[i]);
     const std::vector<int> first_diff = computeFirstDifference(chain_code);
 
-    // Calculate contour statistics. Moments get their own example (10_01);
-    // the centroid is used here only to place the label
-    const cv::Moments m = cv::moments(contours[i]);
-    const cv::Point2f centroid(static_cast<float>(m.m10 / m.m00),
-      static_cast<float>(m.m01 / m.m00));
-    const double area = cv::contourArea(contours[i]);
+    // Contour statistics computed from the traversed boundary itself, so this
+    // example stays within chapter 6. Moments and the OpenCV shape descriptors
+    // are chapter 8 (08_01_region_moments).
+    //
+    // Centroid: mean of the contour points, used only to place the label.
+    cv::Point2f centroid(0.f, 0.f);
+    for (const cv::Point & p : contours[i]) {
+      centroid += cv::Point2f(static_cast<float>(p.x), static_cast<float>(p.y));
+    }
+    centroid /= static_cast<float>(contours[i].size());
+
+    // Area by the shoelace formula, walking the same boundary the chain code
+    // encodes: twice the enclosed area is the sum of the cross products of
+    // consecutive vertices. It is what cv::contourArea computes internally.
+    double cross_sum = 0.0;
+    for (size_t j = 0; j < contours[i].size(); ++j) {
+      const cv::Point & a = contours[i][j];
+      const cv::Point & b = contours[i][(j + 1) % contours[i].size()];
+      cross_sum += static_cast<double>(a.x) * b.y - static_cast<double>(b.x) * a.y;
+    }
+    const double area = std::abs(cross_sum) / 2.0;
 
     std::cout << "--- Contour #" << (i + 1) << " ---" << std::endl;
     std::cout << "  Points: " << contours[i].size() << std::endl;
