@@ -23,7 +23,7 @@
  *
  * so (X/W, Y/W, Z/W) gives the metric 3D point; note Z/W = f*b/disp.
  * In a real rig, Q is produced by cv::stereoRectify() during stereo
- * calibration (Chapter 7); here the aloe pair comes pre-rectified without
+ * calibration (Chapter 10); here the aloe pair comes pre-rectified without
  * its calibration, so we build a plausible Q by hand -- shapes are correct,
  * the absolute scale is not.
  *

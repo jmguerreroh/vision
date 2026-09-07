@@ -67,7 +67,7 @@ const char * WINDOW_NAME = "CamShift (green) vs CSRT (red)";
  * @brief Hue histogram of the object, used as its colour model
  *
  * Only the HUE channel is used: it is the component of HSV that does not
- * change when the light does (Chapter 4), which is exactly what a tracker
+ * change when the light does (Chapter 3), which is exactly what a tracker
  * needs. Pixels that are too dark or too grey are masked out because their
  * hue is numerically unstable, and letting them in poisons the model.
  */

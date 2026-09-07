@@ -156,26 +156,33 @@ ros2 topic info /color/image --verbose
 
 ## Repository structure
 
-The examples are organised by chapter and are meant to be studied **in order**: each one introduces a single main idea and only relies on concepts shown in earlier examples.
+The examples are organised by chapter and follow the order in which the book
+introduces the material. There are 80 in total: 75 numbered `NN_MM` examples,
+where `NN` is the book chapter, plus the 5 ROS 2 packages of chapter 14, which
+are named after the package instead of numbered because `colcon` builds them by
+name. The folder column below is the authoritative mapping between a book
+chapter and its code.
 
-| Chapter | Topic | Examples |
-|---------|-------|----------|
-| 02 | Image formation | read image, Mat copy & ROI, pixel access, color spaces, video |
-| 03 | Frequency-domain transforms | Fourier, DCT, wavelets, Gabor bank |
-| 04 | Spatial, geometric and radiometric transforms | point ops, convolution, bitwise, affine transforms, perspective correction, smoothing, homomorphic filter, histogram equalization/matching/comparison |
-| 05 | Edges and model fitting | Sobel, Canny, Laplacian, contours, chain code, Hough lines, Hough circles |
-| 06 | Regions, descriptors and keypoints | threshold, connected components, color segmentation, moments, Hu, Harris, Shi-Tomasi, ORB, RANSAC matching |
-| 07 | Morphology | erode/dilate, compound operations, gradient, hit-or-miss, skeleton, flood fill, top-hat illumination, distance + watershed |
-| 08 | Camera calibration | chessboard calibration, ChArUco pose (PnP), **stereo calibration + rectification** |
-| 09 | 3D vision and point clouds | **epipolar geometry**, disparity, disparity → point cloud, OpenCV ICP, PCL I/O, visualizers, ICP, RANSAC fitting, registration, correspondence, plane + clustering pipeline |
-| 10 | Optical flow | frame difference, Lucas-Kanade, Farneback, background subtraction, Kalman tracking, **CamShift vs CSRT tracking** |
-| 11 | Pattern recognition | KNN, SVM, digit classification + metrics, K-Means, ML comparison, **self-organizing map**, YOLOv4, YOLO11, **semantic segmentation** |
-| 12 | Vision in ROS 2 | **cv_bridge node, image_transport, message_filters sync, PCL conversion, depth_image_proc launch** (built with `colcon`, see above) |
+| Chapter | Folder | Topic | Examples |
+|---------|--------|-------|----------|
+| 02 | `02_image_formation` | Image formation | read image, color spaces, Mat copy & ROI, pixel access, video capture |
+| 03 | `03_spatial_and_radiometric` | Spatial and radiometric transforms | point ops, convolution, bitwise, intensity transforms, smoothing, histogram equalization / matching / comparison |
+| 04 | `04_frequency` | Frequency-domain transforms | DFT, DCT, wavelet denoising, Gabor bank, homomorphic filter |
+| 05 | `05_geometric_and_registration` | Geometric transforms and registration | affine transforms, perspective correction |
+| 06 | `06_edges_and_model_fitting` | Edge detection and model fitting | Sobel, Canny, Laplacian, contour extraction, chain code, Hough lines, Hough circles |
+| 07 | `07_region_segmentation` | Region segmentation | threshold, connected components, color segmentation |
+| 08 | `08_features_and_keypoints` | Descriptors and keypoints | region moments, Hu moments, Harris, Shi-Tomasi, ORB, RANSAC matching |
+| 09 | `09_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
+| 10 | `10_camera_calibration` | Camera geometry and calibration | chessboard calibration, pose estimation (PnP), stereo calibration + rectification |
+| 11 | `11_3d_and_point_clouds` | 3D vision and point clouds | epipolar geometry, disparity, disparity to point cloud, OpenCV ICP, PCL I/O, visualizers, PCL ICP, RANSAC model fitting, registration, correspondence, plane + clustering |
+| 12 | `12_optical_flow` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |
+| 13 | `13_pattern_recognition` | Machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map, YOLOv4, YOLO11, semantic segmentation |
+| 14 | `14_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
 
-The order of the examples is the order in which the book introduces the
-material, so the numbering can be followed from beginning to end. Examples in
-**bold** were added to close gaps between the book text and the code. Whenever an example builds on a previous one, its header comment names
-the earlier example it depends on.
+Every example is **self-contained and runnable on its own**: none of them reads a
+file produced by another, so they can be run in any order. What does follow the
+book order is the material each one assumes you have already read, which is the
+reason for studying them from beginning to end.
 
 ---
 

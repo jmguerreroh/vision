@@ -9,7 +9,7 @@
  * - cv::stereoRectify() + cv::remap(): reprojecting both images so that their
  *   rows are aligned
  *
- * Why rectify. The disparity algorithms of chapter 08 look for the match of a
+ * Why rectify. The disparity algorithms of chapter 11 look for the match of a
  * pixel by scanning the SAME ROW of the other image. That only works if the
  * two image planes are coplanar and their rows correspond, which no real
  * mounting achieves. Rectification builds two virtual cameras that do satisfy
@@ -215,7 +215,7 @@ int main(int argc, char ** argv)
   // stereoRectify does NOT touch the images: it computes the rotations R1 and
   // R2 that turn each camera into a virtual one, and the projection matrices
   // P1 and P2 of those virtual cameras. Q is the matrix that later turns a
-  // disparity map into 3D coordinates (chapter 08).
+  // disparity map into 3D coordinates (chapter 11).
   cv::Mat R1, R2, P1, P2, Q;
   cv::stereoRectify(
     K1, D1, K2, D2, image_size, R, T,
@@ -263,7 +263,7 @@ int main(int argc, char ** argv)
   std::cout << "  after rectifying:  " << after << " px" << std::endl;
   std::cout << "That is what turns the disparity search into a 1D scan along"
             << std::endl;
-  std::cout << "the row, which is what chapter 08 assumes." << std::endl;
+  std::cout << "the row, which is what chapter 11 assumes." << std::endl;
 
   // ========================================
   // Visualization

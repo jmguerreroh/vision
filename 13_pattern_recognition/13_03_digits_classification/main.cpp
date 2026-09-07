@@ -244,7 +244,7 @@ int main(int argc, char ** argv)
             << std::endl;
   std::cout << "  - Raw pixels already work surprisingly well on clean data;"
             << std::endl;
-  std::cout << "    real images need the descriptors of Chapter 5 or learned"
+  std::cout << "    real images need the descriptors of Chapter 8 or learned"
             << std::endl;
   std::cout << "    features (CNNs, next examples)" << std::endl;
   std::cout << "\nPress any key to exit..." << std::endl;
