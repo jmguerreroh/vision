@@ -128,31 +128,31 @@ double evaluate(
 void printConfusionMatrix(const cv::Mat & confusion)
 {
   std::cout << "\nConfusion matrix (rows = truth, cols = predicted):\n\n     ";
-  for (int c = 0; c < Config::NUM_CLASSES; ++c) {
-    std::cout << std::setw(5) << c;
+  for (int j = 0; j < Config::NUM_CLASSES; ++j) {
+    std::cout << std::setw(5) << j;
   }
   std::cout << "  | recall\n";
   std::cout << std::string(5 + 5 * Config::NUM_CLASSES + 10, '-') << std::endl;
 
-  for (int r = 0; r < Config::NUM_CLASSES; ++r) {
+  for (int i = 0; i < Config::NUM_CLASSES; ++i) {
     int row_sum = 0;
-    std::cout << "  " << r << " |";
-    for (int c = 0; c < Config::NUM_CLASSES; ++c) {
-      std::cout << std::setw(5) << confusion.at<int>(r, c);
-      row_sum += confusion.at<int>(r, c);
+    std::cout << "  " << i << " |";
+    for (int j = 0; j < Config::NUM_CLASSES; ++j) {
+      std::cout << std::setw(5) << confusion.at<int>(i, j);
+      row_sum += confusion.at<int>(i, j);
     }
-    const double recall = 100.0 * confusion.at<int>(r, r) / row_sum;
+    const double recall = 100.0 * confusion.at<int>(i, i) / row_sum;
     std::cout << "  | " << std::fixed << std::setprecision(1) << recall << "%\n";
   }
 
   std::cout << "prec:";
-  for (int c = 0; c < Config::NUM_CLASSES; ++c) {
+  for (int j = 0; j < Config::NUM_CLASSES; ++j) {
     int col_sum = 0;
-    for (int r = 0; r < Config::NUM_CLASSES; ++r) {
-      col_sum += confusion.at<int>(r, c);
+    for (int i = 0; i < Config::NUM_CLASSES; ++i) {
+      col_sum += confusion.at<int>(i, j);
     }
     const double precision =
-      col_sum > 0 ? 100.0 * confusion.at<int>(c, c) / col_sum : 0.0;
+      col_sum > 0 ? 100.0 * confusion.at<int>(j, j) / col_sum : 0.0;
     std::cout << std::setw(5) << static_cast<int>(precision + 0.5);
   }
   std::cout << "  (%)\n";

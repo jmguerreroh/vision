@@ -88,10 +88,10 @@ void cornerHarris_callback(int thresh, void * userdata)
   int corner_count = 0;
 
   // Iterate through response map and mark corners above threshold
-  for (int i = 0; i < response_norm.rows; ++i) {
-    for (int j = 0; j < response_norm.cols; ++j) {
-      if (static_cast<int>(response_norm.at<float>(i, j)) > thresh) {
-        const cv::Point corner(j, i);
+  for (int y = 0; y < response_norm.rows; ++y) {
+    for (int x = 0; x < response_norm.cols; ++x) {
+      if (static_cast<int>(response_norm.at<float>(y, x)) > thresh) {
+        const cv::Point corner(x, y);
 
         // Draw on response map (black circles)
         cv::circle(corners_on_response, corner,

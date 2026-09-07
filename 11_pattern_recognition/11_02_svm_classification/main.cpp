@@ -158,12 +158,12 @@ int main(int argc, char ** argv)
   // images a vectorized call with all pixels at once would be faster.
   //-------------------------------------------------------------------------
   cv::Vec3b green(0, 100, 0), blue(100, 0, 0);
-  for (int i = 0; i < I.rows; i++) {
-    for (int j = 0; j < I.cols; j++) {
+  for (int y = 0; y < I.rows; y++) {
+    for (int x = 0; x < I.cols; x++) {
       // Build a 1x2 float matrix with the pixel coordinates as features
-      cv::Mat sample_mat = (cv::Mat_<float>(1, 2) << j, i);
+      cv::Mat sample_mat = (cv::Mat_<float>(1, 2) << x, y);
       float response = svm->predict(sample_mat);  // Returns the winning class label
-      I.at<cv::Vec3b>(i, j) = (response == 1) ? green : blue;
+      I.at<cv::Vec3b>(y, x) = (response == 1) ? green : blue;
     }
   }
 

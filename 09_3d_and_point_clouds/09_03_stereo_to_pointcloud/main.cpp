@@ -75,18 +75,18 @@ int savePointCloudPLY(
   // First pass: collect the valid points (the header needs the total count)
   std::vector<cv::Vec3f> xyz;
   std::vector<cv::Vec3b> bgr;
-  for (int r = 0; r < points.rows; ++r) {
-    for (int c = 0; c < points.cols; ++c) {
-      if (!valid_mask.at<uchar>(r, c)) {
+  for (int y = 0; y < points.rows; ++y) {
+    for (int x = 0; x < points.cols; ++x) {
+      if (!valid_mask.at<uchar>(y, x)) {
         continue;
       }
-      const cv::Vec3f p = points.at<cv::Vec3f>(r, c);
+      const cv::Vec3f p = points.at<cv::Vec3f>(y, x);
       // reprojectImageTo3D marks unmatched pixels with huge Z values
       if (!std::isfinite(p[2]) || std::abs(p[2]) > Config::MAX_Z) {
         continue;
       }
       xyz.push_back(p);
-      bgr.push_back(colors.at<cv::Vec3b>(r, c));
+      bgr.push_back(colors.at<cv::Vec3b>(y, x));
     }
   }
 

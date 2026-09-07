@@ -172,10 +172,10 @@ cv::Mat addSaltPepperNoise(const cv::Mat & src, double amount)
   cv::RNG rng(12345);  // Fixed seed: same noise pattern on every run
   const int num_pixels = static_cast<int>(amount * src.rows * src.cols);
   for (int i = 0; i < num_pixels; ++i) {
-    const int r = rng.uniform(0, src.rows);
-    const int c = rng.uniform(0, src.cols);
+    const int y = rng.uniform(0, src.rows);
+    const int x = rng.uniform(0, src.cols);
     // Half salt (white), half pepper (black)
-    noisy.at<cv::Vec3b>(r, c) = (i % 2 == 0) ? cv::Vec3b(255, 255, 255)
+    noisy.at<cv::Vec3b>(y, x) = (i % 2 == 0) ? cv::Vec3b(255, 255, 255)
                                              : cv::Vec3b(0, 0, 0);
   }
   return noisy;

@@ -62,10 +62,10 @@ cv::Mat applyInverse(const cv::Mat & src)
 {
   cv::Mat dst(src.rows, src.cols, src.type());
 
-  for (int i = 0; i < src.rows; i++) {
-    for (int j = 0; j < src.cols; j++) {
+  for (int y = 0; y < src.rows; y++) {
+    for (int x = 0; x < src.cols; x++) {
       // Inverse transformation: new_value = 255 - old_value
-      dst.at<uchar>(i, j) = 255 - src.at<uchar>(i, j);
+      dst.at<uchar>(y, x) = 255 - src.at<uchar>(y, x);
     }
   }
 
@@ -91,13 +91,13 @@ cv::Mat applyThreshold(const cv::Mat & src, int threshold)
 {
   cv::Mat dst(src.rows, src.cols, src.type());
 
-  for (int i = 0; i < src.rows; i++) {
-    for (int j = 0; j < src.cols; j++) {
+  for (int y = 0; y < src.rows; y++) {
+    for (int x = 0; x < src.cols; x++) {
       // Binary threshold: above threshold -> white, below -> black
-      if (src.at<uchar>(i, j) > threshold) {
-        dst.at<uchar>(i, j) = 255;
+      if (src.at<uchar>(y, x) > threshold) {
+        dst.at<uchar>(y, x) = 255;
       } else {
-        dst.at<uchar>(i, j) = 0;
+        dst.at<uchar>(y, x) = 0;
       }
     }
   }

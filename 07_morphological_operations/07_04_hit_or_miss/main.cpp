@@ -114,10 +114,10 @@ void hitOrMiss(int, void *)
   // marked with a circle on top of the shape
   cv::Mat display;
   cv::cvtColor(binary, display, cv::COLOR_GRAY2BGR);
-  for (int r = 0; r < found.rows; ++r) {
-    for (int c = 0; c < found.cols; ++c) {
-      if (found.at<uchar>(r, c) != 0) {
-        cv::circle(display, cv::Point(c, r), 12, cv::Scalar(0, 0, 255), 2);
+  for (int y = 0; y < found.rows; ++y) {
+    for (int x = 0; x < found.cols; ++x) {
+      if (found.at<uchar>(y, x) != 0) {
+        cv::circle(display, cv::Point(x, y), 12, cv::Scalar(0, 0, 255), 2);
       }
     }
   }

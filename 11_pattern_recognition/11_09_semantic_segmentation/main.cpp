@@ -209,11 +209,11 @@ int main(int argc, char ** argv)
     cv::resize(labels, labels, frame.size(), 0, 0, cv::INTER_NEAREST);
 
     cv::Mat coloured(frame.size(), CV_8UC3);
-    for (int r = 0; r < labels.rows; ++r) {
-      const uchar * row = labels.ptr<uchar>(r);
-      cv::Vec3b * out = coloured.ptr<cv::Vec3b>(r);
-      for (int c = 0; c < labels.cols; ++c) {
-        out[c] = palette[row[c]];
+    for (int y = 0; y < labels.rows; ++y) {
+      const uchar * row = labels.ptr<uchar>(y);
+      cv::Vec3b * out = coloured.ptr<cv::Vec3b>(y);
+      for (int x = 0; x < labels.cols; ++x) {
+        out[x] = palette[row[x]];
       }
     }
 

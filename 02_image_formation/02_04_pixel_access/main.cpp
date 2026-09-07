@@ -56,7 +56,9 @@ int main(int argc, char ** argv)
   // ========================================
   //
   // Vec3b is a vector of 3 unsigned chars (bytes), representing BGR values.
-  // Access: image.at<Vec3b>(row, col)[channel]
+  // Access: image.at<Vec3b>(y, x)[channel], donde y es la fila y x la columna.
+  // Ojo al orden: la posicion de un pixel se escribe (x, y), pero cv::Mat
+  // guarda la imagen por filas, asi que at() recibe primero la fila.
   //   - [0] = Blue
   //   - [1] = Green
   //   - [2] = Red
@@ -66,11 +68,11 @@ int main(int argc, char ** argv)
   std::cout << "First 5 pixels (B G R):" << std::endl;
 
   int pixel_count = 0;
-  for (int row = 0; row < image.rows && pixel_count < 5; row++) {
-    for (int col = 0; col < image.cols && pixel_count < 5; col++) {
+  for (int y = 0; y < image.rows && pixel_count < 5; y++) {
+    for (int x = 0; x < image.cols && pixel_count < 5; x++) {
       // Access BGR values using Vec3b
-      cv::Vec3b pixel = image.at<cv::Vec3b>(row, col);
-      std::cout << "  Pixel[" << row << "," << col << "]: "
+      cv::Vec3b pixel = image.at<cv::Vec3b>(y, x);
+      std::cout << "  Pixel[" << x << "," << y << "]: "
                 << static_cast<int>(pixel[0]) << " "         // Blue
                 << static_cast<int>(pixel[1]) << " "         // Green
                 << static_cast<int>(pixel[2]) << std::endl;  // Red
@@ -94,13 +96,13 @@ int main(int argc, char ** argv)
   // Display first 5 pixels from separated channels
   std::cout << "First 5 pixels (B G R) from split channels:" << std::endl;
   pixel_count = 0;
-  for (int row = 0; row < image.rows && pixel_count < 5; row++) {
-    for (int col = 0; col < image.cols && pixel_count < 5; col++) {
+  for (int y = 0; y < image.rows && pixel_count < 5; y++) {
+    for (int x = 0; x < image.cols && pixel_count < 5; x++) {
       // Access each channel as a separate grayscale image
-      std::cout << "  Pixel[" << row << "," << col << "]: "
-                << static_cast<int>(channels[0].at<uchar>(row, col)) << " "        // Blue channel
-                << static_cast<int>(channels[1].at<uchar>(row, col)) << " "        // Green channel
-                << static_cast<int>(channels[2].at<uchar>(row, col)) << std::endl; // Red channel
+      std::cout << "  Pixel[" << x << "," << y << "]: "
+                << static_cast<int>(channels[0].at<uchar>(y, x)) << " "        // Blue channel
+                << static_cast<int>(channels[1].at<uchar>(y, x)) << " "        // Green channel
+                << static_cast<int>(channels[2].at<uchar>(y, x)) << std::endl; // Red channel
       pixel_count++;
     }
   }
@@ -138,9 +140,9 @@ int main(int argc, char ** argv)
   std::uint64_t sum_at = 0;
 
   auto t0 = clock::now();
-  for (int row = 0; row < image.rows; row++) {
-    for (int col = 0; col < image.cols; col++) {
-      const cv::Vec3b & p = image.at<cv::Vec3b>(row, col);
+  for (int y = 0; y < image.rows; y++) {
+    for (int x = 0; x < image.cols; x++) {
+      const cv::Vec3b & p = image.at<cv::Vec3b>(y, x);
       sum_at += p[0] + p[1] + p[2];
     }
   }
@@ -148,11 +150,11 @@ int main(int argc, char ** argv)
 
   std::uint64_t sum_ptr = 0;
   auto t2 = clock::now();
-  for (int row = 0; row < image.rows; row++) {
+  for (int y = 0; y < image.rows; y++) {
     // One address computation per ROW instead of one per PIXEL
-    const cv::Vec3b * row_ptr = image.ptr<cv::Vec3b>(row);
-    for (int col = 0; col < image.cols; col++) {
-      sum_ptr += row_ptr[col][0] + row_ptr[col][1] + row_ptr[col][2];
+    const cv::Vec3b * row_ptr = image.ptr<cv::Vec3b>(y);
+    for (int x = 0; x < image.cols; x++) {
+      sum_ptr += row_ptr[x][0] + row_ptr[x][1] + row_ptr[x][2];
     }
   }
   auto t3 = clock::now();

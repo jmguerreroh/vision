@@ -33,27 +33,27 @@
 
 // 8-neighborhood offsets in clockwise order starting from P1 (top)
 // Index: 0=P1, 1=P2, 2=P3, 3=P4, 4=P5, 5=P6, 6=P7, 7=P8
-const int DX[] = {-1, -1, 0, 1, 1, 1, 0, -1};
-const int DY[] = {0, 1, 1, 1, 0, -1, -1, -1};
+const int DY[] = {-1, -1, 0, 1, 1, 1, 0, -1};   // incremento de fila
+const int DX[] = {0, 1, 1, 1, 0, -1, -1, -1};   // incremento de columna
 
 /**
  * @brief Get neighbor pixel value (0 or 1)
  * @param img Binary image (0 or 255 values)
- * @param x Row of center pixel
- * @param y Column of center pixel
+ * @param x Column of center pixel
+ * @param y Row of center pixel
  * @param idx Neighbor index (0-7, clockwise from top)
  * @return 1 if neighbor is white, 0 otherwise
  */
 inline int getNeighbor(const cv::Mat & img, int x, int y, int idx)
 {
-  return img.at<uchar>(x + DX[idx], y + DY[idx]) == 255 ? 1 : 0;
+  return img.at<uchar>(y + DY[idx], x + DX[idx]) == 255 ? 1 : 0;
 }
 
 /**
  * @brief Count white neighbors in the 8-neighborhood
  * @param img Binary image
- * @param x Row coordinate
- * @param y Column coordinate
+ * @param x Column coordinate
+ * @param y Row coordinate
  * @return Number of white neighbors (0-8)
  */
 int countNeighbors(const cv::Mat & img, int x, int y)
@@ -129,10 +129,10 @@ int thinningStep(cv::Mat & img, int step)
   std::vector<cv::Point> toRemove;
 
   // Find pixels to remove (skip border pixels)
-  for (int x = 1; x < img.rows - 1; x++) {
-    for (int y = 1; y < img.cols - 1; y++) {
-      if (img.at<uchar>(x, y) == 255 && canRemove(img, x, y, step)) {
-        toRemove.push_back(cv::Point(y, x));
+  for (int y = 1; y < img.rows - 1; y++) {
+    for (int x = 1; x < img.cols - 1; x++) {
+      if (img.at<uchar>(y, x) == 255 && canRemove(img, x, y, step)) {
+        toRemove.push_back(cv::Point(x, y));
       }
     }
   }
@@ -181,10 +181,10 @@ cv::Mat colorSkeleton(const cv::Mat & skeleton)
   cv::Mat colored;
   cv::cvtColor(skeleton, colored, cv::COLOR_GRAY2BGR);
 
-  for (int i = 0; i < skeleton.rows; i++) {
-    for (int j = 0; j < skeleton.cols; j++) {
-      if (skeleton.at<uchar>(i, j) == 255) {
-        colored.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255);
+  for (int y = 0; y < skeleton.rows; y++) {
+    for (int x = 0; x < skeleton.cols; x++) {
+      if (skeleton.at<uchar>(y, x) == 255) {
+        colored.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 0, 255);
       }
     }
   }

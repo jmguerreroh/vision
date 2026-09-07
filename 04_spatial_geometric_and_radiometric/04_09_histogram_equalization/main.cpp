@@ -241,9 +241,9 @@ int main(int argc, char ** argv)
   // more of them.
   auto countLevels = [](const cv::Mat & gray) {
       std::array<bool, 256> present = {};
-      for (int r = 0; r < gray.rows; ++r) {
-        const uchar * row = gray.ptr<uchar>(r);
-        for (int c = 0; c < gray.cols; ++c) {present[row[c]] = true;}
+      for (int y = 0; y < gray.rows; ++y) {
+        const uchar * row = gray.ptr<uchar>(y);
+        for (int x = 0; x < gray.cols; ++x) {present[row[x]] = true;}
       }
       return std::count(present.begin(), present.end(), true);
     };

@@ -145,14 +145,14 @@ int main(int argc, char ** argv)
   }
 
   cv::Mat boundaries = src.clone();
-  for (int r = 0; r < markers.rows; ++r) {
-    for (int c = 0; c < markers.cols; ++c) {
-      const int label = markers.at<int>(r, c);
+  for (int y = 0; y < markers.rows; ++y) {
+    for (int x = 0; x < markers.cols; ++x) {
+      const int label = markers.at<int>(y, x);
       if (label == -1) {
         // Watershed line: the frontier found between touching objects
-        boundaries.at<cv::Vec3b>(r, c) = cv::Vec3b(0, 0, 255);
+        boundaries.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 0, 255);
       } else if (label > 1) {  // 1 is the background label
-        result.at<cv::Vec3b>(r, c) = palette[label % palette.size()];
+        result.at<cv::Vec3b>(y, x) = palette[label % palette.size()];
       }
     }
   }
