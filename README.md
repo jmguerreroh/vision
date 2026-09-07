@@ -179,8 +179,13 @@ chapter and its code.
 | 13 | `13_machine_learning` | Machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map, YOLOv4, YOLO11, semantic segmentation |
 | 14 | `14_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
 
-Every example is **self-contained and runnable on its own**: none of them reads a
-file produced by another, so they can be run in any order. What does follow the
+Every example is **self-contained and runnable on its own**: they can be run in
+any order and none of them needs another to have run first. There is one
+optional link between two of them, and it is deliberate:
+`11_03_stereo_to_pointcloud` accepts `--calib=stereo_calibration.yml`, the file
+that `10_03_stereo_calibration` writes. With it the pair is rectified and the
+cloud comes out in real units; without it the example falls back to an assumed
+rig and says so. What does follow the
 book order is the material each one assumes you have already read, which is the
 reason for studying them from beginning to end.
 

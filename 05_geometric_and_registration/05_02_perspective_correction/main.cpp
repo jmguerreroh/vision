@@ -14,7 +14,7 @@
  *         | h11  h12  tx |
  *         | h21  h22  ty |
  *         | vx   vy   1  |
- *       The last row is what the affine transform of 06_01 does not have: it
+ *       The last row is what the affine transform of 05_01 does not have: it
  *       makes w' depend on the position, and that division is what allows
  *       parallel lines to converge. With vx = vy = 0 the matrix is affine.
  *

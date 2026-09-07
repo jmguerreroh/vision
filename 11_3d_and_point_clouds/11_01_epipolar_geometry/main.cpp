@@ -13,7 +13,7 @@
  *
  * This is the example of the epipolar geometry section, and it opens the
  * chapter because it justifies everything that comes after it: it is what
- * explains WHY the disparity search of 13_02 can afford to scan a single row.
+ * explains WHY the disparity search of 11_02 can afford to scan a single row.
  * Run it twice:
  *
  *   ./11_01_epipolar_geometry                          (unrectified pair)

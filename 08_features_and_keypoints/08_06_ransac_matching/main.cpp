@@ -130,7 +130,7 @@ bool alignImages(
   }
 
   // What is a homography? It is the projective generalization of the
-  // affine transform seen in 06_01: a 3x3 matrix (8 degrees of freedom,
+  // affine transform seen in 05_01: a 3x3 matrix (8 degrees of freedom,
   // defined up to scale) that maps one PLANE to another under perspective.
   // Unlike affine transforms, parallel lines may converge -- exactly what
   // happens when the same flat document is photographed from two angles.
