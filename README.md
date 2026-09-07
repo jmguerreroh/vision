@@ -17,6 +17,14 @@ source ~/.bashrc
 
 > Note: This project uses OpenCV 4.6.0 and PCL 1.14.0.
 
+> Note: Some examples require the **opencv_contrib** modules (`ximgproc`,
+> `aruco`, `surface_matching`, `viz`). If you installed OpenCV from the
+> distribution package these are usually included; if you built OpenCV from
+> source, follow the *Installation from source* section below and pass
+> `OPENCV_EXTRA_MODULES_PATH`. The examples that need them are:
+> `07_05_skeletonization`, `08_02_pose_estimation`, `09_02_stereo_disparity`
+> and `09_04_opencv_icp`.
+
 ### Building all examples at once (recommended)
 
 A top-level `CMakeLists.txt` compiles every example in one step and places all executables in the `vision_examples/bin/` folder, named after their source directory:
@@ -30,11 +38,26 @@ Executables are in `vision_examples/bin/`. For example:
 
 ```bash
 ./02_01_read_image
-./03_01_fourier_frequencies
-./08_01_stereo_disparity
+./03_01_dft_frequencies
+./09_02_stereo_disparity
 ```
 
 > Note: default paths assume that the examples are running from the vision_examples/bin directory.
+
+### Command-line interface
+
+Every example follows the same convention, so any of them can be run without
+reading its source first:
+
+```bash
+./example                 # runs with its default input, taken from data/
+./example my_image.jpg    # overrides the input
+./example --help          # prints what the example accepts and its defaults
+```
+
+OpenCV examples use `cv::CommandLineParser`; PCL examples use PCL's own
+`pcl::console` parser and answer to `-h`. Inputs are **positional and
+optional**: an example with no arguments always works.
 
 ### Building a single example (OpenCV)
 
@@ -56,6 +79,103 @@ cmake -B build
 cmake --build build
 ./build/executable
 ```
+
+### Building the ROS 2 examples (Chapter 12)
+
+The examples of Chapter 12 live in `12_vision_ros2/` like every other chapter,
+but they are **not** part of the build above: they are ROS 2 packages, not
+standalone programs, so they are built with `colcon` and run with `ros2 run`.
+The top-level `CMakeLists.txt` ignores them on purpose, so the rest of the
+repository still builds without a ROS 2 installation.
+
+```bash
+cd <repository root>
+rosdep install --from-paths 12_vision_ros2 --ignore-src -r -y
+colcon build --base-paths 12_vision_ros2 --symlink-install
+source install/setup.bash
+```
+
+`--base-paths` is what keeps `colcon` from descending into the rest of the
+repository, where it would find the OpenCV/PCL project of the other chapters.
+
+Requirements, beyond a current ROS 2 distribution: `cv_bridge`,
+`image_transport` (plus `image-transport-plugins`), `message_filters`,
+`pcl_ros` and `depth_image_proc`. `rosdep` installs them from the manifests, or
+by hand:
+
+```bash
+sudo apt install ros-${ROS_DISTRO}-cv-bridge \
+                 ros-${ROS_DISTRO}-image-transport \
+                 ros-${ROS_DISTRO}-image-transport-plugins \
+                 ros-${ROS_DISTRO}-message-filters \
+                 ros-${ROS_DISTRO}-pcl-ros \
+                 ros-${ROS_DISTRO}-depth-image-proc
+```
+
+| Package | Executable | Subscribes to | Publishes | What it shows |
+|---|---|---|---|---|
+| `opencv_demo` | `opencv_processing` | `/color/image` | `/image_processed` | The `cv_bridge` round trip: ROS message to `cv::Mat` and back, keeping the original header |
+| `transport_demo` | `transport_processing` | `/color/image` | `image_processed` (+ transport sub-topics) | The same node through `image_transport`: one publisher, several wire formats |
+| `sync_demo` | `sync_processing` | `/left/image`, `/right/image` | (displays) | `message_filters` with an `ApproximateTime` policy: one callback, two images already paired |
+| `pcl_demo` | `pcl_processing` | `/stereo/points` | `/pcl_processed` | `pcl_conversions`: `PointCloud2` to `pcl::PointCloud` and back. The gap between both conversions is where your PCL algorithm goes |
+| `launch_demo` | (launch only) | | `/stereo/points` | Chains the `depth_image_proc` nodes that produce the cloud `pcl_demo` consumes |
+
+Every node works the same against a live camera or against a recording:
+
+```bash
+ros2 bag record /color/image /color/camera_info /stereo/depth -o session
+ros2 bag play session
+```
+
+Things worth trying:
+
+- **`opencv_demo`**: ask `toCvCopy` for `BGR8` on a depth topic and watch the
+  `cv_bridge` exception; then ask for `BGR8` on an `rgb8` camera and notice that
+  nothing breaks, because `cv_bridge` converts.
+- **`transport_demo`**: compare `ros2 topic bw /image_processed` with
+  `ros2 topic bw /image_processed/compressed`. The saving depends on the scene,
+  not on the format in the abstract.
+- **`sync_demo`**: drop the queue size to 1 and count how many pairs are lost;
+  switch the policy to `ExactTime` and watch the callback stop firing unless the
+  cameras share a hardware trigger.
+- **`pcl_demo`**: drop a `VoxelGrid` filter between the two conversions and
+  compare `ros2 topic hz` on input and output.
+
+A note on QoS: these nodes use plain `rclcpp::SensorDataQoS()`, which is *best
+effort*, on both ends. Forcing it to `.reliable()` on the subscriber makes it
+incompatible with any publisher that offers best effort, which is what most
+camera drivers do, and there is no error message when that happens: the topic is
+listed, `ros2 topic hz` reports data, and the callback simply never runs. Check
+the actual profiles with:
+
+```bash
+ros2 topic info /color/image --verbose
+```
+
+---
+
+## Repository structure
+
+The examples are organised by chapter and are meant to be studied **in order**: each one introduces a single main idea and only relies on concepts shown in earlier examples.
+
+| Chapter | Topic | Examples |
+|---------|-------|----------|
+| 02 | Image formation | read image, Mat copy & ROI, pixel access, color spaces, video |
+| 03 | Frequency-domain transforms | Fourier, DCT, wavelets, Gabor bank |
+| 04 | Spatial, geometric and radiometric transforms | point ops, convolution, bitwise, affine transforms, perspective correction, smoothing, homomorphic filter, histogram equalization/matching/comparison |
+| 05 | Edges and model fitting | Sobel, Canny, Laplacian, contours, chain code, Hough lines, Hough circles |
+| 06 | Regions, descriptors and keypoints | threshold, connected components, color segmentation, moments, Hu, Harris, Shi-Tomasi, ORB, RANSAC matching |
+| 07 | Morphology | erode/dilate, compound operations, gradient, hit-or-miss, skeleton, flood fill, top-hat illumination, distance + watershed |
+| 08 | Camera calibration | chessboard calibration, ChArUco pose (PnP), **stereo calibration + rectification** |
+| 09 | 3D vision and point clouds | **epipolar geometry**, disparity, disparity → point cloud, OpenCV ICP, PCL I/O, visualizers, ICP, RANSAC fitting, registration, correspondence, plane + clustering pipeline |
+| 10 | Optical flow | frame difference, Lucas-Kanade, Farneback, background subtraction, Kalman tracking, **CamShift vs CSRT tracking** |
+| 11 | Pattern recognition | KNN, SVM, digit classification + metrics, K-Means, ML comparison, **self-organizing map**, YOLOv4, YOLO11, **semantic segmentation** |
+| 12 | Vision in ROS 2 | **cv_bridge node, image_transport, message_filters sync, PCL conversion, depth_image_proc launch** (built with `colcon`, see above) |
+
+The order of the examples is the order in which the book introduces the
+material, so the numbering can be followed from beginning to end. Examples in
+**bold** were added to close gaps between the book text and the code. Whenever an example builds on a previous one, its header comment names
+the earlier example it depends on.
 
 ---
 
