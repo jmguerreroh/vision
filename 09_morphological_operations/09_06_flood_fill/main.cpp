@@ -144,7 +144,7 @@ static void onMouse(int event, int x, int y, int /*flags*/, void * /*userdata*/)
 /**
  * @brief Display help message with keyboard controls
  */
-void showHelp()
+void printHelp()
 {
   std::cout << "\n=== Flood Fill Demo ===\n"
             << "Click on image to fill connected region with random color.\n\n"
@@ -174,6 +174,15 @@ int main(int argc, char ** argv)
 
   // Load image
   std::string filename = parser.get<std::string>("@input");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
   app.original = cv::imread(cv::samples::findFile(filename, false), cv::IMREAD_COLOR);
 
   if (app.original.empty()) {
@@ -181,7 +190,7 @@ int main(int argc, char ** argv)
     return EXIT_FAILURE;
   }
 
-  showHelp();
+  printHelp();
 
   // Initialize working images
   app.reset();

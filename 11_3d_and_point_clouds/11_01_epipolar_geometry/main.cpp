@@ -138,6 +138,15 @@ int main(int argc, char ** argv)
 
   const std::string left_path = parser.get<std::string>("@left");
   const std::string right_path = parser.get<std::string>("@right");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
   cv::Mat left = cv::imread(cv::samples::findFile(left_path, false), cv::IMREAD_COLOR);
   cv::Mat right = cv::imread(cv::samples::findFile(right_path, false), cv::IMREAD_COLOR);
   if (left.empty() || right.empty()) {

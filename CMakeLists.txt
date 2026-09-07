@@ -61,34 +61,39 @@ function(add_pcl_example REL_PATH)
   target_link_options(${DIR_NAME} PRIVATE -Wl,--copy-dt-needed-entries)
 endfunction()
 
-# --- 02 Image formation --------------------------------------------------------
+# Sections and order follow the book, chapter by chapter. The number in the
+# heading is the book chapter, which is also the prefix of the folder.
+
+# --- 02 Image formation -------------------------------------------------------
 add_cv_example(02_image_formation/02_01_read_image)
 add_cv_example(02_image_formation/02_02_color_spaces)
 add_cv_example(02_image_formation/02_03_mat_copy_roi)
 add_cv_example(02_image_formation/02_04_pixel_access)
 add_cv_example(02_image_formation/02_05_video_capture)
 
-# --- 03 Frequency-domain transforms -------------------------------------------
+# --- 03 Spatial and radiometric transforms ------------------------------------
+add_cv_example(03_spatial_and_radiometric/03_01_point_operations)
+add_cv_example(03_spatial_and_radiometric/03_02_convolution)
+add_cv_example(03_spatial_and_radiometric/03_03_bitwise_operations)
+add_cv_example(03_spatial_and_radiometric/03_04_intensity_transforms)
+add_cv_example(03_spatial_and_radiometric/03_05_smoothing)
+add_cv_example(03_spatial_and_radiometric/03_06_histogram_equalization)
+add_cv_example(03_spatial_and_radiometric/03_07_histogram_matching)
+add_cv_example(03_spatial_and_radiometric/03_08_histogram_comparison)
+
+# --- 04 Frequency-domain transforms -------------------------------------------
 # 04_01_dft has two sources -> 04_01_dft + 04_01_dft_frequencies
 add_cv_example(04_frequency/04_01_dft)
 add_cv_example(04_frequency/04_02_dct)
 add_cv_example(04_frequency/04_03_wavelet_denoising)
 add_cv_example(04_frequency/04_04_gabor_bank)
+add_cv_example(04_frequency/04_05_homomorphic_filter)
 
-# --- 04 Spatial, geometric and radiometric transforms -------------------------
-add_cv_example(03_spatial_and_radiometric/03_01_point_operations)
-add_cv_example(03_spatial_and_radiometric/03_02_convolution)
-add_cv_example(03_spatial_and_radiometric/03_03_bitwise_operations)
+# --- 05 Geometric transforms and registration ---------------------------------
 add_cv_example(05_geometric_and_registration/05_01_affine_transforms)
 add_cv_example(05_geometric_and_registration/05_02_perspective_correction)
-add_cv_example(03_spatial_and_radiometric/03_04_intensity_transforms)
-add_cv_example(03_spatial_and_radiometric/03_05_smoothing)
-add_cv_example(04_frequency/04_05_homomorphic_filter)
-add_cv_example(03_spatial_and_radiometric/03_06_histogram_equalization)
-add_cv_example(03_spatial_and_radiometric/03_07_histogram_matching)
-add_cv_example(03_spatial_and_radiometric/03_08_histogram_comparison)
 
-# --- 05 Edges and model fitting -----------------------------------------------
+# --- 06 Edge detection and model fitting --------------------------------------
 # Order follows the book: edges -> contour description -> model fitting
 add_cv_example(06_edges_and_model_fitting/06_01_sobel_edges)
 add_cv_example(06_edges_and_model_fitting/06_02_canny_edges)
@@ -98,10 +103,12 @@ add_cv_example(06_edges_and_model_fitting/06_05_chain_code)
 add_cv_example(06_edges_and_model_fitting/06_06_hough_lines)
 add_cv_example(06_edges_and_model_fitting/06_07_hough_circles)
 
-# --- 06 Regions, descriptors and keypoints ------------------------------------
+# --- 07 Region segmentation ---------------------------------------------------
 add_cv_example(07_region_segmentation/07_01_threshold)
 add_cv_example(07_region_segmentation/07_02_connected_components)
 add_cv_example(07_region_segmentation/07_03_color_segmentation)
+
+# --- 08 Descriptors and keypoints ---------------------------------------------
 add_cv_example(08_features_and_keypoints/08_01_region_moments)
 add_cv_example(08_features_and_keypoints/08_02_hu_moments)
 add_cv_example(08_features_and_keypoints/08_03_harris_corners)
@@ -109,7 +116,7 @@ add_cv_example(08_features_and_keypoints/08_04_shi_tomasi_corners)
 add_cv_example(08_features_and_keypoints/08_05_orb_features)
 add_cv_example(08_features_and_keypoints/08_06_ransac_matching)
 
-# --- 07 Morphological Operations ----------------------------------------------
+# --- 09 Morphological operations ----------------------------------------------
 add_cv_example(09_morphological_operations/09_01_erode_dilate)
 add_cv_example(09_morphological_operations/09_02_opening_closing)
 add_cv_example(09_morphological_operations/09_03_morphological_gradient)
@@ -119,12 +126,12 @@ add_cv_example(09_morphological_operations/09_06_flood_fill)
 add_cv_example(09_morphological_operations/09_07_tophat_illumination)
 add_cv_example(09_morphological_operations/09_08_distance_watershed)
 
-# --- 08 Camera Calibration ----------------------------------------------------
+# --- 10 Camera geometry and calibration ---------------------------------------
 add_cv_example(10_camera_calibration/10_01_camera_calibration)
 add_cv_example(10_camera_calibration/10_02_pose_estimation)
 add_cv_example(10_camera_calibration/10_03_stereo_calibration)
 
-# --- 09 3D vision and point clouds --------------------------------------------
+# --- 11 3D vision and point clouds --------------------------------------------
 add_cv_example(11_3d_and_point_clouds/11_01_epipolar_geometry)
 add_cv_example(11_3d_and_point_clouds/11_02_stereo_disparity)
 add_cv_example(11_3d_and_point_clouds/11_03_stereo_to_pointcloud)
@@ -139,7 +146,7 @@ add_pcl_example(11_3d_and_point_clouds/11_11_pcl_registration)
 add_pcl_example(11_3d_and_point_clouds/11_12_pcl_correspondence)
 add_pcl_example(11_3d_and_point_clouds/11_13_pcl_plane_clustering)
 
-# --- 10 Optical Flow ----------------------------------------------------------
+# --- 12 Optical flow and tracking ---------------------------------------------
 add_cv_example(12_optical_flow_and_tracking/12_01_frame_difference)
 add_cv_example(12_optical_flow_and_tracking/12_02_sparse_flow)
 add_cv_example(12_optical_flow_and_tracking/12_03_dense_flow)
@@ -147,13 +154,16 @@ add_cv_example(12_optical_flow_and_tracking/12_04_background_subtraction)
 add_cv_example(12_optical_flow_and_tracking/12_05_kalman_tracking)
 add_cv_example(12_optical_flow_and_tracking/12_06_object_tracking)
 
-# --- 11 Pattern recognition ---------------------------------------------------
+# --- 13 Machine learning ------------------------------------------------------
 add_cv_example(13_machine_learning/13_01_knn_classification)
 add_cv_example(13_machine_learning/13_02_svm_classification)
 add_cv_example(13_machine_learning/13_03_digits_classification)
 add_cv_example(13_machine_learning/13_04_kmeans_clustering)
 add_cv_example(13_machine_learning/13_05_classifier_comparison)
 add_cv_example(13_machine_learning/13_06_som_digits)
+
+# The last three fetch or export their model on first build, each with the
+# script that lives beside its source
 add_cv_example(13_machine_learning/13_07_yolov4_darknet
   EXTRA_LIBS Threads::Threads)
 add_custom_command(
@@ -179,4 +189,3 @@ add_custom_command(
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/13_machine_learning/13_09_semantic_segmentation
   COMMENT "Exporting DeepLabV3 model if needed..."
 )
-

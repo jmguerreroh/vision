@@ -25,8 +25,8 @@
  *
  * @see https://pointclouds.org/documentation/tutorials/pairwise_incremental_registration.html
  *
- * Usage: ./pcl_inc_registration file1.pcd file2.pcd file3.pcd ...
- * Example: ./pcl_inc_registration ../../data/pcl_data/capture000*.pcd
+ * Usage: ./11_11_pcl_registration file1.pcd file2.pcd file3.pcd ...
+ * Example: ./11_11_pcl_registration ../../data/pcl_data/capture000*.pcd
  * Output: Dual viewport showing original (left) and aligned clouds (right) with curvature coloring
  */
 
@@ -484,11 +484,8 @@ int main(int argc, char ** argv)
     std::cerr << "\n[Error] No PCD files loaded!" << std::endl;
     std::cerr << "\nUsage: " << argv[0] << " file1.pcd file2.pcd file3.pcd ..." << std::endl;
     std::cerr << "Example: " << argv[0] << " ../../data/pcl_data/capture*.pcd" << std::endl;
-    std::cerr
-                                                                                                               <<
-      "\nNote: Registration will be performed pairwise: (file1+file2), then (result+file3), etc.\n"
-                                                                                                               <<
-      std::endl;
+    std::cerr << "\nNote: registration is pairwise: (file1+file2), then "
+              << "(result+file3), and so on.\n" << std::endl;
     return EXIT_FAILURE;
   }
 

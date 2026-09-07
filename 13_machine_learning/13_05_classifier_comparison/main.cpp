@@ -412,7 +412,8 @@ static void findDecisionBoundaryANN(const cv::Mat & layer_sizes)
 
   cv::Ptr<cv::ml::ANN_MLP> ann = cv::ml::ANN_MLP::create();
   ann->setLayerSizes(layer_sizes);       // Network topology: [input, hidden..., output]
-  ann->setActivationFunction(cv::ml::ANN_MLP::SIGMOID_SYM, 1, 1);  // Symmetric sigmoid, alpha=beta=1
+  // Symmetric sigmoid, alpha = beta = 1
+  ann->setActivationFunction(cv::ml::ANN_MLP::SIGMOID_SYM, 1, 1);
   ann->setTermCriteria(cv::TermCriteria(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 300,
     FLT_EPSILON));                       // Stop after 300 iterations or negligible improvement
   ann->setTrainMethod(cv::ml::ANN_MLP::BACKPROP, 0.001);  // Stochastic gradient descent, lr=0.001

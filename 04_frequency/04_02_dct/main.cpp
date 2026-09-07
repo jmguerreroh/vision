@@ -39,6 +39,15 @@ int main(int argc, char ** argv)
     return EXIT_SUCCESS;
   }
   const std::string filename = parser.get<std::string>("@input");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
   image = cv::imread(cv::samples::findFile(filename, false), cv::IMREAD_GRAYSCALE);
 
   // Verify that the image was loaded successfully

@@ -61,7 +61,8 @@ std::vector<cv::Mat> calculateHistograms(const std::vector<cv::Mat> & channels)
   const int channels_idx = 0;  // Process channel 0 of each image
 
   for (size_t i = 0; i < channels.size(); i++) {
-    // cv::calcHist(images, nimages, channels, mask, hist, dims, histSize, ranges, uniform, accumulate)
+    // cv::calcHist(images, nimages, channels, mask, hist, dims, histSize,
+    //              ranges, uniform, accumulate)
     //   images:     Pointer to source images (here: single channel)
     //   nimages:    Number of source images (1)
     //   channels:   Channel indices to process (0 = first channel)
@@ -157,6 +158,15 @@ int main(int argc, char ** argv)
   }
   cv::Mat src = cv::imread(cv::samples::findFile(parser.get<cv::String>("@input"), false),
     cv::IMREAD_COLOR);
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
 
   if (src.empty()) {
     std::cerr << "Error: Could not load input image" << std::endl;

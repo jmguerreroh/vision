@@ -51,10 +51,21 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage. This example builds
   // its own data, so it takes no input file
   cv::CommandLineParser parser(argc, argv,
-    "{help h | | Show this help message}");
+    "{help h | | Show this help message}"
+    "{out o | svm_result.png | Where to write the resulting image}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
+  }
+  const std::string out_path = parser.get<std::string>("out");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
   }
 
   help();
@@ -213,7 +224,7 @@ int main(int argc, char ** argv)
 
   // Save and display the result
   // Saved to the current directory (data/ is read-only source material)
-  cv::imwrite("svm_result.png", I);
+  cv::imwrite(out_path, I);
   cv::imshow("SVM for Non-Linear Training Data", I);
   cv::waitKey(0);
 

@@ -32,6 +32,15 @@ int main(int argc, char ** argv)
   }
   const std::string image_path = parser.get<std::string>("@input");
 
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
+
   // Load image in BGR color format (default)
   cv::Mat image;
   image = cv::imread(cv::samples::findFile(image_path, false), cv::IMREAD_COLOR);
@@ -56,9 +65,9 @@ int main(int argc, char ** argv)
   // ========================================
   //
   // Vec3b is a vector of 3 unsigned chars (bytes), representing BGR values.
-  // Access: image.at<Vec3b>(y, x)[channel], donde y es la fila y x la columna.
-  // Ojo al orden: la posicion de un pixel se escribe (x, y), pero cv::Mat
-  // guarda la imagen por filas, asi que at() recibe primero la fila.
+  // Access: image.at<Vec3b>(y, x)[channel], where y is the row and x the column.
+  // Mind the order: a pixel position is written (x, y), but cv::Mat stores the
+  // image row by row, so at() takes the row first.
   //   - [0] = Blue
   //   - [1] = Green
   //   - [2] = Red

@@ -38,6 +38,15 @@ int main(int argc, char ** argv)
   }
   const std::string image_path = parser.get<std::string>("@input");
 
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
+
   // cv::Mat is OpenCV's main structure for storing images
   // Mat = Matrix, represents an image as a matrix of pixels
   cv::Mat image;

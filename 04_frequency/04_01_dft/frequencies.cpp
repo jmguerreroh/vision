@@ -108,13 +108,14 @@ void printHelp(char ** argv)
             << "Generates and displays Fourier basis functions.\n"
             << "Shows progressive image reconstruction from frequency components.\n\n"
             << "Usage modes:\n"
-            << "  1) Single basis wave:  " << argv[0] << " <u> <v> <size>\n"
+            << "  1) Single basis wave:  " << argv[0] << " --u=<u> --v=<v> [--size=N]\n"
             << "     - Displays only the basis wave for frequency (u, v)\n"
-            << "     - size: dimension of the square wave pattern\n\n"
-            << "  2) Image reconstruction: " << argv[0] << " [image_path] [max_freq] [size]\n"
+            << "     - Needs no image at all\n\n"
+            << "  2) Image reconstruction: " << argv[0]
+            << " [image_path] [--maxfreq=N] [--size=N]\n"
             << "     - Progressive reconstruction from frequency components\n"
             << "     - image_path: Image to decompose and reconstruct (default: starry_night.jpg)\n"
-            << "     - max_freq: Maximum frequency (default: image width/2)\n"
+            << "     - maxfreq: Maximum frequency (default: max(width, height) / 2)\n"
             << "     - size: Basis wave size (default: max(width, height))\n\n"
             << "Formula: Z(x,y) = cos(2π(ux/M + vy/N))\n\n"
             << "Display (reconstruction mode):\n"
@@ -128,100 +129,63 @@ void printHelp(char ** argv)
 
 int main(int argc, char ** argv)
 {
-  printHelp(argv);
-
-  // ============================================================================
-  // SECTION 1: Parse command-line arguments and load input image
-  // ============================================================================
-  cv::Mat reference_image;  // Resized image for reconstruction
-  cv::Mat original_image;   // Original image before resizing
-  int max_freq = -1;        // Maximum frequency to process (-1 = auto)
-  int size = -1;           // Size of basis waves and reconstruction (-1 = auto)
-  bool single_basis_mode = false;  // Display only one basis wave
-  int single_u = 0, single_v = 0;  // Frequency for single basis mode
-
-  // Check if all three arguments are numeric (single basis wave mode)
-  if (argc == 4) {
-    std::string arg1 = argv[1];
-    std::string arg2 = argv[2];
-    std::string arg3 = argv[3];
-
-    if (arg1.find_first_not_of("0123456789") == std::string::npos &&
-      arg2.find_first_not_of("0123456789") == std::string::npos &&
-      arg3.find_first_not_of("0123456789") == std::string::npos)
-    {
-      // All three are numbers: single basis wave mode
-      single_basis_mode = true;
-      single_u = std::atoi(argv[1]);
-      single_v = std::atoi(argv[2]);
-      size = std::atoi(argv[3]);
-
-      std::cout << "Single basis wave mode: u=" << single_u
-                << ", v=" << single_v << ", size=" << size << "x" << size << std::endl;
-    }
+  // Command-line arguments; --help prints the usage, as in every other example.
+  // The two modes are told apart by whether --u and --v are given, instead of
+  // by sniffing whether the positional arguments look numeric
+  cv::CommandLineParser parser(argc, argv,
+    "{help h | | Show this help message}"
+    "{@input | ../../data/starry_night.jpg | Image to decompose and reconstruct}"
+    "{maxfreq | -1 | Highest frequency used, -1 for max(width, height) / 2}"
+    "{size | -1 | Side of the square basis waves, -1 for max(width, height)}"
+    "{u | -1 | Single basis wave mode: horizontal frequency, needs v as well}"
+    "{v | -1 | Single basis wave mode: vertical frequency, needs u as well}");
+  if (parser.has("help")) {
+    printHelp(argv);
+    return EXIT_SUCCESS;
   }
 
-  // Parse first argument: can be either image path or max frequency
-  if (!single_basis_mode && argc >= 2) {
-    std::string filename = argv[1];
+  cv::Mat reference_image;  // Resized image for reconstruction
+  cv::Mat original_image;   // Original image before resizing
+  int max_freq = parser.get<int>("maxfreq");
+  int size = parser.get<int>("size");
+  const int single_u = parser.get<int>("u");
+  const int single_v = parser.get<int>("v");
 
-    // Check if argument is purely numeric (old-style max_freq parameter)
-    if (filename.find_first_not_of("0123456789") == std::string::npos) {
-      max_freq = std::atoi(argv[1]);
-    } else {
-      // Argument is a file path - attempt to load image
-      original_image = cv::imread(cv::samples::findFile(filename, false), cv::IMREAD_GRAYSCALE);
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
 
-      if (original_image.empty()) {
-        std::cerr << "Error: Could not load image '" << filename << "'" << std::endl;
-        return EXIT_FAILURE;
-      }
-      std::cout << "Reference image loaded: " << original_image.cols << "x"
-                << original_image.rows << std::endl;
+  if ((single_u >= 0) != (single_v >= 0)) {
+    std::cerr << "Error: --u and --v go together; give both or neither." << std::endl;
+    return EXIT_FAILURE;
+  }
 
-      // Set intelligent defaults based on image dimensions
-      if (size == -1) {
-        size = std::max(original_image.cols, original_image.rows);
-      }
-      if (max_freq == -1) {
-        max_freq = std::max(original_image.cols, original_image.rows) / 2;
-      }
+  // Asking for one basis wave needs no image, so the image is only read in the
+  // reconstruction mode. That is also where the size defaults come from
+  const bool single_basis_mode = (single_u >= 0 && single_v >= 0);
+  if (single_basis_mode) {
+    if (size == -1) {
+      size = 256;  // There is no image to take the size from
     }
-  } else if (!single_basis_mode && argc == 1) {
-    // No arguments provided - use default image
-    std::string filename = "../../data/starry_night.jpg";
-
+    std::cout << "Single basis wave mode: u=" << single_u
+              << ", v=" << single_v << ", size=" << size << "x" << size << std::endl;
+  } else {
+    const std::string filename = parser.get<std::string>("@input");
     original_image = cv::imread(cv::samples::findFile(filename, false), cv::IMREAD_GRAYSCALE);
     if (original_image.empty()) {
-      std::cerr << "Error: Could not load default image '" << filename << "'" << std::endl;
+      std::cerr << "Error: Could not load image '" << filename << "'" << std::endl;
       return EXIT_FAILURE;
     }
-    std::cout << "Using default image: " << filename << std::endl;
     std::cout << "Reference image loaded: " << original_image.cols << "x"
               << original_image.rows << std::endl;
 
-    // Set intelligent defaults based on image dimensions
     if (size == -1) {
       size = std::max(original_image.cols, original_image.rows);
     }
     if (max_freq == -1) {
       max_freq = std::max(original_image.cols, original_image.rows) / 2;
     }
-  }
-
-  if (argc >= 3) {
-    max_freq = std::atoi(argv[2]);
-  }
-  if (argc >= 4) {
-    size = std::atoi(argv[3]);
-  }
-
-  // Set final defaults if still not set
-  if (size == -1) {
-    size = std::max(original_image.cols, original_image.rows);
-  }
-  if (max_freq == -1) {
-    max_freq = size - 1;  // All frequencies for perfect reconstruction
   }
 
   // ============================================================================
@@ -257,7 +221,7 @@ int main(int argc, char ** argv)
 
   if (reference_image.empty()) {
     std::cerr << "Error: Image is required for reconstruction demo." << std::endl;
-    std::cerr << "Usage: " << argv[0] << " <image_path> [max_freq] [size]" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " [image_path] [--maxfreq=N] [--size=N]" << std::endl;
     return EXIT_FAILURE;
   }
 

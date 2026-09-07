@@ -36,8 +36,8 @@
  *
  * @note Plain OpenCV: no opencv_contrib needed (11_02 does need ximgproc for
  *       the WLS filter, this one only uses StereoSGBM).
- *       Output: cloud.ply in the current directory (one vertex per valid
- *       pixel, so it is a big ASCII file).
+ *       Output: cloud.ply in the current directory, or wherever --out says.
+ *       One vertex per valid pixel, so it is a big ASCII file.
  */
 
 #include <cstdlib>
@@ -135,13 +135,26 @@ int main(int argc, char ** argv)
     "{calib c | | Optional stereo_calibration.yml written by 10_03. With it the "
     "pair is rectified and the cloud is metric; without it the scale is arbitrary}"
     "{maxz | 10.0 | Discard points beyond this Z, in the units of Q: metres with "
-    "the assumed rig, calibration-pattern units with --calib}");
+    "the assumed rig, calibration-pattern units with --calib}"
+    "{out o | cloud.ply | Where to write the resulting point cloud}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
   }
   const std::string left_path = parser.get<std::string>("@left");
   const std::string right_path = parser.get<std::string>("@right");
+  const std::string calib_file = parser.get<std::string>("calib");
+  const float max_z = parser.get<float>("maxz");
+  const std::string output_path = parser.get<std::string>("out");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
 
   cv::Mat left = cv::imread(cv::samples::findFile(left_path, false), cv::IMREAD_COLOR);
   cv::Mat right = cv::imread(cv::samples::findFile(right_path, false), cv::IMREAD_COLOR);
@@ -169,7 +182,6 @@ int main(int argc, char ** argv)
   // the pair (disparity along a row only means something on rectified images)
   // and it supplies the Q that puts the result in real units.
   cv::Mat Q;
-  const std::string calib_file = parser.get<std::string>("calib");
 
   if (!calib_file.empty()) {
     cv::FileStorage fs(calib_file, cv::FileStorage::READ);
@@ -280,8 +292,7 @@ int main(int argc, char ** argv)
   // ========================================
   // Step 4: save as PLY
   // ========================================
-  const std::string output_path = "cloud.ply";
-  const float max_z = parser.get<float>("maxz");
+  
   const int saved = savePointCloudPLY(output_path, points_3d, left, valid_mask, max_z);
   if (saved == 0) {
     std::cout << "No point survived the filters. Every pixel was either unmatched "

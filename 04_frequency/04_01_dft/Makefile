@@ -10,10 +10,12 @@ OPENCV    = $(shell pkg-config opencv4 --cflags --libs)
 
 # Source files and targets
 SRC1     = main.cpp
-TARGET1  = dft
+# Both executables take the name of the folder, matching what the top-level
+# CMakeLists.txt generates: <folder> for main.cpp, <folder>_<stem> otherwise
+TARGET1  = $(notdir $(CURDIR))
 
 SRC2     = frequencies.cpp
-TARGET2  = frequencies
+TARGET2  = $(notdir $(CURDIR))_frequencies
 
 # Default target: build both executables
 all: $(TARGET1) $(TARGET2)

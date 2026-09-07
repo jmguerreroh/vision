@@ -70,26 +70,26 @@ cv::Rect computeROI(cv::Size2i src_sz, cv::Ptr<cv::StereoMatcher> matcher_instan
 
 // Command Line Arguments
 const std::string keys =
-  "{help h usage ? |                  | print this message                                                }"
-  "{@left          |../../data/aloeL.jpg    | left view of the stereopair                                       }"
-  "{@right         |../../data/aloeR.jpg    | right view of the stereopair                                      }"
-  "{GT             |../../data/aloeGT.png   | optional ground-truth disparity (MPI-Sintel or Middlebury format) }"
-  "{dst_path       |None              | optional path to save the resulting filtered disparity map        }"
-  "{dst_raw_path   |None              | optional path to save raw disparity map before filtering          }"
-  "{algorithm      |bm                | stereo matching method (bm or sgbm)                               }"
-  "{filter         |wls_conf          | used post-filtering (wls_conf or wls_no_conf or fbs_conf)         }"
-  "{no-display     |                  | don't display results                                             }"
-  "{no-downscale   |                  | force stereo matching on full-sized views to improve quality      }"
-  "{dst_conf_path  |None              | optional path to save the confidence map used in filtering        }"
-  "{vis_mult       |1.0               | coefficient used to scale disparity map visualizations            }"
-  "{max_disparity  |160               | parameter of stereo matching                                      }"
-  "{window_size    |-1                | parameter of stereo matching                                      }"
-  "{wls_lambda     |8000.0            | parameter of wls post-filtering                                   }"
-  "{wls_sigma      |1.5               | parameter of wls post-filtering                                   }"
-  "{fbs_spatial    |16.0              | parameter of fbs post-filtering                                   }"
-  "{fbs_luma       |8.0               | parameter of fbs post-filtering                                   }"
-  "{fbs_chroma     |8.0               | parameter of fbs post-filtering                                   }"
-  "{fbs_lambda     |128.0             | parameter of fbs post-filtering                                   }"
+  "{help h usage ? |                       | print this message}"
+  "{@left          | ../../data/aloeL.jpg  | left view of the stereopair}"
+  "{@right         | ../../data/aloeR.jpg  | right view of the stereopair}"
+  "{GT             | ../../data/aloeGT.png | optional ground truth (Sintel/Middlebury)}"
+  "{dst_path       | None                  | optional: where to save the filtered disparity}"
+  "{dst_raw_path   | None                  | optional: where to save the raw disparity}"
+  "{algorithm      | bm                    | stereo matching method (bm or sgbm)}"
+  "{filter         | wls_conf              | post-filter: wls_conf, wls_no_conf or fbs_conf}"
+  "{no-display     |                       | don't display results}"
+  "{no-downscale   |                       | match full-sized views: better but slower}"
+  "{dst_conf_path  | None                  | optional: where to save the confidence map}"
+  "{vis_mult       | 1.0                   | scale factor for the disparity visualizations}"
+  "{max_disparity  | 160                   | parameter of stereo matching}"
+  "{window_size    | -1                    | parameter of stereo matching}"
+  "{wls_lambda     | 8000.0                | parameter of wls post-filtering}"
+  "{wls_sigma      | 1.5                   | parameter of wls post-filtering}"
+  "{fbs_spatial    | 16.0                  | parameter of fbs post-filtering}"
+  "{fbs_luma       | 8.0                   | parameter of fbs post-filtering}"
+  "{fbs_chroma     | 8.0                   | parameter of fbs post-filtering}"
+  "{fbs_lambda     | 128.0                 | parameter of fbs post-filtering}"
 ;
 
 int main(int argc, char ** argv)
@@ -236,7 +236,8 @@ int main(int argc, char ** argv)
 
     if (algo == "bm") {
       // --- Matcher: StereoBM ---
-      // Using StereoBM for faster processing. If speed is not critical, StereoSGBM provides better quality
+      // StereoBM is used here because it is faster. If speed is not critical,
+      // StereoSGBM gives better quality
       // The WLS filter is created using the StereoMatcher instance
       // Another matcher instance is created for computing the right disparity map
 
@@ -278,9 +279,10 @@ int main(int argc, char ** argv)
     }
 
     // --- WLS Filtering ---
-    // Disparity maps computed by the respective matcher instances, as well as the source left view are passed to the filter.
-    // Note that we are using the original non-downscaled view to guide the filtering process. The disparity map is automatically
-    // upscaled in an edge-aware fashion to match the original view resolution. The result is stored in filtered_disp.
+    // The filter takes the disparity maps of both matchers and the source left
+    // view. The view used to guide the filtering is the original, non-downscaled
+    // one: the disparity map is upscaled in an edge-aware fashion to match its
+    // resolution. The result is stored in filtered_disp.
     wls_filter->setLambda(lambda);
     wls_filter->setSigmaColor(sigma);
     filtering_time = static_cast<double>(cv::getTickCount());

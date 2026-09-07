@@ -551,6 +551,15 @@ int main(int argc, char ** argv)
 
   // If image path provided, process static image
   const std::string image_path = parser.get<std::string>("@input");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
   if (!image_path.empty()) {
     return processImage(image_path, NUM_ITERATIONS);
   }

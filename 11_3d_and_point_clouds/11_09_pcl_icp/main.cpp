@@ -20,7 +20,7 @@
  *
  * @see https://pointclouds.org/documentation/tutorials/iterative_closest_point.html
  *
- * Usage: ./icp_demo
+ * Usage: ./11_09_pcl_icp
  * Output: Interactive visualization showing source, target, and aligned clouds
  */
 
@@ -227,7 +227,9 @@ int main(int argc, char ** argv)
   icp.setMaximumIterations(50);                  // Maximum number of iterations
   icp.setTransformationEpsilon(1e-8);            // Convergence criterion (transformation)
   icp.setEuclideanFitnessEpsilon(1e-6);          // Convergence criterion (fitness score)
-  icp.setMaxCorrespondenceDistance(1000.0);      // Maximum distance for point correspondences (relaxed for few points)
+  // Maximum distance for point correspondences, relaxed here because there are
+  // few points
+  icp.setMaxCorrespondenceDistance(1000.0);
 
   std::cout << "ICP Parameters:" << std::endl;
   std::cout << "  Max iterations: " << icp.getMaximumIterations() << std::endl;

@@ -145,6 +145,15 @@ int main(int argc, char ** argv)
   const cv::Mat src = cv::imread(
     cv::samples::findFile(parser.get<std::string>("@input"), false), cv::IMREAD_GRAYSCALE);
 
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
+
   if (src.empty()) {
     std::cout << "Could not open or find the image!\n" << std::endl;
     std::cout << "Usage: " << argv[0] << " <Input image>" << std::endl;

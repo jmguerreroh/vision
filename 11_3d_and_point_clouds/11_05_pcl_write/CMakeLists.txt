@@ -2,7 +2,7 @@
 # Author: José Miguel Guerrero Hernández
 
 cmake_minimum_required(VERSION 3.16)
-project(pcl_write_example LANGUAGES C CXX)
+project(11_05_pcl_write LANGUAGES C CXX)
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -15,9 +15,9 @@ find_package(MPI QUIET)
 find_package(PCL 1.10 REQUIRED COMPONENTS common io)
 
 # Executable
-add_executable(pcd_write main.cpp)
+add_executable(11_05_pcl_write main.cpp)
 
 # Link PCL (modern CMake approach)
-target_include_directories(pcd_write PRIVATE ${PCL_INCLUDE_DIRS})
-target_link_libraries(pcd_write PRIVATE ${PCL_LIBRARIES})
-target_compile_definitions(pcd_write PRIVATE ${PCL_DEFINITIONS})
+target_include_directories(11_05_pcl_write PRIVATE ${PCL_INCLUDE_DIRS})
+target_link_libraries(11_05_pcl_write PRIVATE ${PCL_LIBRARIES})
+target_compile_definitions(11_05_pcl_write PRIVATE ${PCL_DEFINITIONS})

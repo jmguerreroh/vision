@@ -104,6 +104,15 @@ int main(int argc, char ** argv)
 
   const std::string filename =
     cv::samples::findFile(parser.get<std::string>("@video"), false);
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
   cv::VideoCapture cap(filename);
   if (!cap.isOpened()) {
     std::cerr << "Error: cannot open video: " << filename << std::endl;

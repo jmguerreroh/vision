@@ -2,7 +2,7 @@
 # Author: José Miguel Guerrero Hernández
 
 cmake_minimum_required(VERSION 3.16)
-project(pcl_icp_example LANGUAGES C CXX)
+project(11_09_pcl_icp LANGUAGES C CXX)
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -23,9 +23,9 @@ find_package(PCL 1.10 REQUIRED COMPONENTS
 )
 
 # Executable
-add_executable(pcl_icp main.cpp)
+add_executable(11_09_pcl_icp main.cpp)
 
 # Link PCL
-target_include_directories(pcl_icp PRIVATE ${PCL_INCLUDE_DIRS})
-target_link_libraries(pcl_icp PRIVATE ${PCL_LIBRARIES})
-target_compile_definitions(pcl_icp PRIVATE ${PCL_DEFINITIONS})
+target_include_directories(11_09_pcl_icp PRIVATE ${PCL_INCLUDE_DIRS})
+target_link_libraries(11_09_pcl_icp PRIVATE ${PCL_LIBRARIES})
+target_compile_definitions(11_09_pcl_icp PRIVATE ${PCL_DEFINITIONS})

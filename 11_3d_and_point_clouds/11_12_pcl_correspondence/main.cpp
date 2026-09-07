@@ -24,9 +24,10 @@
  *
  * @see https://pointclouds.org/documentation/tutorials/correspondence_grouping.html
  *
- * Usage: ./correspondence_grouping model.pcd scene.pcd [options]
+ * Usage: ./11_12_pcl_correspondence model.pcd scene.pcd [options]
  * Options: -h (help), -k (show keypoints), -c (show correspondences), -r (use cloud resolution)
- *          --algorithm (Hough|GC), --model_ss, --scene_ss, --rf_rad, --descr_rad, --cg_size, --cg_thresh
+ *          --algorithm (Hough|GC), --model_ss, --scene_ss, --rf_rad,
+ *          --descr_rad, --cg_size, --cg_thresh
  * Output: Visualization showing detected model instances in the scene with transformation matrices
  */
 
@@ -74,7 +75,7 @@ struct AppConfig
 
 AppConfig config;
 
-void showHelp(const char * filename)
+void printHelp(const char * filename)
 {
   std::cout << "\n***************************************************************************\n";
   std::cout << "*                                                                         *\n";
@@ -102,8 +103,10 @@ void showHelp(const char * filename)
 
 void parseCommandLine(int argc, char * argv[])
 {
-  if (pcl::console::find_switch(argc, argv, "-h")) {
-    showHelp(argv[0]);
+  if (pcl::console::find_switch(argc, argv, "-h") ||
+    pcl::console::find_switch(argc, argv, "--help"))
+  {
+    printHelp(argv[0]);
     exit(0);
   }
 
@@ -117,7 +120,7 @@ void parseCommandLine(int argc, char * argv[])
       std::cout << "  Scene: " << config.scene_filename << "\n" << std::endl;
     } else {
       std::cerr << "\n[Error] Two PCD files required (model and scene)\n";
-      showHelp(argv[0]);
+      printHelp(argv[0]);
       exit(-1);
     }
   } else {
@@ -137,7 +140,7 @@ void parseCommandLine(int argc, char * argv[])
       config.use_hough = false;
     } else {
       std::cerr << "\n[Error] Invalid algorithm. Use 'Hough' or 'GC'\n";
-      showHelp(argv[0]);
+      printHelp(argv[0]);
       exit(-1);
     }
   }

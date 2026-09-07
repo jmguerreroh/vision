@@ -1,3 +1,14 @@
+/**
+ * @file pcl_processing.cpp
+ * @brief pcl_conversions: PointCloud2 to pcl::PointCloud and back
+ * @author José Miguel Guerrero Hernández
+ *
+ * Subscribes to /stereo/points and publishes /pcl_processed.
+ *
+ * The gap between the two conversions is where a PCL algorithm of Chapter 11
+ * goes. Everything else is the ROS 2 plumbing around it.
+ */
+
 #include "pcl_demo/pcl_processing.hpp"
 
 namespace pcl_demo

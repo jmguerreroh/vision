@@ -178,6 +178,15 @@ int main(int argc, char ** argv)
   net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
 
   const std::string input_path = parser.get<std::string>("@input");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
   cv::VideoCapture cap(cv::samples::findFile(input_path, false));
   if (!cap.isOpened()) {
     std::cerr << "Error: cannot open " << input_path << std::endl;

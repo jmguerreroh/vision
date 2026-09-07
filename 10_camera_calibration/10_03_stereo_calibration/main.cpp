@@ -96,7 +96,8 @@ int main(int argc, char ** argv)
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
     "{@images | ../../data/left??.jpg | Glob of the LEFT images (the right ones "
-    "are found by replacing left with right)}");
+    "are found by replacing left with right)}"
+    "{out o | stereo_calibration.yml | Where to write the resulting calibration}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -110,6 +111,16 @@ int main(int argc, char ** argv)
   // the other sees AT THE SAME TIME.
   std::vector<std::string> left_files;
   cv::glob(parser.get<std::string>("@images"), left_files, false);
+  const std::string out_path = parser.get<std::string>("out");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
   if (left_files.empty()) {
     std::cerr << "No stereo images found" << std::endl;
     return EXIT_FAILURE;
@@ -278,13 +289,13 @@ int main(int argc, char ** argv)
   cv::imshow("Rectified pair (lines match)", drawPair(left_rect, right_rect));
 
   // Save the calibration: this is what a stereo pipeline needs
-  cv::FileStorage fs("stereo_calibration.yml", cv::FileStorage::WRITE);
+  cv::FileStorage fs(out_path, cv::FileStorage::WRITE);
   fs << "image_width" << image_size.width << "image_height" << image_size.height;
   fs << "K1" << K1 << "D1" << D1 << "K2" << K2 << "D2" << D2;
   fs << "R" << R << "T" << T << "R1" << R1 << "R2" << R2;
   fs << "P1" << P1 << "P2" << P2 << "Q" << Q;
   fs.release();
-  std::cout << "\nWritten to stereo_calibration.yml" << std::endl;
+  std::cout << "\nWritten to " << out_path << std::endl;
 
   std::cout << "Press any key to exit..." << std::endl;
   cv::waitKey(0);

@@ -302,7 +302,7 @@ void onTrackbar(int, void *)
 /**
  * @brief Display help information and algorithm description
  */
-void showHelp()
+void printHelp()
 {
   std::cout << "========================================" << std::endl;
   std::cout << "ORB Feature Detector Demo" << std::endl;
@@ -394,6 +394,15 @@ int main(int argc, char ** argv)
   }
   const std::string filename = parser.get<std::string>("@input");
 
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
+
   app.src = cv::imread(cv::samples::findFile(filename, false), cv::IMREAD_COLOR);
 
   if (app.src.empty()) {
@@ -407,7 +416,7 @@ int main(int argc, char ** argv)
   std::cout << "Image loaded: " << app.src.cols << "x" << app.src.rows
             << " pixels\n" << std::endl;
 
-  showHelp();
+  printHelp();
 
   // ========================================
   // Create Interactive GUI

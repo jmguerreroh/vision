@@ -22,8 +22,11 @@
  *
  * @see https://pointclouds.org/documentation/tutorials/pcd_file_format.html
  *
- * Usage: ./pcd_read
- * Input: Reads test_pcd.pcd from pcl_data folder
+ * Usage: ./11_06_pcl_read [path_to_pcd_file]
+ * Input: Reads test_pcd.pcd from pcl_data folder. That file is under version
+ *        control, so this example runs on a fresh clone without having to run
+ *        11_05_pcl_write first. Running 11_05 rewrites it byte for byte,
+ *        because its generator is seeded, so the pair can be read either way
  */
 
 #include <cstdlib>

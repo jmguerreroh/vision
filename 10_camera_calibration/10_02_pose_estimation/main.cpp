@@ -53,13 +53,23 @@ int main(int argc, char ** argv)
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
     "{@input | ../../data/aruco/choriginal.jpg | Input file}"
-    "{@calibration | ../../data/aruco/tutorial_camera_charuco.yml | Camera calibration file (YAML)}");
+    "{@calibration | ../../data/aruco/tutorial_camera_charuco.yml | Camera "
+    "calibration file (YAML)}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
   }
   const std::string image_path = parser.get<std::string>("@input");
   const std::string calib_path = parser.get<std::string>("@calibration");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
 
   const cv::Mat image = cv::imread(cv::samples::findFile(image_path, false), cv::IMREAD_COLOR);
   if (image.empty()) {

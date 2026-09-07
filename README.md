@@ -15,7 +15,9 @@ source ~/.bashrc
 
 > Note: The examples use modern features and require a compiler that supports **C++17** or higher.
 
-> Note: This project uses OpenCV 4.6.0 and PCL 1.14.0.
+> Note: Developed against OpenCV 4.6.0 and PCL 1.14.0. The build requires
+> OpenCV 4 and at least PCL 1.10, which is what the top-level `CMakeLists.txt`
+> asks for.
 
 > Note: Some examples require the **opencv_contrib** modules (`ximgproc`,
 > `aruco`, `surface_matching`, `viz`). If you installed OpenCV from the
@@ -42,7 +44,10 @@ Executables are in `vision_examples/bin/`. For example:
 ./11_02_stereo_disparity
 ```
 
-> Note: default paths assume that the examples are running from the vision_examples/bin directory.
+> Note: the default inputs are written as `../../data/...`, which resolves to
+> the `data/` folder of the repository both from `vision_examples/bin/` and
+> from the folder of the example itself. Either way of building works without
+> touching the paths.
 
 ### Command-line interface
 
@@ -56,17 +61,22 @@ reading its source first:
 ```
 
 OpenCV examples use `cv::CommandLineParser`; PCL examples use PCL's own
-`pcl::console` parser and answer to `-h`. Inputs are **positional and
-optional**: an example with no arguments always works.
+`pcl::console` parser. Both accept `-h` and `--help`. Inputs are **positional
+and optional**: an example with no arguments always works. The few examples
+that write a file take the destination on the command line and default to the
+current directory: `--out` in `10_01`, `10_03`, `11_03` and `13_02`, and
+`--dst_path` (plus `--dst_raw_path` and `--dst_conf_path`) in `11_02`.
 
 ### Building a single example (OpenCV)
 
-Each OpenCV example also has its own `Makefile`:
+Each OpenCV example also has its own `Makefile`. The executable takes the name
+of its folder, exactly like the one the top-level build produces, so both ways
+of compiling give the same binary:
 
 ```bash
-cd example_folder
+cd 06_edges_and_model_fitting/06_02_canny_edges
 make
-./executable
+./06_02_canny_edges
 ```
 
 ### Building a single example (PCL)
@@ -74,10 +84,10 @@ make
 Each PCL example has its own `CMakeLists.txt`:
 
 ```bash
-cd example_folder
+cd 11_3d_and_point_clouds/11_09_pcl_icp
 cmake -B build
 cmake --build build
-./build/executable
+./build/11_09_pcl_icp
 ```
 
 ### Building the ROS 2 examples (Chapter 14)
@@ -152,6 +162,21 @@ the actual profiles with:
 ros2 topic info /color/image --verbose
 ```
 
+### Checking the repository
+
+`tools/check_repo.py` verifies the things that drift when a chapter is renamed
+or an example moves: that every example on disk is built by the top-level
+`CMakeLists.txt`, that each one produces a binary named after its folder
+whichever way it is compiled, that no header cites an executable or an example
+that does not exist, that the default input paths point at files that are
+really there, and that every example answers `-h` and `--help`.
+
+```bash
+python3 tools/check_repo.py
+```
+
+It exits non-zero on the first inconsistency, so it can be used in CI.
+
 ---
 
 ## Repository structure
@@ -180,14 +205,20 @@ chapter and its code.
 | 14 | `14_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
 
 Every example is **self-contained and runnable on its own**: they can be run in
-any order and none of them needs another to have run first. There is one
-optional link between two of them, and it is deliberate:
-`11_03_stereo_to_pointcloud` accepts `--calib=stereo_calibration.yml`, the file
-that `10_03_stereo_calibration` writes. With it the pair is rectified and the
-cloud comes out in real units; without it the example falls back to an assumed
-rig and says so. What does follow the
-book order is the material each one assumes you have already read, which is the
-reason for studying them from beginning to end.
+any order and none of them needs another to have run first. Two of them are
+linked on purpose, and neither link is required:
+
+- `11_03_stereo_to_pointcloud` accepts `--calib=stereo_calibration.yml`, the
+  file that `10_03_stereo_calibration` writes. With it the pair is rectified
+  and the cloud comes out in real units; without it the example falls back to
+  an assumed rig and says so.
+- `11_05_pcl_write` writes the `test_pcd.pcd` that `11_06_pcl_read` reads. That
+  file is kept under version control, so `11_06` also works on a fresh clone.
+  The generator of `11_05` is seeded, so running it rewrites the file byte for
+  byte instead of producing a spurious change.
+
+What does follow the book order is the material each one assumes you have
+already read, which is the reason for studying them from beginning to end.
 
 ---
 

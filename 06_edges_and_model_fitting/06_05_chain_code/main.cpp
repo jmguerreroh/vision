@@ -206,6 +206,15 @@ int main(int argc, char ** argv)
   }
   const std::string filename = parser.get<std::string>("@input");
 
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
+
   std::cout << "========================================" << std::endl;
   std::cout << "Chain Code (Freeman Code) Computation" << std::endl;
   std::cout << "========================================" << std::endl;

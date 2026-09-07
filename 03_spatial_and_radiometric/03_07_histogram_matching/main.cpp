@@ -149,6 +149,15 @@ int main(int argc, char ** argv)
   const std::string source_path = parser.get<std::string>("@input");
   const std::string reference_path = parser.get<std::string>("@reference");
 
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
+
   const cv::Mat source = cv::imread(cv::samples::findFile(source_path, false),
       cv::IMREAD_GRAYSCALE);
   const cv::Mat reference = cv::imread(cv::samples::findFile(reference_path, false),

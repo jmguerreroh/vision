@@ -29,8 +29,8 @@
 namespace Config
 {
 constexpr int MAX_CLASSES = 2;          // Number of available classes (class 0 and class 1)
-constexpr int TEST_STEP = 5;            // Pixel sampling step for prediction: classifies 1 out of every
-                                        // 5 pixels in X and Y to reduce computational cost
+constexpr int TEST_STEP = 5;            // Pixel sampling step for prediction: 1 of
+                                        // every 5 pixels in X and Y, to cut the cost
 constexpr int IMG_WIDTH = 640;          // Width of the demo canvas
 constexpr int IMG_HEIGHT = 480;         // Height of the demo canvas
 const cv::Scalar WHITE_COLOR = cv::Scalar(255, 255, 255);
@@ -52,7 +52,9 @@ struct KNNApp
   std::vector<int> trained_points_markers;                    // Training point class labels
   std::vector<cv::Vec3b> class_colors{Config::MAX_CLASSES};   // Colors per class
   int current_class = 0;                                      // Active class for new points
-  std::vector<int> class_counters{Config::MAX_CLASSES, 0};    // Points per class counter: every class has at least one training point before running the classifier
+  // Points per class: every class needs at least one training point before the
+  // classifier can run
+  std::vector<int> class_counters{Config::MAX_CLASSES, 0};
 };
 
 // Global app state (required for OpenCV callbacks)

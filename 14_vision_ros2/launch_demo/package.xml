@@ -3,9 +3,9 @@
 <package format="3">
   <name>launch_demo</name>
   <version>0.0.0</version>
-  <description>Launch files that chain the depth_image_proc nodes of Chapter 11</description>
-  <maintainer email="jmguerrero@urjc.es">jmguerrero</maintainer>
-  <license>Apache-2.0</license>
+  <description>Launch files that chain the depth_image_proc nodes of Chapter 11 to produce the cloud that pcl_demo consumes.</description>
+  <maintainer email="josemiguel.guerrero@urjc.es">Jose Miguel Guerrero Hernandez</maintainer>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

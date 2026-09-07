@@ -23,9 +23,9 @@
  *
  * @see https://pointclouds.org/documentation/tutorials/pcl_visualizer.html
  *
- * Usage: ./advance_visualizer [option]
+ * Usage: ./11_08_pcl_advanced_visualizer [option]
  * Options: -h, -s, -r, -c, -n, -a, -v, -i
- * Example: ./advance_visualizer -n
+ * Example: ./11_08_pcl_advanced_visualizer -n
  */
 
 #include <cstdlib>
@@ -378,7 +378,9 @@ int main(int argc, char ** argv)
             << "==============================================================\n" << std::endl;
 
   // Parse Command Line Arguments
-  if (pcl::console::find_argument(argc, argv, "-h") >= 0) {
+  if (pcl::console::find_switch(argc, argv, "-h") ||
+    pcl::console::find_switch(argc, argv, "--help"))
+  {
     printUsage(argv[0]);
     return EXIT_SUCCESS;
   }

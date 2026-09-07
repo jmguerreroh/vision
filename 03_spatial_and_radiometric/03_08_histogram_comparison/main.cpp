@@ -78,7 +78,8 @@ cv::Mat calculateHSHistogram(const cv::Mat & bgr_image)
   const float s_range[] = {Config::S_MIN, Config::S_MAX};
   const float * ranges[] = {h_range, s_range};
 
-  // cv::calcHist(images, nimages, channels, mask, hist, dims, histSize, ranges, uniform, accumulate)
+  // cv::calcHist(images, nimages, channels, mask, hist, dims, histSize,
+  //              ranges, uniform, accumulate)
   //   dims = 2: 2D histogram (Hue x Saturation = 50x60 = 3000 bins)
   //   A 2D histogram captures the relationship between H and S,
   //   providing a better "color signature" than 1D histograms
@@ -168,6 +169,15 @@ int main(int argc, char ** argv)
 
   // Load test images
   const std::string base_path = parser.get<std::string>("@data");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
   const cv::Mat img_base = cv::imread(
     cv::samples::findFile(base_path + "Histogram_Comparison_Source_0.jpg", false));
   const cv::Mat img_test1 = cv::imread(

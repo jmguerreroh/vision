@@ -84,7 +84,7 @@ void compareCost(const cv::Mat & src, double gamma)
   const double start_direct = static_cast<double>(cv::getTickCount());
   for (int y = 0; y < per_pixel.rows; y++) {
     uchar * row = per_pixel.ptr<uchar>(y);
-    // Indice plano sobre la fila: recorre columnas por canales, no columnas
+    // Flat index over the row: it walks columns times channels, not columns
     for (int n = 0; n < per_pixel.cols * per_pixel.channels(); n++) {
       row[n] = cv::saturate_cast<uchar>(std::pow(row[n] / 255.0, gamma) * 255.0);
     }
@@ -120,6 +120,15 @@ int main(int argc, char ** argv)
     return EXIT_SUCCESS;
   }
   const std::string image_path = parser.get<std::string>("@input");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
   cv::Mat src = cv::imread(cv::samples::findFile(image_path, false), cv::IMREAD_COLOR);
 
   if (src.empty()) {

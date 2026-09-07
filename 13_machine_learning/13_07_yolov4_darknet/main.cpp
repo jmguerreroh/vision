@@ -222,6 +222,15 @@ int main(int argc, char ** argv)
 
   std::string input_path = parser.get<std::string>("@input");
 
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
+
   // ---------------------------------------------------------------------
   // Load class names and network model
   // coco.names: 80 COCO object categories, one per line.

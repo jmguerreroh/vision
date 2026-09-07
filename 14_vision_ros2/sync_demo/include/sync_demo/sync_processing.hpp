@@ -1,5 +1,18 @@
-#ifndef OPENCV_DEMO__STEREO_SYNC_HPP_
-#define OPENCV_DEMO__STEREO_SYNC_HPP_
+/**
+ * @file sync_processing.hpp
+ * @brief Declaration of SyncProcessing
+ * @author José Miguel Guerrero Hernández
+ *
+ * Subscribes to /left/image and /right/image and displays the pair.
+ *
+ * Two cameras without a hardware trigger never stamp exactly the same time,
+ * so ExactTime would leave the callback silent. ApproximateTime pairs the
+ * closest messages within a tolerance, which is what makes a stereo pair
+ * usable at all.
+ */
+
+#ifndef SYNC_DEMO__SYNC_PROCESSING_HPP_
+#define SYNC_DEMO__SYNC_PROCESSING_HPP_
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
@@ -35,4 +48,4 @@ private:
 
 }  // namespace sync_demo
 
-#endif  // OPENCV_DEMO__STEREO_SYNC_HPP_
+#endif  // SYNC_DEMO__SYNC_PROCESSING_HPP_

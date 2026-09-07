@@ -2,7 +2,7 @@
 # Author: José Miguel Guerrero Hernández
 
 cmake_minimum_required(VERSION 3.16)
-project(pcl_simple_visualizer LANGUAGES C CXX)
+project(11_07_pcl_simple_visualizer LANGUAGES C CXX)
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -15,9 +15,9 @@ find_package(MPI QUIET)
 find_package(PCL 1.10 REQUIRED COMPONENTS common io visualization)
 
 # Executable
-add_executable(pcl_visualizer main.cpp)
+add_executable(11_07_pcl_simple_visualizer main.cpp)
 
 # Link PCL
-target_include_directories(pcl_visualizer PRIVATE ${PCL_INCLUDE_DIRS})
-target_link_libraries(pcl_visualizer PRIVATE ${PCL_LIBRARIES})
-target_compile_definitions(pcl_visualizer PRIVATE ${PCL_DEFINITIONS})
+target_include_directories(11_07_pcl_simple_visualizer PRIVATE ${PCL_INCLUDE_DIRS})
+target_link_libraries(11_07_pcl_simple_visualizer PRIVATE ${PCL_LIBRARIES})
+target_compile_definitions(11_07_pcl_simple_visualizer PRIVATE ${PCL_DEFINITIONS})

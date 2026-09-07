@@ -23,7 +23,7 @@
  *
  * @see https://pointclouds.org/documentation/tutorials/random_sample_consensus.html
  *
- * Usage: ./ransac_demo [option]
+ * Usage: ./11_10_pcl_ransac_model_fitting [option]
  * Options:
  *   (none)  - Show generated plane points
  *   -f      - Fit plane with RANSAC and show inliers
@@ -94,7 +94,7 @@ pcl::visualization::PCLVisualizer::Ptr simpleVis(pcl::PointCloud<pcl::PointXYZ>:
  * - Application of RANSAC for robust model fitting
  * - Visualization of original points vs fitted points (inliers)
  */
-void showHelp()
+void printHelp()
 {
   std::cout << std::endl;
   std::cout << "**********************************************" << std::endl;
@@ -112,8 +112,10 @@ void showHelp()
 int main(int argc, char ** argv)
 {
   // Show help if -h option is specified
-  if (pcl::console::find_switch(argc, argv, "-h")) {
-    showHelp();
+  if (pcl::console::find_switch(argc, argv, "-h") ||
+    pcl::console::find_switch(argc, argv, "--help"))
+  {
+    printHelp();
     exit(0);
   }
 

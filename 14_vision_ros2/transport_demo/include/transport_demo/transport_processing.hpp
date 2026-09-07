@@ -1,3 +1,16 @@
+/**
+ * @file transport_processing.hpp
+ * @brief Declaration of TransportProcessing
+ * @author José Miguel Guerrero Hernández
+ *
+ * Subscribes to /color/image and publishes image_processed, plus the
+ * sub-topics that each transport plugin adds on its own.
+ *
+ * image_transport is declared after construction, in initialize(), because it
+ * needs a shared_ptr to the node and that does not exist yet inside the
+ * constructor.
+ */
+
 #ifndef TRANSPORT_DEMO__TRANSPORT_PROCESSING_HPP_
 #define TRANSPORT_DEMO__TRANSPORT_PROCESSING_HPP_
 

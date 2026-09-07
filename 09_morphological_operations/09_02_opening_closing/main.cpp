@@ -95,7 +95,17 @@ int main(int argc, char ** argv)
     parser.printMessage();
     return EXIT_SUCCESS;
   }
-  app.src = cv::imread(cv::samples::findFile(parser.get<std::string>("@input"), false), cv::IMREAD_COLOR);
+  app.src = cv::imread(
+    cv::samples::findFile(parser.get<std::string>("@input"), false), cv::IMREAD_COLOR);
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
 
   if (app.src.empty()) {
     std::cout << "Could not open or find the image!\n" << std::endl;

@@ -18,7 +18,7 @@
  *
  * @see https://pointclouds.org/documentation/tutorials/cloud_viewer.html
  *
- * Usage: ./simple_visualizer [path_to_pcd_file]
+ * Usage: ./11_07_pcl_simple_visualizer [path_to_pcd_file]
  * Default: Loads ../../data/pcl_data/head.pcd if no argument provided
  */
 

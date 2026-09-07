@@ -1,3 +1,16 @@
+/**
+ * @file transport_processing.cpp
+ * @brief The same node through image_transport: one publisher, several wire formats
+ * @author José Miguel Guerrero Hernández
+ *
+ * Subscribes to /color/image and publishes image_processed, plus the
+ * sub-topics that each transport plugin adds on its own.
+ *
+ * image_transport is declared after construction, in initialize(), because it
+ * needs a shared_ptr to the node and that does not exist yet inside the
+ * constructor.
+ */
+
 #include "transport_demo/transport_processing.hpp"
 
 namespace transport_demo

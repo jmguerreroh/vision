@@ -49,7 +49,8 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@images | ../../data/calibration_images/Image*.png | Glob of the calibration images}");
+    "{@images | ../../data/calibration_images/Image*.png | Glob of the calibration images}"
+    "{out o | calibration.yml | Where to write the resulting calibration}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -58,6 +59,16 @@ int main(int argc, char ** argv)
   // Get filenames
   std::vector<std::string> file_names;
   cv::glob(parser.get<std::string>("@images"), file_names, false);
+  const std::string out_path = parser.get<std::string>("out");
+
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
 
   if (file_names.empty()) {
     std::cerr << "No calibration images found" << std::endl;
@@ -72,7 +83,8 @@ int main(int argc, char ** argv)
   cv::Mat original, grayscale, undistorted;
   cv::Size frame_size;
 
-  // Generate world coordinates for 3D points assuming Z=0. The board has 25 x 18 fields with a size of 15x15mm
+  // Generate world coordinates for 3D points assuming Z=0. The board has
+  // 25 x 18 fields of 15 x 15 mm
   std::vector<cv::Point3f> chess_board_3d_corners;
   for (int i = 0; i < chess_board_size.height; i++) {
     for (int j = 0; j < chess_board_size.width; j++) {
@@ -271,7 +283,7 @@ int main(int argc, char ** argv)
   // The result of a calibration is worth nothing if it is not stored: the
   // pose estimation of 10_02 needs exactly this file. cv::FileStorage
   // writes the YAML format that OpenCV reads back with the same class.
-  cv::FileStorage fs("calibration.yml", cv::FileStorage::WRITE);
+  cv::FileStorage fs(out_path, cv::FileStorage::WRITE);
   fs << "image_width" << frame_size.width << "image_height" << frame_size.height;
   fs << "square_size_mm" << square_size.width;
   fs << "views_used" << static_cast<int>(good_3d.size());
@@ -279,7 +291,7 @@ int main(int argc, char ** argv)
   fs << "camera_matrix" << cv::Mat(K);
   fs << "distortion_coefficients" << cv::Mat(dist_coeffs);
   fs.release();
-  std::cout << "\nCalibration written to calibration.yml" << std::endl;
+  std::cout << "\nCalibration written to " << out_path << std::endl;
 
   // Method 1: cv::undistort() -- convenient but slow for video.
   // Internally it recomputes the full correction maps

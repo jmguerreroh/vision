@@ -10,7 +10,9 @@ OPENCV    = $(shell pkg-config opencv4 --cflags --libs)
 
 # Source files and targets
 SRC       = main.cpp
-TARGET    = affine_transforms
+# The executable takes the name of the folder, the same one the top-level
+# CMakeLists.txt gives it, so both ways of building produce the same binary
+TARGET = $(notdir $(CURDIR))
 
 # Default target: build the executable
 all: $(TARGET)

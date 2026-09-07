@@ -210,12 +210,22 @@ int main(int argc, char ** argv)
   const std::string ref_filename = parser.get<std::string>("@input");
   const std::string img_filename = parser.get<std::string>("@scene");
 
+  // Without this, a malformed value (--frames=xyz) is reported by the parser
+  // but the example carries on with the default, which is the hardest kind
+  // of failure to diagnose. Note it validates values, not option names:
+  // cv::CommandLineParser ignores an unknown option without complaining
+  if (!parser.check()) {
+    parser.printErrors();
+    return EXIT_FAILURE;
+  }
+
   std::cout << "========================================" << std::endl;
   std::cout << "RANSAC-based Image Alignment" << std::endl;
   std::cout << "========================================" << std::endl;
   std::cout << "Reading reference image: " << ref_filename << std::endl;
 
-  const cv::Mat im_reference = cv::imread(cv::samples::findFile(ref_filename, false), cv::IMREAD_COLOR);
+  const cv::Mat im_reference =
+    cv::imread(cv::samples::findFile(ref_filename, false), cv::IMREAD_COLOR);
   if (im_reference.empty()) {
     std::cerr << "Error: Could not load reference image!" << std::endl;
     std::cerr << "Path: " << ref_filename << std::endl;
