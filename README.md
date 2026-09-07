@@ -38,7 +38,7 @@ Executables are in `vision_examples/bin/`. For example:
 
 ```bash
 ./02_01_read_image
-./03_01_dft_frequencies
+./04_01_dft_frequencies
 ./11_02_stereo_disparity
 ```
 

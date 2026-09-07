@@ -5,7 +5,7 @@
  *
  * This example demonstrates:
  * - How to build Gabor kernels with cv::getGaborKernel()
- * - Applying a bank of filters at several orientations with filter2D (detailed in 04_02)
+ * - Applying a bank of filters at several orientations with filter2D (detailed in 03_02)
  * - Visualizing each kernel next to its filter response
  *
  * A Gabor filter is a sinusoid modulated by a Gaussian envelope. It responds
@@ -14,11 +14,11 @@
  * texture description (and a good model of the receptive fields found in the
  * human visual cortex).
  *
- * @note This filter belongs to the transform-domain family of 03_01..03_03
+ * @note This filter belongs to the transform-domain family of 04_01..04_03
  *       (it selects frequency content), and that is where the book places it,
  *       but in practice it is applied by SPATIAL convolution. The single call
  *       it needs, cv::filter2D, is used here as a black box and taken apart
- *       in 04_02, kernel by kernel.
+ *       in 03_02, kernel by kernel.
  */
 
 #include <cstdlib>
@@ -59,7 +59,7 @@ int main(int argc, char ** argv)
     return EXIT_FAILURE;
   }
 
-  // Work in float [0,1], as in 04_02 (precise filtering, easy display)
+  // Work in float [0,1], as in 03_02 (precise filtering, easy display)
   src.convertTo(src, CV_32F, 1.0 / 255.0);
 
   std::cout << "=== Gabor Filter Bank ===" << std::endl;
@@ -90,7 +90,7 @@ int main(int argc, char ** argv)
       cv::Size(Config::KERNEL_SIZE, Config::KERNEL_SIZE),
       Config::SIGMA, theta, Config::LAMBDA, Config::GAMMA, Config::PSI, CV_32F);
 
-    // Same spatial convolution (correlation) taken apart in 04_02
+    // Same spatial convolution (correlation) taken apart in 03_02
     cv::Mat response;
     cv::filter2D(src, response, CV_32F, kernel);
 
@@ -104,7 +104,7 @@ int main(int argc, char ** argv)
     cv::imshow("Kernel " + std::to_string(degrees) + " deg", kernel_display);
 
     // Response: bright where the image matches the filter's orientation.
-    // Shift/scale like the Sobel display of 04_02 (responses are signed)
+    // Shift/scale like the Sobel display of 03_02 (responses are signed)
     cv::Mat response_display;
     response.convertTo(response_display, CV_32F, 0.5, 0.5);
     cv::imshow("Response " + std::to_string(degrees) + " deg", response_display);

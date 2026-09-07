@@ -26,7 +26,7 @@ find_package(PCL 1.10 REQUIRED COMPONENTS
 # Rules:
 #   main.cpp       → executable named <dir_name>
 #   other.cpp      → executable named <dir_name>_<stem>   (e.g. frequencies.cpp
-#                    in 03_01_dft → 03_01_dft_frequencies)
+#                    in 04_01_dft → 04_01_dft_frequencies)
 function(add_cv_example REL_PATH)
   cmake_parse_arguments(ARG "" "" "EXTRA_LIBS" ${ARGN})
   get_filename_component(DIR_NAME ${REL_PATH} NAME)
@@ -69,24 +69,24 @@ add_cv_example(02_image_formation/02_04_pixel_access)
 add_cv_example(02_image_formation/02_05_video_capture)
 
 # --- 03 Frequency-domain transforms -------------------------------------------
-# 03_01_dft has two sources -> 03_01_dft + 03_01_dft_frequencies
-add_cv_example(03_frequency/03_01_dft)
-add_cv_example(03_frequency/03_02_dct)
-add_cv_example(03_frequency/03_03_wavelet_denoising)
-add_cv_example(03_frequency/03_04_gabor_bank)
+# 04_01_dft has two sources -> 04_01_dft + 04_01_dft_frequencies
+add_cv_example(04_frequency/04_01_dft)
+add_cv_example(04_frequency/04_02_dct)
+add_cv_example(04_frequency/04_03_wavelet_denoising)
+add_cv_example(04_frequency/04_04_gabor_bank)
 
 # --- 04 Spatial, geometric and radiometric transforms -------------------------
-add_cv_example(04_spatial_and_radiometric/04_01_point_operations)
-add_cv_example(04_spatial_and_radiometric/04_02_convolution)
-add_cv_example(04_spatial_and_radiometric/04_03_bitwise_operations)
-add_cv_example(04_spatial_and_radiometric/05_01_affine_transforms)
-add_cv_example(04_spatial_and_radiometric/05_02_perspective_correction)
-add_cv_example(04_spatial_and_radiometric/04_04_intensity_transforms)
-add_cv_example(04_spatial_and_radiometric/04_05_smoothing)
-add_cv_example(04_spatial_and_radiometric/04_06_homomorphic_filter)
-add_cv_example(04_spatial_and_radiometric/04_07_histogram_equalization)
-add_cv_example(04_spatial_and_radiometric/04_08_histogram_matching)
-add_cv_example(04_spatial_and_radiometric/04_09_histogram_comparison)
+add_cv_example(03_spatial_and_radiometric/03_01_point_operations)
+add_cv_example(03_spatial_and_radiometric/03_02_convolution)
+add_cv_example(03_spatial_and_radiometric/03_03_bitwise_operations)
+add_cv_example(03_spatial_and_radiometric/05_01_affine_transforms)
+add_cv_example(03_spatial_and_radiometric/05_02_perspective_correction)
+add_cv_example(03_spatial_and_radiometric/03_04_intensity_transforms)
+add_cv_example(03_spatial_and_radiometric/03_05_smoothing)
+add_cv_example(03_spatial_and_radiometric/04_05_homomorphic_filter)
+add_cv_example(03_spatial_and_radiometric/03_06_histogram_equalization)
+add_cv_example(03_spatial_and_radiometric/03_07_histogram_matching)
+add_cv_example(03_spatial_and_radiometric/03_08_histogram_comparison)
 
 # --- 05 Edges and model fitting -----------------------------------------------
 # Order follows the book: edges -> contour description -> model fitting
