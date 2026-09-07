@@ -16,10 +16,34 @@
  * @see https://docs.opencv.org/3.4/d4/d61/tutorial_warp_affine.html
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <iostream>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 // Transformation parameters as named constants
 namespace TransformParams
@@ -73,7 +97,7 @@ void demoTranslation(const cv::Mat & src)
   // Apply the affine transformation to translate the image
   // INTER_LINEAR provides good quality/performance balance
   cv::warpAffine(src, translation_dst, trans_mat, src.size(), cv::INTER_LINEAR);
-  cv::imshow("Translation", translation_dst);
+  showFit("Translation", translation_dst);
 }
 
 /**
@@ -101,7 +125,7 @@ void demoRotation(const cv::Mat & src)
   // Apply the affine transformation to rotate the image
   // INTER_LINEAR provides good quality for rotations
   cv::warpAffine(src, rotation_dst, rot_mat, src.size(), cv::INTER_LINEAR);
-  cv::imshow("Rotation", rotation_dst);
+  showFit("Rotation", rotation_dst);
 }
 
 /**
@@ -131,7 +155,7 @@ void demoResize(const cv::Mat & src)
             << " using INTER_LINEAR: "
             << src.cols << "x" << src.rows << " -> "
             << resize_up_linear.cols << "x" << resize_up_linear.rows << std::endl;
-  cv::imshow("Resize x2 (INTER_LINEAR)", resize_up_linear);
+  showFit("Resize x2 (INTER_LINEAR)", resize_up_linear);
 
   // Upscale with INTER_CUBIC (best quality, slower)
   cv::Mat resize_up_cubic;
@@ -139,7 +163,7 @@ void demoResize(const cv::Mat & src)
              TransformParams::RESIZE_SCALE_UP,
              TransformParams::RESIZE_SCALE_UP,
              cv::INTER_CUBIC);
-  cv::imshow("Resize x2 (INTER_CUBIC)", resize_up_cubic);
+  showFit("Resize x2 (INTER_CUBIC)", resize_up_cubic);
 
   // Downscale with INTER_AREA (recommended for shrinking images)
   cv::Mat resize_down;
@@ -154,7 +178,7 @@ void demoResize(const cv::Mat & src)
             << " using INTER_AREA: "
             << src.cols << "x" << src.rows << " -> "
             << resize_down.cols << "x" << resize_down.rows << std::endl;
-  cv::imshow("Resize /2 (INTER_AREA)", resize_down);
+  showFit("Resize /2 (INTER_AREA)", resize_down);
 }
 
 /**
@@ -190,7 +214,7 @@ void demoAffineWarp(const cv::Mat & src)
   cv::Mat warp_mat = cv::getAffineTransform(src_tri, dst_tri);
   cv::Mat warp_dst;
   cv::warpAffine(src, warp_dst, warp_mat, src.size(), cv::INTER_LINEAR);
-  cv::imshow("Affine Warp (Deformation)", warp_dst);
+  showFit("Affine Warp (Deformation)", warp_dst);
 
   // Apply Rotation to warped image (reusing transformation parameters)
   cv::Point center(warp_dst.cols / 2, warp_dst.rows / 2);
@@ -199,7 +223,7 @@ void demoAffineWarp(const cv::Mat & src)
                                             TransformParams::ROTATION_SCALE);
   cv::Mat warp_rotate_dst;
   cv::warpAffine(warp_dst, warp_rotate_dst, rot_mat, warp_dst.size(), cv::INTER_LINEAR);
-  cv::imshow("Warp + Rotate", warp_rotate_dst);
+  showFit("Warp + Rotate", warp_rotate_dst);
 }
 
 int main(int argc, char ** argv)
@@ -208,7 +232,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/starry_night.jpg | Input file}");
+    "{@input | ../../data/starry_night.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -236,7 +260,7 @@ int main(int argc, char ** argv)
   std::cout << "Image loaded: " << src.cols << "x" << src.rows << " pixels" << std::endl;
 
   // Display original image
-  cv::imshow("Original", src);
+  showFit("Original", src);
 
   // Run all transformation demos
   demoTranslation(src);

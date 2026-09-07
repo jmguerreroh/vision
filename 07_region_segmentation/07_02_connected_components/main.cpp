@@ -17,6 +17,7 @@
  * floodFill(), which fills ONE region starting from a chosen seed pixel.
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -25,6 +26,28 @@
 #include <iostream>
 #include <vector>
 #include <string>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 namespace Config
 {
@@ -107,7 +130,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/shapes.png | Input file}");
+    "{@input | ../../data/coins.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -278,12 +301,12 @@ int main(int argc, char ** argv)
   // ========================================
   // Display Results
   // ========================================
-  cv::imshow("1. Original Image", src);
-  cv::imshow("2. Grayscale", gray);
-  cv::imshow("3. Binary (Otsu)", binary);
-  cv::imshow("4. Labeled Components", labels_color);
-  cv::imshow("5. Colored Components", colored);
-  cv::imshow("6. Bounding Boxes + Centroids", overlay);
+  showFit("1. Original Image", src);
+  showFit("2. Grayscale", gray);
+  showFit("3. Binary (Otsu)", binary);
+  showFit("4. Labeled Components", labels_color);
+  showFit("5. Colored Components", colored);
+  showFit("6. Bounding Boxes + Centroids", overlay);
 
   std::cout << "\nVisualization:" << std::endl;
   std::cout << "  Window 4: Label IDs (jet colormap)" << std::endl;

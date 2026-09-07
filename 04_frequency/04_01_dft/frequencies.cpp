@@ -134,7 +134,7 @@ int main(int argc, char ** argv)
   // by sniffing whether the positional arguments look numeric
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/starry_night.jpg | Image to decompose and reconstruct}"
+    "{@input | ../../data/starry_night.png | Image to decompose and reconstruct}"
     "{maxfreq | -1 | Highest frequency used, -1 for max(width, height) / 2}"
     "{size | -1 | Side of the square basis waves, -1 for max(width, height)}"
     "{u | -1 | Single basis wave mode: horizontal frequency, needs v as well}"

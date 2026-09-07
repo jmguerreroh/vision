@@ -19,15 +19,39 @@
  * - Convolution: Sliding the kernel over the image
  * - Edge detection: Using derivative approximations
  *
- * @note Uses ../../data/starry_night.jpg as input image
+ * @note Uses ../../data/starry_night.png as input image
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <iostream>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 /**
  * @brief Displays usage information
@@ -112,7 +136,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/starry_night.jpg | Input file}");
+    "{@input | ../../data/starry_night.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     printHelp(argv);
@@ -172,10 +196,10 @@ int main(int argc, char ** argv)
   edges_x.convertTo(edges_x_display, CV_32F, 0.5, 0.5);
 
   // Display results
-  cv::imshow("Original", src);
-  cv::imshow("Box Filter (Blur)", blurred);
-  cv::imshow("Sobel Y (Horizontal Edges)", edges_y_display);
-  cv::imshow("Sobel X (Vertical Edges)", edges_x_display);
+  showFit("Original", src);
+  showFit("Box Filter (Blur)", blurred);
+  showFit("Sobel Y (Horizontal Edges)", edges_y_display);
+  showFit("Sobel X (Vertical Edges)", edges_x_display);
 
   std::cout << "\nPress any key to exit..." << std::endl;
   cv::waitKey(0);

@@ -16,6 +16,7 @@
  * A wide S,V range with a narrow H range segments a color robustly.
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -24,6 +25,28 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 namespace Config
 {
@@ -101,7 +124,7 @@ int main(int argc, char ** argv)
   cv::Mat hsv;
   cv::cvtColor(src, hsv, cv::COLOR_BGR2HSV);
 
-  cv::imshow("Original", src);
+  showFit("Original", src);
 
   // ========================================
   // Segment three colors with a single hue interval each
@@ -126,8 +149,8 @@ int main(int argc, char ** argv)
     std::cout << "  " << color.name << ": hue [" << color.hue_min << ", "
               << color.hue_max << "] -> " << percent << "% of the image" << std::endl;
 
-    cv::imshow("Mask " + color.name, mask);
-    cv::imshow("Segmented " + color.name, segmented);
+    showFit("Mask " + color.name, mask);
+    showFit("Segmented " + color.name, segmented);
   }
 
   // ========================================
@@ -150,8 +173,8 @@ int main(int argc, char ** argv)
   std::cout << "  Red: hue [0, 10] U [170, 179] (wrap-around!) -> "
             << red_percent << "% of the image" << std::endl;
 
-  cv::imshow("Mask Red (two ranges OR-ed)", red_mask);
-  cv::imshow("Segmented Red", red_segmented);
+  showFit("Mask Red (two ranges OR-ed)", red_mask);
+  showFit("Segmented Red", red_segmented);
 
   std::cout << "\nNote: the masks still contain small speckles. Chapter 9" << std::endl;
   std::cout << "introduces the morphological operations (opening/closing)" << std::endl;

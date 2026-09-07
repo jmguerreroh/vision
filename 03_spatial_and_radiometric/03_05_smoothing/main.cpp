@@ -13,12 +13,35 @@
  * @see https://docs.opencv.org/3.4/dc/dd3/tutorial_gausian_median_blur_bilateral_filter.html
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 // Configuration constants
 namespace Config
@@ -46,7 +69,7 @@ bool displayCaption(const cv::Mat & src, const std::string & caption)
   cv::putText(display, caption,
               cv::Point(src.cols / 4, src.rows / 2),
               cv::FONT_HERSHEY_COMPLEX, 1, cv::Scalar(255, 255, 255));
-  cv::imshow(Config::WINDOW_NAME, display);
+  showFit(Config::WINDOW_NAME, display);
   return cv::waitKey(Config::DELAY_CAPTION) >= 0;
 }
 
@@ -67,7 +90,7 @@ bool displayResult(const cv::Mat & img, int kernelSize = 0)
                 cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
   }
 
-  cv::imshow(Config::WINDOW_NAME, display);
+  showFit(Config::WINDOW_NAME, display);
   return cv::waitKey(Config::DELAY_BLUR) >= 0;
 }
 
@@ -199,9 +222,9 @@ void demoNoiseComparison(const cv::Mat & src)
   cv::GaussianBlur(noisy, gaussian_result, cv::Size(5, 5), 0);
   cv::medianBlur(noisy, median_result, 5);
 
-  cv::imshow("Noisy (salt & pepper 5%)", noisy);
-  cv::imshow("Gaussian 5x5 on noisy (smudges remain)", gaussian_result);
-  cv::imshow("Median 5x5 on noisy (noise removed)", median_result);
+  showFit("Noisy (salt & pepper 5%)", noisy);
+  showFit("Gaussian 5x5 on noisy (smudges remain)", gaussian_result);
+  showFit("Median 5x5 on noisy (noise removed)", median_result);
 }
 
 int main(int argc, char ** argv)
@@ -210,7 +233,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/starry_night.jpg | Input file}");
+    "{@input | ../../data/starry_night.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;

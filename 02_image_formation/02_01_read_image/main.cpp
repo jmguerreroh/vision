@@ -21,9 +21,34 @@
  *       +--------------------------------+---------------------------+
  */
 
+#include <string>
+#include <algorithm>
+#include <opencv2/imgproc.hpp>  // resize, for the on-screen reduction
 #include <opencv2/highgui.hpp>
 #include <cstdlib>
 #include <iostream>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 int main(int argc, char ** argv)
 {
@@ -31,7 +56,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/starry_night.jpg | Input file}");
+    "{@input | ../../data/starry_night.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -81,7 +106,7 @@ int main(int argc, char ** argv)
   // Parameters:
   //   - Window name (string) - used as unique identifier
   //   - Image to display (cv::Mat)
-  cv::imshow("Original Image - BGR", image);
+  showFit("Original Image - BGR", image);
 
   // cv::waitKey() waits for the user to press a key
   // Parameters:

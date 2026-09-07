@@ -11,6 +11,7 @@
  * @see https://docs.opencv.org/3.4/d8/dbc/tutorial_histogram_calculation.html
  */
 
+#include <string>
 #include <cstdlib>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -19,6 +20,28 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 // Histogram configuration
 namespace Config
@@ -151,7 +174,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/starry_night.jpg | Input file}");
+    "{@input | ../../data/building_facade.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -185,8 +208,8 @@ int main(int argc, char ** argv)
   cv::Mat hist_image = drawHistogram(histograms);
 
   // Display original
-  cv::imshow("Original Image", src);
-  cv::imshow("Original Histogram", hist_image);
+  showFit("Original Image", src);
+  showFit("Original Histogram", hist_image);
 
   // Equalize each channel
   std::vector<cv::Mat> equalized_channels = equalizeChannels(bgr_channels);
@@ -200,8 +223,8 @@ int main(int argc, char ** argv)
   cv::merge(equalized_channels, equalized_image);
 
   // Display equalized
-  cv::imshow("Equalized Image", equalized_image);
-  cv::imshow("Equalized Histogram", hist_image_eq);
+  showFit("Equalized Image", equalized_image);
+  showFit("Equalized Histogram", hist_image_eq);
 
   // Better alternative for color images: equalize ONLY the brightness
   //
@@ -217,7 +240,7 @@ int main(int argc, char ** argv)
   cv::equalizeHist(hsv_channels[2], hsv_channels[2]);  // V channel only
   cv::merge(hsv_channels, hsv);
   cv::cvtColor(hsv, equalized_v, cv::COLOR_HSV2BGR);
-  cv::imshow("Equalized V channel only (colors preserved)", equalized_v);
+  showFit("Equalized V channel only (colors preserved)", equalized_v);
 
   // CLAHE: Contrast Limited Adaptive Histogram Equalization
   //
@@ -243,7 +266,7 @@ int main(int argc, char ** argv)
   clahe->apply(clahe_channels[2], clahe_channels[2]);   // V channel only
   cv::merge(clahe_channels, hsv_clahe);
   cv::cvtColor(hsv_clahe, clahe_result, cv::COLOR_HSV2BGR);
-  cv::imshow("CLAHE on V channel (local, contrast limited)", clahe_result);
+  showFit("CLAHE on V channel (local, contrast limited)", clahe_result);
 
   // How much information does each method keep? Equalization is monotonic but
   // NOT injective: several input levels are mapped to the same output one, so

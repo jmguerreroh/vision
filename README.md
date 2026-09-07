@@ -162,6 +162,21 @@ the actual profiles with:
 ros2 topic info /color/image --verbose
 ```
 
+### Default images
+
+The examples default to the **same photographs the book uses in its figures**,
+so running one without arguments reproduces what the reader has just seen
+printed. `data/building_facade.png`, `coins.png`, `chess.png`, `smarties.png`,
+`aerial_view.png`, `starry_night.png` and `futbol.png` are the very files that
+the figure-generating scripts of the book read.
+
+Those photographs are around 1400 px on the long side, which does not fit on a
+normal screen once an example opens four or five windows. Every example that
+uses them reduces **only what it sends to the screen**, with `INTER_AREA` and a
+long side of 800 px; the processing always runs at full resolution. The
+reduction is a no-op on smaller images, so passing your own image changes
+nothing.
+
 ### Checking the repository
 
 `tools/check_repo.py` verifies the things that drift when a chapter is renamed

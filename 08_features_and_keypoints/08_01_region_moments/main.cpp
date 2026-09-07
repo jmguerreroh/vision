@@ -7,12 +7,36 @@
  * @see https://docs.opencv.org/3.4/d8/d23/classcv_1_1Moments.html
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
 #include <iomanip>
 #include <vector>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 namespace Config
 {
@@ -26,7 +50,10 @@ constexpr double CANNY_THRESHOLD_HIGH = 100.0;
 constexpr int CANNY_APERTURE_SIZE = 3;
 
 // Contour filtering
-constexpr double MIN_CONTOUR_AREA = 100.0;
+// Canny returns thin strokes, so a contour area grows with the perimeter and
+// not with the square of the scale: 150 keeps about the same count on
+// data/coins.png that 100 kept on the smaller image it replaced
+constexpr double MIN_CONTOUR_AREA = 150.0;
 
 // Display parameters
 constexpr size_t MAX_MOMENTS_DISPLAY = 3;
@@ -113,7 +140,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/coins.jpg | Input file}");
+    "{@input | ../../data/coins.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -259,12 +286,12 @@ int main(int argc, char ** argv)
   // ========================================
   // Display Results
   // ========================================
-  cv::imshow("Original Image", src);
-  cv::imshow("Grayscale", gray);
-  cv::imshow("Gaussian Blur", blurred);
-  cv::imshow("Canny Edges", edges);
-  cv::imshow("Colored Contours", contours_colored);
-  cv::imshow("Contours with Centroids", image_with_centroids);
+  showFit("Original Image", src);
+  showFit("Grayscale", gray);
+  showFit("Gaussian Blur", blurred);
+  showFit("Canny Edges", edges);
+  showFit("Colored Contours", contours_colored);
+  showFit("Contours with Centroids", image_with_centroids);
 
   std::cout << "Press any key to exit..." << std::endl;
   cv::waitKey(0);

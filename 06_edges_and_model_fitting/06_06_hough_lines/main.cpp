@@ -8,6 +8,8 @@
  *       Probabilistic Hough: more efficient, returns finite line segments
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
@@ -15,13 +17,35 @@
 #include <iostream>
 #include <vector>
 
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
+
 int main(int argc, char ** argv)
 {
   // Load input image
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/chess.jpg | Input file}");
+    "{@input | ../../data/chess.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -123,11 +147,11 @@ int main(int argc, char ** argv)
   }
 
   // Display results
-  cv::imshow("1. Original", src);
-  cv::imshow("2. Grayscale", gray);
-  cv::imshow("3. Edges (Canny)", edges);
-  cv::imshow("4. Standard Hough Lines", standard_hough_result);
-  cv::imshow("5. Probabilistic Hough Lines", probabilistic_hough_result);
+  showFit("1. Original", src);
+  showFit("2. Grayscale", gray);
+  showFit("3. Edges (Canny)", edges);
+  showFit("4. Standard Hough Lines", standard_hough_result);
+  showFit("5. Probabilistic Hough Lines", probabilistic_hough_result);
 
   // Wait for user input and exit
   cv::waitKey(0);

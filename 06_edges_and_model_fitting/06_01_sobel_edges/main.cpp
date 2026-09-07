@@ -7,10 +7,34 @@
  *       2) OpenCV's optimized Sobel function
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 int main(int argc, char ** argv)
 {
@@ -18,7 +42,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/starry_night.jpg | Input file}");
+    "{@input | ../../data/building_facade.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -84,10 +108,10 @@ int main(int argc, char ** argv)
   cv::addWeighted(manual_abs_grad_x, 0.5, manual_abs_grad_y, 0.5, 0, manual_grad_combined);
 
   // Display results from manual mask method
-  cv::imshow("Original", src);
-  cv::imshow("Manual: Gradient X (vertical edges)", manual_abs_grad_x);
-  cv::imshow("Manual: Gradient Y (horizontal edges)", manual_abs_grad_y);
-  cv::imshow("Manual: Combined Edges (horizontal + vertical)", manual_grad_combined);
+  showFit("Original", src);
+  showFit("Manual: Gradient X (vertical edges)", manual_abs_grad_x);
+  showFit("Manual: Gradient Y (horizontal edges)", manual_abs_grad_y);
+  showFit("Manual: Combined Edges (horizontal + vertical)", manual_grad_combined);
 
   // ========================================
   // Method 2: OpenCV Sobel function
@@ -119,10 +143,10 @@ int main(int argc, char ** argv)
   cv::addWeighted(sobel_abs_grad_x, 0.5, sobel_abs_grad_y, 0.5, 0, sobel_grad_combined);
 
   // Display results from OpenCV Sobel method
-  cv::imshow("Sobel: Gradient X (vertical edges)", sobel_abs_grad_x);
-  cv::imshow("Sobel: Gradient Y (horizontal edges)", sobel_abs_grad_y);
-  cv::imshow("Sobel: Mixed derivative d2/dxdy (responds at corners)", sobel_abs_grad_xy);
-  cv::imshow("Sobel: Combined Edges (horizontal + vertical)", sobel_grad_combined);
+  showFit("Sobel: Gradient X (vertical edges)", sobel_abs_grad_x);
+  showFit("Sobel: Gradient Y (horizontal edges)", sobel_abs_grad_y);
+  showFit("Sobel: Mixed derivative d2/dxdy (responds at corners)", sobel_abs_grad_xy);
+  showFit("Sobel: Combined Edges (horizontal + vertical)", sobel_grad_combined);
 
   // Wait for user input and exit
   cv::waitKey(0);

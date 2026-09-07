@@ -7,10 +7,34 @@
  *       and detects edges in all directions simultaneously.
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 int main(int argc, char ** argv)
 {
@@ -18,7 +42,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/starry_night.jpg | Input file}");
+    "{@input | ../../data/building_facade.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -83,10 +107,10 @@ int main(int argc, char ** argv)
   cv::convertScaleAbs(laplacian_8conn, abs_laplacian_8conn);
 
   // Display manual mask results
-  cv::imshow("Original (Color)", src);
-  cv::imshow("Grayscale", gray);
-  cv::imshow("Manual: Laplacian 4-connected", abs_laplacian_4conn);
-  cv::imshow("Manual: Laplacian 8-connected", abs_laplacian_8conn);
+  showFit("Original (Color)", src);
+  showFit("Grayscale", gray);
+  showFit("Manual: Laplacian 4-connected", abs_laplacian_4conn);
+  showFit("Manual: Laplacian 8-connected", abs_laplacian_8conn);
 
   // ========================================
   // Method 2: OpenCV Laplacian function
@@ -108,7 +132,7 @@ int main(int argc, char ** argv)
   cv::convertScaleAbs(laplacian_opencv, abs_laplacian_opencv);
 
   // Display OpenCV Laplacian result
-  cv::imshow("OpenCV: Laplacian (ksize=1)", abs_laplacian_opencv);
+  showFit("OpenCV: Laplacian (ksize=1)", abs_laplacian_opencv);
 
   // Wait for user input and exit
   cv::waitKey(0);

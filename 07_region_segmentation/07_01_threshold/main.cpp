@@ -30,12 +30,35 @@
  *              when illumination is not uniform across the image.
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <string>
 #include <vector>
 #include <iostream>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 /**
  * @brief Applies threshold and adds text label with threshold value
@@ -68,7 +91,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/RGB.jpg | Input file}");
+    "{@input | ../../data/coins.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -169,7 +192,7 @@ int main(int argc, char ** argv)
   }
 
   // Display results
-  cv::imshow("Threshold Methods Comparison (global + adaptive)", comparison);
+  showFit("Threshold Methods Comparison (global + adaptive)", comparison);
   cv::waitKey(0);
 
   return EXIT_SUCCESS;

@@ -14,6 +14,8 @@
  *       same pixels, and modifying one silently modifies the other.
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -21,13 +23,35 @@
 #include <opencv2/highgui.hpp>
 #include <iostream>
 
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
+
 int main(int argc, char ** argv)
 {
   // Load the image (same pattern as 02_01)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/starry_night.jpg | Input file}");
+    "{@input | ../../data/starry_night.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -66,7 +90,7 @@ int main(int argc, char ** argv)
             << std::endl;
   std::cout << "        Drawing on 'shared' ALSO modified 'original' (see window)."
             << std::endl;
-  cv::imshow("1. Original after drawing on 'shared'", original);
+  showFit("1. Original after drawing on 'shared'", original);
 
   // ========================================
   // Part 2 - clone() / copyTo() duplicate the pixel data
@@ -85,8 +109,8 @@ int main(int argc, char ** argv)
 
   std::cout << "\nPart 2: clone()/copyTo() duplicate the pixels." << std::endl;
   std::cout << "        The green circle exists only in the clone." << std::endl;
-  cv::imshow("2. Clone with green circle", independent);
-  cv::imshow("3. Original (no green circle)", original);
+  showFit("2. Clone with green circle", independent);
+  showFit("3. Original (no green circle)", original);
 
   // ========================================
   // Part 3 - Region of Interest (ROI)
@@ -110,12 +134,12 @@ int main(int argc, char ** argv)
   std::cout << "\nPart 3: an ROI is a window into the parent's pixels." << std::endl;
   std::cout << "        Desaturating the ROI modified the center of the original."
             << std::endl;
-  cv::imshow("4. Original with desaturated ROI", original);
+  showFit("4. Original with desaturated ROI", original);
 
   // A detached copy of a region needs an explicit clone:
   //   cv::Mat safe_crop = original(roi_rect).clone();
   cv::Mat safe_crop = original(roi_rect).clone();
-  cv::imshow("5. Independent crop (clone of the ROI)", safe_crop);
+  showFit("5. Independent crop (clone of the ROI)", safe_crop);
 
   // isContinuous() reveals the difference: full images store their rows
   // back-to-back in one block; an ROI skips memory between rows, so many

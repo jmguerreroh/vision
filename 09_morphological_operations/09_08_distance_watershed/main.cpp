@@ -24,6 +24,8 @@
  *   7. cv::watershed() resolves the unknown region
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -31,6 +33,28 @@
 #include <opencv2/highgui.hpp>
 #include <iostream>
 #include <vector>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 namespace Config
 {
@@ -46,7 +70,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/coins.jpg | Input file}");
+    "{@input | ../../data/coins.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -81,6 +105,32 @@ int main(int argc, char ** argv)
   cv::Mat cleaned;
   cv::morphologyEx(binary, cleaned, cv::MORPH_OPEN, kernel,
                    cv::Point(-1, -1), Config::OPENING_ITERATIONS);
+
+  // Fill the holes before measuring distances. These are photographs of real
+  // coins, and the relief of the minting leaves the binary image riddled with
+  // interior holes: over two thousand of them on data/coins.png. Each hole is
+  // a black pixel, so the distance transform of the next step would find
+  // several ridges inside one coin instead of a single peak, and the count of
+  // objects would come out at 18 rather than 8.
+  //
+  // RETR_CCOMP returns two levels: outer boundaries and holes. Any contour
+  // with a parent is a hole, and painting it white closes it. A morphological
+  // closing would also work, as in the hole-filling figure of the chapter, but
+  // it would need a structuring element as large as the biggest hole and it
+  // would round the outline of the coins as a side effect.
+  std::vector<std::vector<cv::Point>> hole_contours;
+  std::vector<cv::Vec4i> hole_hierarchy;
+  cv::findContours(cleaned, hole_contours, hole_hierarchy,
+                   cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
+  int filled = 0;
+  for (size_t i = 0; i < hole_contours.size(); ++i) {
+    if (hole_hierarchy[i][3] != -1) {          // has a parent: it is a hole
+      cv::drawContours(cleaned, hole_contours, static_cast<int>(i),
+                       cv::Scalar(255), cv::FILLED);
+      ++filled;
+    }
+  }
+  std::cout << "Interior holes filled: " << filled << std::endl;
 
   // ========================================
   // Step 3: sure background
@@ -166,12 +216,12 @@ int main(int argc, char ** argv)
     }
   }
 
-  cv::imshow("1. Original", src);
-  cv::imshow("2. Binary (Otsu) + opening", cleaned);
-  cv::imshow("3. Distance transform", distance_display);
-  cv::imshow("4. Sure foreground (markers source)", sure_foreground);
-  cv::imshow("5. Watershed regions", result);
-  cv::imshow("6. Watershed lines on original", boundaries);
+  showFit("1. Original", src);
+  showFit("2. Binary (Otsu) + opening", cleaned);
+  showFit("3. Distance transform", distance_display);
+  showFit("4. Sure foreground (markers source)", sure_foreground);
+  showFit("5. Watershed regions", result);
+  showFit("6. Watershed lines on original", boundaries);
 
   std::cout << "\nCompare windows 2 and 5: touching coins that formed a single"
             << std::endl;

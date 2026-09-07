@@ -17,12 +17,36 @@
  *          complexity from O(n³) to O(n²).
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <vector>
 #include <iostream>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 int main(int argc, char ** argv)
 {
@@ -94,11 +118,15 @@ int main(int argc, char ** argv)
   //   minRadius, maxRadius: Filter circles by size
   //           Set based on expected object sizes in your image
   std::vector<cv::Vec3f> circles;
+  // The radius bounds are expressed as a fraction of the image height, like
+  // minDist above, instead of in absolute pixels. A fixed 1..30 range only
+  // works for one resolution: on data/smarties.png, whose candies have a
+  // radius of about 66 px, it finds nothing at all
   cv::HoughCircles(
     blurred, circles, cv::HOUGH_GRADIENT, 1,
     blurred.rows / 16,
     100, 30,
-    1, 30
+    blurred.rows / 40, blurred.rows / 12
   );
 
   // ========================================
@@ -123,10 +151,10 @@ int main(int argc, char ** argv)
   }
 
   // Display results
-  cv::imshow("1. Original", src);
-  cv::imshow("2. Grayscale", gray);
-  cv::imshow("3. Blurred (Median)", blurred);
-  cv::imshow("4. Detected Circles", result);
+  showFit("1. Original", src);
+  showFit("2. Grayscale", gray);
+  showFit("3. Blurred (Median)", blurred);
+  showFit("4. Detected Circles", result);
 
   // Wait for user input and exit
   cv::waitKey(0);

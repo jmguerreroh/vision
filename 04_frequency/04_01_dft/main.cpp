@@ -17,12 +17,36 @@
  *       The phase spectrum (not shown here) contains structural information.
  */
 
+#include <string>
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <iostream>
+
+namespace
+{
+// The images this example works on are about 1400 px on the long side, and
+// several windows at that size do not fit on a normal screen. The processing
+// always runs at full resolution: only the copy sent to the screen is reduced,
+// with INTER_AREA, which is the interpolation meant for shrinking
+constexpr int MAX_DISPLAY_SIDE = 800;
+
+void showFit(const std::string & window, const cv::Mat & image)
+{
+  const int side = std::max(image.cols, image.rows);
+  if (side <= MAX_DISPLAY_SIDE || image.empty()) {
+    cv::imshow(window, image);
+    return;
+  }
+  const double factor = static_cast<double>(MAX_DISPLAY_SIDE) / side;
+  cv::Mat reduced;
+  cv::resize(image, reduced, cv::Size(), factor, factor, cv::INTER_AREA);
+  cv::imshow(window, reduced);
+}
+}  // namespace
 
 /**
  * @brief Displays usage information
@@ -174,7 +198,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/starry_night.jpg | Input file}");
+    "{@input | ../../data/starry_night.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     printHelp(argv);
@@ -237,11 +261,11 @@ int main(int argc, char ** argv)
   cv::normalize(reconstructed, reconstructed, 0, 1, cv::NORM_MINMAX);
 
   // Display results
-  cv::imshow("Original Image", image);
-  cv::imshow("Spectrum Before DC Shift", spectrum_original);
-  cv::imshow("Spectrum After DC Shift", spectrum_shifted);
-  cv::imshow("Spectrum After Rearrangement", spectrum_after);
-  cv::imshow("Reconstructed (IDFT)", reconstructed);
+  showFit("Original Image", image);
+  showFit("Spectrum Before DC Shift", spectrum_original);
+  showFit("Spectrum After DC Shift", spectrum_shifted);
+  showFit("Spectrum After Rearrangement", spectrum_after);
+  showFit("Reconstructed (IDFT)", reconstructed);
 
   std::cout << "\nWindows displayed:" << std::endl;
   std::cout << "  - Original grayscale image" << std::endl;
