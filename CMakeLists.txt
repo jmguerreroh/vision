@@ -79,11 +79,11 @@ add_cv_example(04_frequency/04_04_gabor_bank)
 add_cv_example(03_spatial_and_radiometric/03_01_point_operations)
 add_cv_example(03_spatial_and_radiometric/03_02_convolution)
 add_cv_example(03_spatial_and_radiometric/03_03_bitwise_operations)
-add_cv_example(03_spatial_and_radiometric/05_01_affine_transforms)
-add_cv_example(03_spatial_and_radiometric/05_02_perspective_correction)
+add_cv_example(05_geometric_and_registration/05_01_affine_transforms)
+add_cv_example(05_geometric_and_registration/05_02_perspective_correction)
 add_cv_example(03_spatial_and_radiometric/03_04_intensity_transforms)
 add_cv_example(03_spatial_and_radiometric/03_05_smoothing)
-add_cv_example(03_spatial_and_radiometric/04_05_homomorphic_filter)
+add_cv_example(04_frequency/04_05_homomorphic_filter)
 add_cv_example(03_spatial_and_radiometric/03_06_histogram_equalization)
 add_cv_example(03_spatial_and_radiometric/03_07_histogram_matching)
 add_cv_example(03_spatial_and_radiometric/03_08_histogram_comparison)
@@ -102,12 +102,12 @@ add_cv_example(06_edges_and_model_fitting/06_07_hough_circles)
 add_cv_example(07_region_segmentation/07_01_threshold)
 add_cv_example(07_region_segmentation/07_02_connected_components)
 add_cv_example(07_region_segmentation/07_03_color_segmentation)
-add_cv_example(07_region_segmentation/08_01_region_moments)
-add_cv_example(07_region_segmentation/08_02_hu_moments)
-add_cv_example(07_region_segmentation/08_03_harris_corners)
-add_cv_example(07_region_segmentation/08_04_shi_tomasi_corners)
-add_cv_example(07_region_segmentation/08_05_orb_features)
-add_cv_example(07_region_segmentation/08_06_ransac_matching)
+add_cv_example(08_features_and_keypoints/08_01_region_moments)
+add_cv_example(08_features_and_keypoints/08_02_hu_moments)
+add_cv_example(08_features_and_keypoints/08_03_harris_corners)
+add_cv_example(08_features_and_keypoints/08_04_shi_tomasi_corners)
+add_cv_example(08_features_and_keypoints/08_05_orb_features)
+add_cv_example(08_features_and_keypoints/08_06_ransac_matching)
 
 # --- 07 Morphological Operations ----------------------------------------------
 add_cv_example(09_morphological_operations/09_01_erode_dilate)
@@ -140,43 +140,43 @@ add_pcl_example(11_3d_and_point_clouds/11_12_pcl_correspondence)
 add_pcl_example(11_3d_and_point_clouds/11_13_pcl_plane_clustering)
 
 # --- 10 Optical Flow ----------------------------------------------------------
-add_cv_example(12_optical_flow/12_01_frame_difference)
-add_cv_example(12_optical_flow/12_02_sparse_flow)
-add_cv_example(12_optical_flow/12_03_dense_flow)
-add_cv_example(12_optical_flow/12_04_background_subtraction)
-add_cv_example(12_optical_flow/12_05_kalman_tracking)
-add_cv_example(12_optical_flow/12_06_object_tracking)
+add_cv_example(12_optical_flow_and_tracking/12_01_frame_difference)
+add_cv_example(12_optical_flow_and_tracking/12_02_sparse_flow)
+add_cv_example(12_optical_flow_and_tracking/12_03_dense_flow)
+add_cv_example(12_optical_flow_and_tracking/12_04_background_subtraction)
+add_cv_example(12_optical_flow_and_tracking/12_05_kalman_tracking)
+add_cv_example(12_optical_flow_and_tracking/12_06_object_tracking)
 
 # --- 11 Pattern recognition ---------------------------------------------------
-add_cv_example(13_pattern_recognition/13_01_knn_classification)
-add_cv_example(13_pattern_recognition/13_02_svm_classification)
-add_cv_example(13_pattern_recognition/13_03_digits_classification)
-add_cv_example(13_pattern_recognition/13_04_kmeans_clustering)
-add_cv_example(13_pattern_recognition/13_05_classifier_comparison)
-add_cv_example(13_pattern_recognition/13_06_som_digits)
-add_cv_example(13_pattern_recognition/13_07_yolov4_darknet
+add_cv_example(13_machine_learning/13_01_knn_classification)
+add_cv_example(13_machine_learning/13_02_svm_classification)
+add_cv_example(13_machine_learning/13_03_digits_classification)
+add_cv_example(13_machine_learning/13_04_kmeans_clustering)
+add_cv_example(13_machine_learning/13_05_classifier_comparison)
+add_cv_example(13_machine_learning/13_06_som_digits)
+add_cv_example(13_machine_learning/13_07_yolov4_darknet
   EXTRA_LIBS Threads::Threads)
 add_custom_command(
   TARGET 13_07_yolov4_darknet PRE_BUILD
-  COMMAND bash ${CMAKE_SOURCE_DIR}/13_pattern_recognition/13_07_yolov4_darknet/download_model.sh
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/13_pattern_recognition/13_07_yolov4_darknet
+  COMMAND bash ${CMAKE_SOURCE_DIR}/13_machine_learning/13_07_yolov4_darknet/download_model.sh
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/13_machine_learning/13_07_yolov4_darknet
   COMMENT "Downloading YOLOv4-tiny model if needed..."
 )
 
-add_cv_example(13_pattern_recognition/13_08_yolo_ultralytics
+add_cv_example(13_machine_learning/13_08_yolo_ultralytics
   EXTRA_LIBS Threads::Threads)
 add_custom_command(
   TARGET 13_08_yolo_ultralytics PRE_BUILD
-  COMMAND bash ${CMAKE_SOURCE_DIR}/13_pattern_recognition/13_08_yolo_ultralytics/download_model.sh
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/13_pattern_recognition/13_08_yolo_ultralytics
+  COMMAND bash ${CMAKE_SOURCE_DIR}/13_machine_learning/13_08_yolo_ultralytics/download_model.sh
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/13_machine_learning/13_08_yolo_ultralytics
   COMMENT "Exporting YOLO11 model if needed..."
 )
 
-add_cv_example(13_pattern_recognition/13_09_semantic_segmentation)
+add_cv_example(13_machine_learning/13_09_semantic_segmentation)
 add_custom_command(
   TARGET 13_09_semantic_segmentation PRE_BUILD
-  COMMAND bash ${CMAKE_SOURCE_DIR}/13_pattern_recognition/13_09_semantic_segmentation/download_model.sh
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/13_pattern_recognition/13_09_semantic_segmentation
+  COMMAND bash ${CMAKE_SOURCE_DIR}/13_machine_learning/13_09_semantic_segmentation/download_model.sh
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/13_machine_learning/13_09_semantic_segmentation
   COMMENT "Exporting DeepLabV3 model if needed..."
 )
 

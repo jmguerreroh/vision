@@ -3,7 +3,7 @@ vision_examples/build/
 vision_examples/bin/
 *.o
 
-# Artefactos de colcon (capitulo 11, paquetes de ROS 2)
+# Artefactos de colcon (capitulo 14, paquetes de ROS 2)
 build/
 install/
 log/

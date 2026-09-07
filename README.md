@@ -80,9 +80,9 @@ cmake --build build
 ./build/executable
 ```
 
-### Building the ROS 2 examples (Chapter 12)
+### Building the ROS 2 examples (Chapter 14)
 
-The examples of Chapter 12 live in `14_vision_ros2/` like every other chapter,
+The examples of Chapter 14 live in `14_vision_ros2/` like every other chapter,
 but they are **not** part of the build above: they are ROS 2 packages, not
 standalone programs, so they are built with `colcon` and run with `ros2 run`.
 The top-level `CMakeLists.txt` ignores them on purpose, so the rest of the
@@ -175,8 +175,8 @@ chapter and its code.
 | 09 | `09_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
 | 10 | `10_camera_calibration` | Camera geometry and calibration | chessboard calibration, pose estimation (PnP), stereo calibration + rectification |
 | 11 | `11_3d_and_point_clouds` | 3D vision and point clouds | epipolar geometry, disparity, disparity to point cloud, OpenCV ICP, PCL I/O, visualizers, PCL ICP, RANSAC model fitting, registration, correspondence, plane + clustering |
-| 12 | `12_optical_flow` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |
-| 13 | `13_pattern_recognition` | Machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map, YOLOv4, YOLO11, semantic segmentation |
+| 12 | `12_optical_flow_and_tracking` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |
+| 13 | `13_machine_learning` | Machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map, YOLOv4, YOLO11, semantic segmentation |
 | 14 | `14_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
 
 Every example is **self-contained and runnable on its own**: none of them reads a
