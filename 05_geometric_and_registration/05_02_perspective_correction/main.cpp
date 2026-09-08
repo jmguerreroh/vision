@@ -101,7 +101,7 @@ cv::Mat correctPerspective(const cv::Mat & src, const std::vector<cv::Point2f> &
 
   // Exactly 4 correspondences: the homography is determined, there is nothing
   // to fit. With more than 4, and possible mismatches, the right call is
-  // findHomography with RANSAC, used in 08_06_ransac_matching
+  // findHomography with RANSAC, used in 09_06_ransac_matching
   cv::Mat h = cv::getPerspectiveTransform(corners, destination);
 
   std::cout << "\n=== Homography ===" << std::endl;

@@ -15,7 +15,7 @@
  *             -1 -> must be background
  *              0 -> don't care
  *
- *          Same skeleton as 09_01_erode_dilate, only the operation changes.
+ *          Same skeleton as 08_01_erode_dilate, only the operation changes.
  *
  *          The example detects the four right-angle corners of a shape and
  *          lets the image be rotated, which is the fastest way to see the

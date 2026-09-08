@@ -239,7 +239,7 @@ int main(int argc, char ** argv)
 
   // Use Otsu's method for automatic threshold. Binarising is unavoidable
   // before tracing a contour; cv::threshold and Otsu are the subject of
-  // 09_01, here they are just the step that gets us a silhouette
+  // 07_01, here they are just the step that gets us a silhouette
   cv::threshold(gray, binary,
                Config::THRESH_VALUE,
                Config::THRESH_MAX_VALUE,
@@ -280,7 +280,7 @@ int main(int argc, char ** argv)
 
     // Contour statistics computed from the traversed boundary itself, so this
     // example stays within chapter 6. Moments and the OpenCV shape descriptors
-    // are chapter 8 (08_01_region_moments).
+    // are chapter 9 (09_01_region_moments).
     //
     // Centroid: mean of the contour points, used only to place the label.
     cv::Point2f centroid(0.f, 0.f);

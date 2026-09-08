@@ -24,7 +24,7 @@ source ~/.bashrc
 > distribution package these are usually included; if you built OpenCV from
 > source, follow the *Installation from source* section below and pass
 > `OPENCV_EXTRA_MODULES_PATH`. The examples that need them are:
-> `09_05_skeletonization`, `10_02_pose_estimation`, `11_02_stereo_disparity`
+> `08_05_skeletonization`, `10_02_pose_estimation`, `11_02_stereo_disparity`
 > and `11_04_opencv_icp`.
 
 ### Building all examples at once (recommended)
@@ -224,8 +224,8 @@ chapter and its code.
 | 05 | `05_geometric_and_registration` | Geometric transforms and registration | affine transforms, perspective correction |
 | 06 | `06_edges_and_model_fitting` | Edge detection and model fitting | Sobel, Canny, Laplacian, contour extraction, chain code, Hough lines, Hough circles |
 | 07 | `07_region_segmentation` | Region segmentation | threshold, connected components, color segmentation |
-| 08 | `08_features_and_keypoints` | Descriptors and keypoints | region moments, Hu moments, Harris, Shi-Tomasi, ORB, RANSAC matching |
-| 09 | `09_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
+| 08 | `08_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
+| 09 | `09_features_and_keypoints` | Descriptors and keypoints | region moments, Hu moments, Harris, Shi-Tomasi, ORB, RANSAC matching |
 | 10 | `10_camera_calibration` | Camera geometry and calibration | chessboard calibration, pose estimation (PnP), stereo calibration + rectification |
 | 11 | `11_3d_and_point_clouds` | 3D vision and point clouds | epipolar geometry, disparity, disparity to point cloud, OpenCV ICP, PCL I/O, visualizers, PCL ICP, RANSAC model fitting, registration, correspondence, plane + clustering |
 | 12 | `12_optical_flow_and_tracking` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |

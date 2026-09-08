@@ -184,7 +184,7 @@ int main(int argc, char ** argv)
   showFit("Mask Red (two ranges OR-ed)", red_mask);
   showFit("Segmented Red", red_segmented);
 
-  std::cout << "\nNote: the masks still contain small speckles. Chapter 9" << std::endl;
+  std::cout << "\nNote: the masks still contain small speckles. Chapter 8" << std::endl;
   std::cout << "introduces the morphological operations (opening/closing)" << std::endl;
   std::cout << "that are the standard tool for cleaning them up." << std::endl;
   std::cout << "\nPress any key to exit..." << std::endl;

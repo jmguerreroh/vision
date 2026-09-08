@@ -108,23 +108,23 @@ add_cv_example(07_region_segmentation/07_01_threshold)
 add_cv_example(07_region_segmentation/07_02_connected_components)
 add_cv_example(07_region_segmentation/07_03_color_segmentation)
 
-# --- 08 Descriptors and keypoints ---------------------------------------------
-add_cv_example(08_features_and_keypoints/08_01_region_moments)
-add_cv_example(08_features_and_keypoints/08_02_hu_moments)
-add_cv_example(08_features_and_keypoints/08_03_harris_corners)
-add_cv_example(08_features_and_keypoints/08_04_shi_tomasi_corners)
-add_cv_example(08_features_and_keypoints/08_05_orb_features)
-add_cv_example(08_features_and_keypoints/08_06_ransac_matching)
+# --- 08 Morphological operations ----------------------------------------------
+add_cv_example(08_morphological_operations/08_01_erode_dilate)
+add_cv_example(08_morphological_operations/08_02_opening_closing)
+add_cv_example(08_morphological_operations/08_03_morphological_gradient)
+add_cv_example(08_morphological_operations/08_04_hit_or_miss)
+add_cv_example(08_morphological_operations/08_05_skeletonization)
+add_cv_example(08_morphological_operations/08_06_flood_fill)
+add_cv_example(08_morphological_operations/08_07_tophat_illumination)
+add_cv_example(08_morphological_operations/08_08_distance_watershed)
 
-# --- 09 Morphological operations ----------------------------------------------
-add_cv_example(09_morphological_operations/09_01_erode_dilate)
-add_cv_example(09_morphological_operations/09_02_opening_closing)
-add_cv_example(09_morphological_operations/09_03_morphological_gradient)
-add_cv_example(09_morphological_operations/09_04_hit_or_miss)
-add_cv_example(09_morphological_operations/09_05_skeletonization)
-add_cv_example(09_morphological_operations/09_06_flood_fill)
-add_cv_example(09_morphological_operations/09_07_tophat_illumination)
-add_cv_example(09_morphological_operations/09_08_distance_watershed)
+# --- 09 Descriptors and keypoints ---------------------------------------------
+add_cv_example(09_features_and_keypoints/09_01_region_moments)
+add_cv_example(09_features_and_keypoints/09_02_hu_moments)
+add_cv_example(09_features_and_keypoints/09_03_harris_corners)
+add_cv_example(09_features_and_keypoints/09_04_shi_tomasi_corners)
+add_cv_example(09_features_and_keypoints/09_05_orb_features)
+add_cv_example(09_features_and_keypoints/09_06_ransac_matching)
 
 # --- 10 Camera geometry and calibration ---------------------------------------
 add_cv_example(10_camera_calibration/10_01_camera_calibration)

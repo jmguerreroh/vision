@@ -16,8 +16,8 @@
  *
  * Pipeline (the classic recipe):
  *   1. Binarize (Otsu, 07_01)
- *   2. Clean noise with morphological opening (09_02)
- *   3. Sure BACKGROUND = dilation of the blob (09_01)
+ *   2. Clean noise with morphological opening (08_02)
+ *   3. Sure BACKGROUND = dilation of the blob (08_01)
  *   4. Sure FOREGROUND = high peaks of the distance transform
  *   5. Unknown region = background minus foreground
  *   6. Label the sure regions (connectedComponents, 07_02) -> markers
