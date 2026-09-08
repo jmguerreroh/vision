@@ -131,6 +131,28 @@ def main():
                 elif not os.path.exists(completa):
                     fallos.append('%s: %s no existe' % (ej, ruta))
 
+    # 6b. Todo nombre de fichero citado en el codigo existe bajo data/.
+    # Va aparte de la comprobacion anterior porque hay ejemplos que arman la
+    # ruta concatenando: 03_08 junta el directorio que recibe por argumento con
+    # "Histogram_Comparison_Source_0.jpg", de modo que ninguna cadena del
+    # fuente contiene la ruta entera. Buscar el nombre suelto es lo unico que
+    # detecta que el fichero ya no esta
+    disponibles = set()
+    for base, _, ficheros in os.walk(os.path.join(RAIZ, 'data')):
+        for f in ficheros:
+            disponibles.add(f)
+    for cap, ej in lista:
+        for src in glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp')):
+            s = leer(src)
+            for nombre in set(re.findall(
+                    r'"([A-Za-z0-9_][A-Za-z0-9_.-]*\.(?:jpg|jpeg|png|avi|mp4|ply|pcd))"', s)):
+                if nombre not in disponibles and nombre not in s.split('imwrite')[0][:0]:
+                    # solo interesa si el ejemplo lo LEE, no si lo escribe
+                    if re.search(r'(imread|VideoCapture|loadPCDFile|readPLY|FileStorage)\b[^;]*'
+                                 + re.escape(nombre), s) or ('/' not in nombre and
+                                 re.search(r'\+\s*"' + re.escape(nombre) + r'"', s)):
+                        fallos.append('%s: cita %s, que no esta bajo data/' % (ej, nombre))
+
     # 7. Cabecera de documentacion en todo el codigo, capitulo 14 incluido
     fuentes = [f for f in glob.glob(os.path.join(RAIZ, '*', '*', '*.cpp')) +
                glob.glob(os.path.join(RAIZ, '*', '*', 'src', '*.cpp')) +
