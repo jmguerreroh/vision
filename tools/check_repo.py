@@ -27,9 +27,9 @@ import sys
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# El capitulo 14 son paquetes de ROS 2: los construye colcon por nombre de
+# El capitulo 18 son paquetes de ROS 2: los construye colcon por nombre de
 # paquete, no por carpeta numerada, asi que no se le aplican estas reglas.
-CAP_ROS2 = '14_vision_ros2'
+CAP_ROS2 = '18_vision_ros2'
 
 
 def leer(ruta):
@@ -133,7 +133,7 @@ def main():
 
     # 6b. Todo nombre de fichero citado en el codigo existe bajo data/.
     # Va aparte de la comprobacion anterior porque hay ejemplos que arman la
-    # ruta concatenando: 03_08 junta el directorio que recibe por argumento con
+    # ruta concatenando: 04_03 junta el directorio que recibe por argumento con
     # "Histogram_Comparison_Source_0.jpg", de modo que ninguna cadena del
     # fuente contiene la ruta entera. Buscar el nombre suelto es lo unico que
     # detecta que el fichero ya no esta
@@ -153,7 +153,7 @@ def main():
                                  re.search(r'\+\s*"' + re.escape(nombre) + r'"', s)):
                         fallos.append('%s: cita %s, que no esta bajo data/' % (ej, nombre))
 
-    # 7. Cabecera de documentacion en todo el codigo, capitulo 14 incluido
+    # 7. Cabecera de documentacion en todo el codigo, capitulo 18 incluido
     fuentes = [f for f in glob.glob(os.path.join(RAIZ, '*', '*', '*.cpp')) +
                glob.glob(os.path.join(RAIZ, '*', '*', 'src', '*.cpp')) +
                glob.glob(os.path.join(RAIZ, '*', '*', 'include', '*', '*.hpp'))

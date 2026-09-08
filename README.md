@@ -24,8 +24,8 @@ source ~/.bashrc
 > distribution package these are usually included; if you built OpenCV from
 > source, follow the *Installation from source* section below and pass
 > `OPENCV_EXTRA_MODULES_PATH`. The examples that need them are:
-> `08_05_skeletonization`, `10_02_pose_estimation`, `11_02_stereo_disparity`
-> and `11_04_opencv_icp`.
+> `10_05_skeletonization`, `13_02_pose_estimation`, `14_02_stereo_disparity`
+> and `14_04_opencv_icp`.
 
 ### Building all examples at once (recommended)
 
@@ -40,8 +40,8 @@ Executables are in `vision_examples/bin/`. For example:
 
 ```bash
 ./02_01_read_image
-./04_01_dft_frequencies
-./11_02_stereo_disparity
+./05_01_dft_frequencies
+./14_02_stereo_disparity
 ```
 
 > Note: the default inputs are written as `../../data/...`, which resolves to
@@ -64,8 +64,8 @@ OpenCV examples use `cv::CommandLineParser`; PCL examples use PCL's own
 `pcl::console` parser. Both accept `-h` and `--help`. Inputs are **positional
 and optional**: an example with no arguments always works. The few examples
 that write a file take the destination on the command line and default to the
-current directory: `--out` in `10_01`, `10_03`, `11_03` and `13_02`, and
-`--dst_path` (plus `--dst_raw_path` and `--dst_conf_path`) in `11_02`.
+current directory: `--out` in `13_01`, `13_03`, `14_03` and `16_02`, and
+`--dst_path` (plus `--dst_raw_path` and `--dst_conf_path`) in `14_02`.
 
 ### Building a single example (OpenCV)
 
@@ -74,9 +74,9 @@ of its folder, exactly like the one the top-level build produces, so both ways
 of compiling give the same binary:
 
 ```bash
-cd 06_edges_and_model_fitting/06_02_canny_edges
+cd 07_edge_detection/07_02_canny_edges
 make
-./06_02_canny_edges
+./07_02_canny_edges
 ```
 
 ### Building a single example (PCL)
@@ -84,15 +84,15 @@ make
 Each PCL example has its own `CMakeLists.txt`:
 
 ```bash
-cd 11_3d_and_point_clouds/11_09_pcl_icp
+cd 14_3d_and_point_clouds/14_09_pcl_icp
 cmake -B build
 cmake --build build
-./build/11_09_pcl_icp
+./build/14_09_pcl_icp
 ```
 
-### Building the ROS 2 examples (Chapter 14)
+### Building the ROS 2 examples (Chapter 18)
 
-The examples of Chapter 14 live in `14_vision_ros2/` like every other chapter,
+The examples of Chapter 18 live in `18_vision_ros2/` like every other chapter,
 but they are **not** part of the build above: they are ROS 2 packages, not
 standalone programs, so they are built with `colcon` and run with `ros2 run`.
 The top-level `CMakeLists.txt` ignores them on purpose, so the rest of the
@@ -100,8 +100,8 @@ repository still builds without a ROS 2 installation.
 
 ```bash
 cd <repository root>
-rosdep install --from-paths 14_vision_ros2 --ignore-src -r -y
-colcon build --base-paths 14_vision_ros2 --symlink-install
+rosdep install --from-paths 18_vision_ros2 --ignore-src -r -y
+colcon build --base-paths 18_vision_ros2 --symlink-install
 source install/setup.bash
 ```
 
@@ -170,7 +170,7 @@ printed. `data/building_facade.png`, `coins.png`, `chess.png`, `smarties.png`,
 `aerial_view.png`, `starry_night.png` and `futbol.png` are the very files that
 the figure-generating scripts of the book read.
 
-The optical flow examples of chapter 12 default to the same video, the overhead
+The optical flow examples of chapter 15 default to the same video, the overhead
 shot of a busy square that the book credits to Pexels 853889.
 
 Those photographs are around 1400 px on the long side, and the video is Full HD,
@@ -184,7 +184,7 @@ Text is written on the reduced copy, or with the font raised by the same factor
 when it is a label anchored to a region, so that it stays readable instead of
 shrinking with the picture.
 
-The one exception to processing at full resolution is `12_03_dense_flow`:
+The one exception to processing at full resolution is `15_03_dense_flow`:
 Farneback costs 392 ms per frame at 1920x1080, ten times the 40 ms a 25 fps
 video allows, so it reduces the frames by `--scale` (0.5 by default, the same
 factor the book uses for its figures) before computing the flow. Pass
@@ -211,7 +211,7 @@ It exits non-zero on the first inconsistency, so it can be used in CI.
 
 The examples are organised by chapter and follow the order in which the book
 introduces the material. There are 80 in total: 75 numbered `NN_MM` examples,
-where `NN` is the book chapter, plus the 5 ROS 2 packages of chapter 14, which
+where `NN` is the book chapter, plus the 5 ROS 2 packages of chapter 18, which
 are named after the package instead of numbered because `colcon` builds them by
 name. The folder column below is the authoritative mapping between a book
 chapter and its code.
@@ -219,30 +219,34 @@ chapter and its code.
 | Chapter | Folder | Topic | Examples |
 |---------|--------|-------|----------|
 | 02 | `02_image_formation` | Image formation | read image, color spaces, Mat copy & ROI, pixel access, video capture |
-| 03 | `03_spatial_and_radiometric` | Spatial and radiometric transforms | point ops, convolution, bitwise, intensity transforms, smoothing, histogram equalization / matching / comparison |
-| 04 | `04_frequency` | Frequency-domain transforms | DFT, DCT, wavelet denoising, Gabor bank, homomorphic filter |
-| 05 | `05_geometric_and_registration` | Geometric transforms and registration | affine transforms, perspective correction |
-| 06 | `06_edges_and_model_fitting` | Edge detection and model fitting | Sobel, Canny, Laplacian, contour extraction, chain code, Hough lines, Hough circles |
-| 07 | `07_region_segmentation` | Region segmentation | threshold, connected components, color segmentation |
-| 08 | `08_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
-| 09 | `09_features_and_keypoints` | Descriptors and keypoints | region moments, Hu moments, Harris, Shi-Tomasi, ORB, RANSAC matching |
-| 10 | `10_camera_calibration` | Camera geometry and calibration | chessboard calibration, pose estimation (PnP), stereo calibration + rectification |
-| 11 | `11_3d_and_point_clouds` | 3D vision and point clouds | epipolar geometry, disparity, disparity to point cloud, OpenCV ICP, PCL I/O, visualizers, PCL ICP, RANSAC model fitting, registration, correspondence, plane + clustering |
-| 12 | `12_optical_flow_and_tracking` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |
-| 13 | `13_machine_learning` | Machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map, YOLOv4, YOLO11, semantic segmentation |
-| 14 | `14_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
+| 03 | `03_pixel_and_filtering` | Pixel operations and spatial filtering | point ops, convolution, bitwise, intensity transforms, smoothing |
+| 04 | `04_histogram` | The histogram | histogram equalization, matching, comparison |
+| 05 | `05_frequency` | Frequency-domain transforms | DFT, DCT, wavelet denoising, Gabor bank, homomorphic filter |
+| 06 | `06_geometric_and_registration` | Geometric transforms and registration | affine transforms, perspective correction |
+| 07 | `07_edge_detection` | Edge detection | Sobel, Canny, Laplacian, contour extraction, chain code |
+| 08 | `08_model_fitting` | Model fitting | Hough lines, Hough circles |
+| 09 | `09_region_segmentation` | Region segmentation | threshold, connected components, color segmentation |
+| 10 | `10_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
+| 11 | `11_region_descriptors` | Region descriptors | region moments, Hu moments |
+| 12 | `12_keypoints` | Keypoints | Harris, Shi-Tomasi, ORB, RANSAC matching |
+| 13 | `13_camera_calibration` | Camera geometry and calibration | chessboard calibration, pose estimation (PnP), stereo calibration + rectification |
+| 14 | `14_3d_and_point_clouds` | 3D vision and point clouds | epipolar geometry, disparity, disparity to point cloud, OpenCV ICP, PCL I/O, visualizers, PCL ICP, RANSAC model fitting, registration, correspondence, plane + clustering |
+| 15 | `15_optical_flow_and_tracking` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |
+| 16 | `16_classical_ml` | Classical machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map |
+| 17 | `17_deep_learning` | Deep learning | YOLOv4, YOLO11, semantic segmentation |
+| 18 | `18_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
 
 Every example is **self-contained and runnable on its own**: they can be run in
 any order and none of them needs another to have run first. Two of them are
 linked on purpose, and neither link is required:
 
-- `11_03_stereo_to_pointcloud` accepts `--calib=stereo_calibration.yml`, the
-  file that `10_03_stereo_calibration` writes. With it the pair is rectified
+- `14_03_stereo_to_pointcloud` accepts `--calib=stereo_calibration.yml`, the
+  file that `13_03_stereo_calibration` writes. With it the pair is rectified
   and the cloud comes out in real units; without it the example falls back to
   an assumed rig and says so.
-- `11_05_pcl_write` writes the `test_pcd.pcd` that `11_06_pcl_read` reads. That
-  file is kept under version control, so `11_06` also works on a fresh clone.
-  The generator of `11_05` is seeded, so running it rewrites the file byte for
+- `14_05_pcl_write` writes the `test_pcd.pcd` that `14_06_pcl_read` reads. That
+  file is kept under version control, so `14_06` also works on a fresh clone.
+  The generator of `14_05` is seeded, so running it rewrites the file byte for
   byte instead of producing a spurious change.
 
 What does follow the book order is the material each one assumes you have
