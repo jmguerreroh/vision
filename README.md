@@ -92,17 +92,17 @@ cmake --build build
 
 ### Building the ROS 2 examples (Chapter 18)
 
-The canonical home of the Chapter 18 examples is a separate repository,
-<https://github.com/jmguerreroh/vision_ros2>, which is the one the book points
-to. They are ROS 2 packages, not standalone programs: they need a workspace,
-they are built with `colcon` and they are run with `ros2 run`, so mixing them
-into this build would force a ROS 2 installation on everyone who just wants to
-compile the OpenCV examples.
+The Chapter 18 examples live here like every other chapter, under
+`18_vision_ros2/`, but they are not built with the rest. They are ROS 2
+packages, not standalone programs: they need a workspace, they are built with
+`colcon` and they are run with `ros2 run`. The top-level `CMakeLists.txt`
+ignores that folder on purpose, so the repository still builds for anyone who
+only wants the OpenCV examples and has no ROS 2 installed.
 
-A copy is mirrored here under `18_vision_ros2/` for convenience, and the
-top-level `CMakeLists.txt` ignores it on purpose, so the rest of the repository
-still builds without ROS 2. If the two ever disagree, `vision_ros2` is the one
-to trust.
+There are five packages: `opencv_demo`, `transport_demo`, `sync_demo` and
+`pcl_demo`, one per piece developed in the chapter, plus `launch_demo`, which
+holds the launch file that chains the `depth_image_proc` nodes to produce the
+cloud `pcl_demo` consumes.
 
 ```bash
 cd <repository root>

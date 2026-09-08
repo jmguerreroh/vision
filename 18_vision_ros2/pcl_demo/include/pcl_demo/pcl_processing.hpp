@@ -5,7 +5,7 @@
  *
  * Subscribes to /stereo/points and publishes /pcl_processed.
  *
- * The gap between the two conversions is where a PCL algorithm of Chapter 11
+ * The gap between the two conversions is where a PCL algorithm of Chapter 14
  * goes. Everything else is the ROS 2 plumbing around it.
  */
 

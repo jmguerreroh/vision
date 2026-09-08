@@ -3,7 +3,7 @@
 <package format="3">
   <name>sync_demo</name>
   <version>0.0.0</version>
-  <description>message_filters with an ApproximateTime policy: one callback receiving two already paired images. Chapter 14 of the book.</description>
+  <description>message_filters with an ApproximateTime policy: one callback receiving two already paired images. Chapter 18 of the book.</description>
   <maintainer email="josemiguel.guerrero@urjc.es">Jose Miguel Guerrero Hernandez</maintainer>
   <license>MIT</license>
 

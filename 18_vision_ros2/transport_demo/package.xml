@@ -3,7 +3,7 @@
 <package format="3">
   <name>transport_demo</name>
   <version>0.0.0</version>
-  <description>The same node through image_transport: one publisher, several wire formats. Chapter 14 of the book.</description>
+  <description>The same node through image_transport: one publisher, several wire formats. Chapter 18 of the book.</description>
   <maintainer email="josemiguel.guerrero@urjc.es">Jose Miguel Guerrero Hernandez</maintainer>
   <license>MIT</license>
 
