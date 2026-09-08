@@ -174,6 +174,24 @@ def main():
             if len(linea) > 100 and not rel.endswith('.xml'):
                 fallos.append('%s:%d pasa de 100 caracteres (%d)' % (rel, n, len(linea)))
 
+    # Los listados del libro invocan los binarios por su nombre completo. Ese
+    # nombre lleva dentro el numero del capitulo, asi que una renumeracion lo
+    # deja obsoleto, y como vive dentro de un lstlisting no lo alcanza ninguna
+    # comprobacion del lado del libro. Ya paso: dos ordenes del capitulo de
+    # vision 3D siguieron invocando 10_03 y 11_03 despues de que el libro
+    # pasara de 14 a 18 capitulos, y quien las copiaba obtenia un error.
+    libro = os.path.join(os.path.dirname(RAIZ), 'cv_book', 'chapters')
+    if os.path.isdir(libro):
+        existentes = nombres          # los nombres de ejemplo, ya reunidos arriba
+        for ruta in sorted(glob.glob(os.path.join(libro, 'chapter*.tex'))):
+            texto = leer(ruta)
+            for n_lin, linea in enumerate(texto.split('\n'), 1):
+                for m in re.finditer(r'\./(\d{2}_\d{2}_[a-z0-9_]+)', linea):
+                    if m.group(1) not in existentes:
+                        fallos.append('%s:%d invoca ./%s, que no existe en el repositorio'
+                                      % (os.path.relpath(ruta, os.path.dirname(RAIZ)),
+                                         n_lin, m.group(1)))
+
     if fallos:
         print('\nFALLO: %d incoherencia(s)\n' % len(fallos))
         for f in fallos:
@@ -182,6 +200,7 @@ def main():
     if not quiet:
         print('%d ejemplos comprobados.' % len(lista))
         print('OK: nombres, cabeceras, citas, rutas de datos y ayuda son coherentes.')
+        print('OK: los binarios que invocan los listados del libro existen.')
     return 0
 
 
