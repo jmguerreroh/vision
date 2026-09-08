@@ -92,11 +92,17 @@ cmake --build build
 
 ### Building the ROS 2 examples (Chapter 18)
 
-The examples of Chapter 18 live in `18_vision_ros2/` like every other chapter,
-but they are **not** part of the build above: they are ROS 2 packages, not
-standalone programs, so they are built with `colcon` and run with `ros2 run`.
-The top-level `CMakeLists.txt` ignores them on purpose, so the rest of the
-repository still builds without a ROS 2 installation.
+The canonical home of the Chapter 18 examples is a separate repository,
+<https://github.com/jmguerreroh/vision_ros2>, which is the one the book points
+to. They are ROS 2 packages, not standalone programs: they need a workspace,
+they are built with `colcon` and they are run with `ros2 run`, so mixing them
+into this build would force a ROS 2 installation on everyone who just wants to
+compile the OpenCV examples.
+
+A copy is mirrored here under `18_vision_ros2/` for convenience, and the
+top-level `CMakeLists.txt` ignores it on purpose, so the rest of the repository
+still builds without ROS 2. If the two ever disagree, `vision_ros2` is the one
+to trust.
 
 ```bash
 cd <repository root>
