@@ -8,12 +8,13 @@
  * - Visualization of frequency components
  *
  * The 2D Fourier basis function is:
- *   Z(x,y) = cos(2π(ux/M + vy/N))
+ *   Z(x,y) = cos(2π(ux/W + vy/H))
  *
  * Where:
  * - u: horizontal oscillations (frequency in x direction)
  * - v: vertical oscillations (frequency in y direction)
- * - M, N: image dimensions
+ * - W, H: image dimensions (width = columns, height = rows),
+ *          the same symbols the book uses
  */
 
 #include <cstdlib>
@@ -32,25 +33,25 @@
  *   - 'u' times horizontally (across columns)
  *   - 'v' times vertically (across rows)
  *
- * Formula: Z(x,y) = cos(2π(ux/M + vy/N))
+ * Formula: Z(x,y) = cos(2π(ux/W + vy/H))
  *
  * @param u Horizontal frequency (number of complete cycles in x direction)
  * @param v Vertical frequency (number of complete cycles in y direction)
- * @param M Number of columns (width of the generated pattern)
- * @param N Number of rows (height of the generated pattern)
+ * @param W Width of the generated pattern (number of columns)
+ * @param H Height of the generated pattern (number of rows)
  * @return CV_32F matrix containing the basis wave with values in [-1, 1]
  */
-cv::Mat basicWave(int u, int v, int M = 500, int N = 500)
+cv::Mat basicWave(int u, int v, int W = 500, int H = 500)
 {
-  cv::Mat Z(N, M, CV_32F);
+  cv::Mat Z(H, W, CV_32F);
 
   // Generate 2D cosine wave pattern
-  for (int y = 0; y < N; y++) {
-    for (int x = 0; x < M; x++) {
-      // Calculate phase: 2π(ux/M + vy/N)
+  for (int y = 0; y < H; y++) {
+    for (int x = 0; x < W; x++) {
+      // Calculate phase: 2π(ux/W + vy/H)
       // This creates u horizontal cycles and v vertical cycles
       double angle = 2.0 * CV_PI *
-        (static_cast<double>(u) * x / M + static_cast<double>(v) * y / N);
+        (static_cast<double>(u) * x / W + static_cast<double>(v) * y / H);
       Z.at<float>(y, x) = static_cast<float>(std::cos(angle));
     }
   }
@@ -117,7 +118,7 @@ void printHelp(char ** argv)
             << "     - image_path: Image to decompose and reconstruct (default: starry_night.jpg)\n"
             << "     - maxfreq: Maximum frequency (default: max(width, height) / 2)\n"
             << "     - size: Basis wave size (default: max(width, height))\n\n"
-            << "Formula: Z(x,y) = cos(2π(ux/M + vy/N))\n\n"
+            << "Formula: Z(x,y) = cos(2π(ux/W + vy/H))\n\n"
             << "Display (reconstruction mode):\n"
             << "  Left: Original image\n"
             << "  Center: Current basis wave\n"
@@ -288,7 +289,7 @@ int main(int argc, char ** argv)
       partial_dft.at<cv::Vec2f>(dft_v, dft_u) = coefficient;
 
       // For real-valued images, DFT has conjugate symmetry:
-      // F(M-u, N-v) = conjugate(F(u,v))
+      // F(W-u, H-v) = conjugate(F(u,v))
       // We must add both the frequency and its conjugate pair for correct IDFT
       if (u > 0 || v > 0) {  // Skip DC component (u=0, v=0) - it has no pair
         int conj_u = (u == 0) ? 0 : (complex_dft.cols - u);

@@ -7,7 +7,7 @@
  * depends on a neighborhood of input pixels (spatial filtering).
  *
  * Convolution operation:
- *   g(x,y) = Σ Σ h(i,j) * f(x-i, y-j)
+ *   g(x,y) = Σ Σ K(i,j) * f(x-i, y-j)
  *
  * Kernels demonstrated:
  * 1. Box filter (averaging): Blurs the image by averaging neighbors
@@ -15,7 +15,7 @@
  * 3. Sobel X (vertical edges): Detects vertical gradients
  *
  * Key concepts:
- * - Kernel/Mask: Small matrix defining the operation
+ * - Kernel/Mask: Small matrix K defining the operation
  * - Convolution: Sliding the kernel over the image
  * - Edge detection: Using derivative approximations
  *
@@ -73,7 +73,7 @@ void printHelp(char ** argv)
             << "This program demonstrates spatial filtering using convolution kernels.\n"
             << "Each output pixel depends on a neighborhood of input pixels.\n\n"
             << "Usage: " << argv[0] << " [image_path]\n"
-            << "  image_path: Path to input image (default: starry_night.jpg)\n\n";
+            << "  image_path: Path to input image (default: starry_night.png)\n\n";
 }
 
 /**
@@ -103,18 +103,24 @@ cv::Mat createBoxKernel()
  * Approximates vertical derivative (∂f/∂y).
  * Detects horizontal edges (changes in vertical direction).
  *
- * Kernel:  [ 1  2  1]
+ * Kernel:  [-1 -2 -1]
  *          [ 0  0  0]
- *          [-1 -2 -1]
+ *          [ 1  2  1]
+ *
+ * The bottom row is the positive one because the image y axis points DOWN, so
+ * a positive response means the intensity grows downwards. This is the sign
+ * convention of cv::Sobel, and filter2D applies the kernel as written (it
+ * correlates, it does not flip). Turning the two rows around, which is what
+ * this example used to do, negates every vertical gradient.
  *
  * @return 3x3 Sobel Y kernel
  */
 cv::Mat createSobelYKernel()
 {
   return (cv::Mat_<float>(3, 3) <<
-         1, 2, 1,
+         -1, -2, -1,
          0, 0, 0,
-         -1, -2, -1);
+         1, 2, 1);
 }
 
 /**
@@ -123,18 +129,22 @@ cv::Mat createSobelYKernel()
  * Approximates horizontal derivative (∂f/∂x).
  * Detects vertical edges (changes in horizontal direction).
  *
- * Kernel:  [ 1  0 -1]
- *          [ 2  0 -2]
- *          [ 1  0 -1]
+ * Kernel:  [-1  0  1]
+ *          [-2  0  2]
+ *          [-1  0  1]
+ *
+ * The right column is the positive one, so a positive response means the
+ * intensity grows to the right. Same convention as cv::Sobel; see the note on
+ * createSobelYKernel about filter2D not flipping the kernel.
  *
  * @return 3x3 Sobel X kernel
  */
 cv::Mat createSobelXKernel()
 {
   return (cv::Mat_<float>(3, 3) <<
-         1, 0, -1,
-         2, 0, -2,
-         1, 0, -1);
+         -1, 0, 1,
+         -2, 0, 2,
+         -1, 0, 1);
 }
 
 int main(int argc, char ** argv)

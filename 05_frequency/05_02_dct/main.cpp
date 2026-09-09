@@ -112,10 +112,11 @@ int main(int argc, char ** argv)
   //
   // The 2D DCT transforms spatial data into frequency coefficients.
   //
-  // DCT formula:
-  //   F(u,v) = C(u)C(v) * sum_{x,y} f(x,y) * cos((2x+1)uπ/2N) * cos((2y+1)vπ/2M)
+  // DCT formula, with the same symbols as the book: W columns, H rows, and
+  // C(u,v) for the coefficient, so that F stays reserved for the DFT.
+  //   C(u,v) = a(u)a(v) * sum_{x,y} f(x,y) * cos((2x+1)uπ/2W) * cos((2y+1)vπ/2H)
   //
-  // Where C(0) = 1/sqrt(N), C(k) = sqrt(2/N) for k > 0
+  // Where a(0) = sqrt(1/W), a(u) = sqrt(2/W) for u > 0, and likewise with H for v
   //
   // The result is a matrix of DCT coefficients:
   //   - Top-left corner (0,0): DC coefficient (average brightness)

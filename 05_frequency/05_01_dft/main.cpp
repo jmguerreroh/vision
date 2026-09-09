@@ -67,7 +67,7 @@ void printHelp(char ** argv)
             << "=====================================\n"
             << "This program computes the DFT of an image and displays its power spectrum.\n\n"
             << "Usage: " << argv[0] << " [image_path]\n"
-            << "  image_path: Path to input image (default: starry_night.jpg)\n\n";
+            << "  image_path: Path to input image (default: starry_night.png)\n\n";
 }
 
 /**

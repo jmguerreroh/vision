@@ -73,7 +73,7 @@ void printHelp(char ** argv)
             << "This program demonstrates point operations where each output pixel\n"
             << "depends only on the corresponding input pixel.\n\n"
             << "Usage: " << argv[0] << " [image_path]\n"
-            << "  image_path: Path to input image (default: starry_night.jpg)\n\n";
+            << "  image_path: Path to input image (default: starry_night.png)\n\n";
 }
 
 /**

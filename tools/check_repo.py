@@ -192,6 +192,84 @@ def main():
                                       % (os.path.relpath(ruta, os.path.dirname(RAIZ)),
                                          n_lin, m.group(1)))
 
+        # Las rutas de datos que aparecen en la PROSA del libro no las alcanzaba
+        # ninguna comprobacion: las de los listados y las del printHelp si, pero
+        # una frase como "las monedas de data/coins.jpg" no. Asi sobrevivio a
+        # cuatro auditorias que el fichero se llama coins.png, mientras el propio
+        # ejemplo abria el .png correcto. Basta con exigir que todo data/algo.ext
+        # escrito en \texttt{} exista de verdad.
+        datos = os.path.join(RAIZ, 'data')
+        for ruta in sorted(glob.glob(os.path.join(libro, '*.tex'))):
+            texto = leer(ruta)
+            for n_lin, linea in enumerate(texto.split('\n'), 1):
+                for m in re.finditer(r'\\texttt\{[^}]*?data/([A-Za-z0-9_\\.-]+\.[A-Za-z0-9]{2,5})\}',
+                                     linea):
+                    nombre = m.group(1).replace('\\_', '_')
+                    if not glob.glob(os.path.join(datos, '**', nombre),
+                                     recursive=True):
+                        fallos.append('%s:%d cita data/%s en la prosa, y no existe'
+                                      % (os.path.relpath(ruta, os.path.dirname(RAIZ)),
+                                         n_lin, nombre))
+
+    # La cadena que imprime printHelp anuncia el fichero por defecto, pero el
+    # que se usa de verdad es el del CommandLineParser. Las dos se escriben a
+    # mano y en sitios distintos del fichero, asi que se separan sin que nada
+    # falle: tres ejemplos anunciaban starry_night.jpg y abrian starry_night.png.
+    # Como los dos ficheros existen, ni el programa ni la comprobacion de rutas
+    # se enteraban; lo unico que quedaba mal era el --help.
+    for f in sorted(glob.glob(os.path.join(RAIZ, '*', '*', 'main.cpp'))):
+        rel = os.path.relpath(f, RAIZ)
+        s_cpp = leer(f)
+        # solo nombres de fichero: el radical lleva alguna letra y la extension
+        # es alfabetica, para no confundir un 0.015 con un fichero
+        FICHERO = r'([\w-]*[A-Za-z][\w-]*\.[A-Za-z]{2,4})'
+        por_defecto = set(re.findall(r'\{@\w+\s*\|\s*\S*?' + FICHERO + r'\s*\|', s_cpp))
+        anunciados = set(re.findall(r'default:\s*' + FICHERO + r'\s*\)', s_cpp))
+        for nombre in sorted(anunciados - por_defecto):
+            fallos.append('%s: la ayuda anuncia %s y el parser usa %s'
+                          % (rel, nombre, ', '.join(sorted(por_defecto)) or 'otro'))
+
+    # Los nucleos que el repositorio escribe a mano tienen que coincidir con los
+    # que imprime el libro. Sobel es el caso que lo justifica: 03_02 definia sus
+    # dos mascaras con el signo cambiado respecto del libro y de cv::Sobel, de
+    # modo que el ejemplo devolvia el gradiente negado. Nada fallaba al
+    # compilar ni al ejecutar, y el lector veia un signo en el capitulo 3 y el
+    # contrario en el 7.
+    NUCLEOS = {
+        '03_pixel_and_filtering/03_02_convolution/main.cpp': {
+            'createSobelXKernel': [-1, 0, 1, -2, 0, 2, -1, 0, 1],
+            'createSobelYKernel': [-1, -2, -1, 0, 0, 0, 1, 2, 1],
+        },
+    }
+    for rel, funciones in NUCLEOS.items():
+        ruta = os.path.join(RAIZ, rel)
+        if not os.path.isfile(ruta):
+            fallos.append('%s: no existe y hay nucleos declarados sobre el' % rel)
+            continue
+        s_cpp = leer(ruta)
+        for funcion, esperado in funciones.items():
+            m = re.search(re.escape(funcion) + r'\(\)\s*\{(.*?)\n\}', s_cpp, re.S)
+            if not m:
+                fallos.append('%s: no se encuentra %s' % (rel, funcion))
+                continue
+            visto = [int(x) for x in re.findall(r'-?\d+', m.group(1))
+                     if x not in ('3', '32')][:len(esperado)]
+            if visto != esperado:
+                fallos.append('%s: %s vale %s y el libro escribe %s'
+                              % (rel, funcion, visto, esperado))
+
+    # El libro fija W (columnas) y H (filas) para las dimensiones de una imagen,
+    # y reserva M y N para otras cosas. Dos ejemplos de frecuencia usaban M y N,
+    # y ademas con sentidos opuestos entre si: en 05_01 N era el alto y en 05_02
+    # era el ancho. Un lector que compare la formula del libro con la del
+    # ejemplo encuentra letras distintas para lo mismo.
+    for f in sorted(glob.glob(os.path.join(RAIZ, '*', '*', '*.cpp'))):
+        rel = os.path.relpath(f, RAIZ)
+        for n_lin, linea in enumerate(leer(f).split('\n'), 1):
+            if re.search(r'\bint\s+[MN]\s*[,)=]', linea):
+                fallos.append('%s:%d declara M o N como dimension; el libro usa W y H'
+                              % (rel, n_lin))
+
     if fallos:
         print('\nFALLO: %d incoherencia(s)\n' % len(fallos))
         for f in fallos:
@@ -201,6 +279,9 @@ def main():
         print('%d ejemplos comprobados.' % len(lista))
         print('OK: nombres, cabeceras, citas, rutas de datos y ayuda son coherentes.')
         print('OK: los binarios que invocan los listados del libro existen.')
+        print('OK: la ayuda coincide con el parser y los nucleos con los del libro.')
+        print('OK: las dimensiones se escriben W y H, como en el libro.')
+        print('OK: las rutas data/ citadas en la prosa del libro existen.')
     return 0
 
 
