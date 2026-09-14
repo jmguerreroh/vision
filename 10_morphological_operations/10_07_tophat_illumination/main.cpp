@@ -34,6 +34,9 @@
 // Configuration constants
 namespace Config
 {
+// The grid puts several panels side by side, so it allows more width than a
+// single image: at 800 px each panel would be unreadable
+constexpr int MAX_GRID_WIDTH = 1200;
 constexpr int MAX_OPERATOR = 1;
 constexpr int MAX_KERNEL_SIZE = 30;
 constexpr int DEFAULT_KERNEL_SIZE = 12;   // 2*12+1 = 25 pixels
@@ -124,8 +127,8 @@ void topHat(int, void *)
   cv::hconcat(panels[2], panels[3], row2);
   cv::vconcat(row1, row2, grid);
 
-  if (grid.cols > 1200) {
-    const double scale = 1200.0 / grid.cols;
+  if (grid.cols > Config::MAX_GRID_WIDTH) {
+    const double scale = static_cast<double>(Config::MAX_GRID_WIDTH) / grid.cols;
     cv::resize(grid, grid, cv::Size(), scale, scale);
   }
 

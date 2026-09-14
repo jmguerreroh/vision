@@ -67,7 +67,6 @@ namespace Config
 constexpr int DELAY_CAPTION = 1500;           // Delay for caption display (ms)
 constexpr int DELAY_BLUR = 100;               // Delay between blur iterations (ms)
 constexpr int MAX_KERNEL_LENGTH = 31;         // Maximum kernel size
-const cv::Size IMAGE_SIZE(512, 512);          // Standard display size
 const std::string WINDOW_NAME = "Smoothing Demo";
 
 // Bilateral filter parameters
@@ -80,13 +79,29 @@ constexpr double BILATERAL_SIGMA_SPACE_DIVISOR = 2.0;       // Coordinate space 
  * @param src Source image used to determine display size
  * @param caption Text message to display
  * @return true if user pressed a key (to exit), false otherwise
+ *
+ * cv::getTextSize measures the text so the caption can be centred and, if it
+ * still does not fit across the image, written smaller. Starting it at a fixed
+ * fraction of the width left the longest caption running off the right edge
  */
 bool displayCaption(const cv::Mat & src, const std::string & caption)
 {
   cv::Mat display = cv::Mat::zeros(src.size(), src.type());
-  cv::putText(display, caption,
-              cv::Point(src.cols / 4, src.rows / 2),
-              cv::FONT_HERSHEY_COMPLEX, fontFor(display, 1), cv::Scalar(255, 255, 255));
+
+  const int margin = src.cols / 20;
+  const int available = src.cols - 2 * margin;
+  int baseline = 0;
+  double scale = fontFor(display, 1);
+  cv::Size text = cv::getTextSize(caption, cv::FONT_HERSHEY_COMPLEX, scale, 1, &baseline);
+
+  if (text.width > available) {
+    scale *= static_cast<double>(available) / text.width;
+    text = cv::getTextSize(caption, cv::FONT_HERSHEY_COMPLEX, scale, 1, &baseline);
+  }
+
+  const cv::Point origin((src.cols - text.width) / 2, (src.rows + text.height) / 2);
+  cv::putText(display, caption, origin,
+              cv::FONT_HERSHEY_COMPLEX, scale, cv::Scalar(255, 255, 255));
   showFit(Config::WINDOW_NAME, display);
   return cv::waitKey(Config::DELAY_CAPTION) >= 0;
 }
@@ -273,9 +288,6 @@ int main(int argc, char ** argv)
     std::cerr << "Usage: " << argv[0] << " [image_path]" << std::endl;
     return EXIT_FAILURE;
   }
-
-  // Resize to standard size for consistent display
-  cv::resize(src, src, Config::IMAGE_SIZE);
 
   std::cout << "=== Smoothing Filters Demo ===" << std::endl;
   std::cout << "Image: " << filename << " (" << src.cols << "x" << src.rows << ")" << std::endl;

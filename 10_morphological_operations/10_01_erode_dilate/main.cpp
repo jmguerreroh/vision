@@ -71,8 +71,10 @@ MorphApp app;
 
 /**
  * @brief Callback function for trackbar events - applies erosion or dilation
- * @param[in] Unused parameter required by OpenCV callback signature
- * @param[in] Unused user data pointer
+ *
+ * @note The two parameters are imposed by the OpenCV trackbar callback
+ *       signature and are deliberately left unnamed: there is nothing to
+ *       document about them, and the state comes from the global app object.
  *
  * Erosion: Shrinks bright regions and removes small white noise
  * Dilation: Expands bright regions and fills small holes

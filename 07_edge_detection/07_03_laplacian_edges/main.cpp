@@ -74,9 +74,6 @@ int main(int argc, char ** argv)
     return EXIT_FAILURE;
   }
 
-  // Resize to standard dimensions
-  cv::resize(src, src, cv::Size(512, 512));
-
   // Convert to grayscale for better edge detection
   cv::Mat gray;
   cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);

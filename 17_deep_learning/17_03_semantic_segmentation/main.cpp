@@ -159,6 +159,7 @@ cv::Mat makeBlob(const cv::Mat & frame)
 /**
  * @brief Label of every pixel: the class with the highest score
  * @param scores Network output, 1 x C x H x W
+ * @param num_classes Output: C, the number of channels of scores
  * @return CV_8U image of H x W with the class index
  *
  * Done channel by channel with matrix operations instead of a triple loop:

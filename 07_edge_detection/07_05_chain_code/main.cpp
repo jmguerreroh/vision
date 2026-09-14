@@ -122,7 +122,7 @@ std::vector<int> computeChainCode(const std::vector<cv::Point> & contour)
  * @brief Draws directional arrows on contour to visualize chain code
  * @param image Image to draw on
  * @param contour Contour points
- * @param chainCode Chain code directions
+ * @param chain_code Chain code directions
  * @param color Arrow color
  * @param step Draw arrow every 'step' points (default 1)
  */
@@ -151,7 +151,7 @@ void drawChainCodeArrows(
 
 /**
  * @brief Computes the first difference of a chain code
- * @param chainCode Original chain code
+ * @param chain_code Original chain code
  * @return First difference chain code (rotation invariant)
  *
  * First difference = (code[i] - code[i-1]) mod 8

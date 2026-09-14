@@ -26,6 +26,9 @@
 void compareImages(
   const std::string & title, const cv::Mat & distorted, const cv::Mat & undistorted)
 {
+  // The two views are shown side by side, so each one gets half the screen
+  // width. The reduction keeps the aspect ratio and touches only the copy that
+  // is displayed, never the images the calibration runs on
   cv::Mat dist_copy, undist_copy;
   cv::resize(distorted, dist_copy, cv::Size(distorted.cols / 2, distorted.rows / 2));
   cv::putText(
@@ -118,7 +121,8 @@ int main(int argc, char ** argv)
     std::vector<cv::Point2f> corners;
     bool pattern_found = cv::findChessboardCorners(
       grayscale,                      // Input: Grayscale image
-      chess_board_size,               // Input: Size of the chessboard pattern (rows, cols)
+      chess_board_size,               // Input: inner corners as cv::Size(width, height),
+                                      // that is (corners per row, corners per column)
       corners,                        // Output: Detected 2D corner points
       cv::CALIB_CB_ADAPTIVE_THRESH |  // Input: Optional flags for optimization
       cv::CALIB_CB_NORMALIZE_IMAGE |

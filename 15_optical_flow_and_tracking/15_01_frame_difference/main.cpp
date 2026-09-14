@@ -70,8 +70,8 @@ cv::Mat applyHeatmap(const cv::Mat & gray)
 /**
  * @brief Draw info overlay on image
  * @param img Image to draw on (modified in place)
- * @param numFrames Number of frames being accumulated
- * @param useColor Whether color mode is enabled
+ * @param num_frames Number of frames being accumulated
+ * @param use_color Whether color mode is enabled
  * @param fps Current frames per second
  * @param x0 Left edge to write from, so the text lands on the right half
  */

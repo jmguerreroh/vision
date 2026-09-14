@@ -74,9 +74,6 @@ int main(int argc, char ** argv)
     return EXIT_FAILURE;
   }
 
-  // Resize image to standard size for consistent processing
-  cv::resize(src, src, cv::Size(512, 512));
-
   // ========================================
   // Method 1: Manual Sobel masks with filter2D
   // ========================================

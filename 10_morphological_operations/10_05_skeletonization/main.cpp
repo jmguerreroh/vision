@@ -31,10 +31,14 @@
 #include <vector>
 #include <chrono>
 
+// The comparison grid puts several panels side by side, so it allows more
+// width than a single image: at 800 px each panel would be unreadable
+constexpr int MAX_GRID_WIDTH = 1200;
+
 // 8-neighborhood offsets in clockwise order starting from P1 (top)
 // Index: 0=P1, 1=P2, 2=P3, 3=P4, 4=P5, 5=P6, 6=P7, 7=P8
-const int DY[] = {-1, -1, 0, 1, 1, 1, 0, -1};   // incremento de fila
-const int DX[] = {0, 1, 1, 1, 0, -1, -1, -1};   // incremento de columna
+const int DY[] = {-1, -1, 0, 1, 1, 1, 0, -1};   // row offset
+const int DX[] = {0, 1, 1, 1, 0, -1, -1, -1};   // column offset
 
 /**
  * @brief Get neighbor pixel value (0 or 1)
@@ -308,8 +312,8 @@ int main(int argc, char ** argv)
   cv::vconcat(row1, row2, comparison);
 
   // Resize if too large
-  if (comparison.cols > 1200) {
-    double scale = 1200.0 / comparison.cols;
+  if (comparison.cols > MAX_GRID_WIDTH) {
+    double scale = static_cast<double>(MAX_GRID_WIDTH) / comparison.cols;
     cv::resize(comparison, comparison, cv::Size(), scale, scale);
   }
 

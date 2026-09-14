@@ -39,9 +39,9 @@ cmake --build vision_examples/build
 Executables are in `vision_examples/bin/`. For example:
 
 ```bash
-./02_01_read_image
-./05_01_dft_frequencies
-./14_02_stereo_disparity
+./vision_examples/bin/02_01_read_image
+./vision_examples/bin/05_01_dft_frequencies
+./vision_examples/bin/14_02_stereo_disparity
 ```
 
 > Note: the default inputs are written as `../../data/...`, which resolves to
@@ -51,13 +51,13 @@ Executables are in `vision_examples/bin/`. For example:
 
 ### Command-line interface
 
-Every example follows the same convention, so any of them can be run without
+From the repository root, every example follows the same convention, so any of them can be run without
 reading its source first:
 
 ```bash
-./example                 # runs with its default input, taken from data/
-./example my_image.jpg    # overrides the input
-./example --help          # prints what the example accepts and its defaults
+./vision_examples/bin/example                 # runs with its default input, taken from data/
+./vision_examples/bin/example my_image.jpg    # overrides the input
+./vision_examples/bin/example --help          # prints what the example accepts and its defaults
 ```
 
 OpenCV examples use `cv::CommandLineParser`; PCL examples use PCL's own
@@ -276,6 +276,12 @@ Verify:
 ```bash
 pkg-config --modversion opencv4
 ```
+
+Every example but one runs on OpenCV 4.6, the version the Ubuntu 22.04 package
+installs. The exception is `17_02`: its YOLO11 model in ONNX needs **OpenCV 4.9
+or newer**, because earlier ONNX readers do not understand the `Split` node the
+way YOLO11 writes it. With an older OpenCV the example reports exactly that and
+exits, and `17_01` covers the same ground with a model that loads anywhere.
 
 **PCL:**
 

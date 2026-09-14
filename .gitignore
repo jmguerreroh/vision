@@ -1,33 +1,81 @@
-# Artefactos de compilacion
+# ---------------------------------------------------------------------------
+# Build artefacts
+# ---------------------------------------------------------------------------
 vision_examples/build/
 vision_examples/bin/
 *.o
 
-# Artefactos de colcon (capitulo 14, paquetes de ROS 2)
+# colcon, for the ROS 2 packages of chapter 18
 build/
 install/
 log/
 
-# Entornos y caches de Python
+# ---------------------------------------------------------------------------
+# Python environments and caches
+# ---------------------------------------------------------------------------
 .venv/
 __pycache__/
 *.pyc
 
-# Modelos que descargan o exportan los ejemplos (no se versionan: pesan y se
-# regeneran con download_model.sh / export_model.py)
+# ---------------------------------------------------------------------------
+# Model weights the examples download or export
+#
+# Not versioned: they are large and download_model.sh / export_model.py bring
+# them back.
+# ---------------------------------------------------------------------------
 data/models/
 
-# Salidas que escriben los ejemplos al ejecutarse
-/cloud.ply
-/calibration.yml
-/stereo_calibration.yml
-/svm_result.png
+# ---------------------------------------------------------------------------
+# Whatever the examples write when they run
+#
+# Every example runs from its own directory and writes there, so the pattern is
+# anchored to the two levels of the example tree, <chapter>/<example>/. It has
+# to be: an earlier version anchored these to the repository root and therefore
+# never matched anything, and running the examples left the tree dirty.
+#
+# Matching by extension rather than by name is deliberate, so that a new output
+# is covered without touching this file. It is safe here because only .cpp,
+# Makefile, CMakeLists.txt, .sh and .py are versioned inside an example
+# directory. The same pattern without the numeric prefixes would reach
+# data/aruco/*.yml and .github/workflows/*.yml, which must stay visible.
+# ---------------------------------------------------------------------------
+[0-9][0-9]_*/[0-9][0-9]_*/*.ply
+[0-9][0-9]_*/[0-9][0-9]_*/*.pcd
+[0-9][0-9]_*/[0-9][0-9]_*/*.yml
+[0-9][0-9]_*/[0-9][0-9]_*/*.yaml
+[0-9][0-9]_*/[0-9][0-9]_*/*.xml
+[0-9][0-9]_*/[0-9][0-9]_*/*.png
+[0-9][0-9]_*/[0-9][0-9]_*/*.jpg
+[0-9][0-9]_*/[0-9][0-9]_*/*.avi
+[0-9][0-9]_*/[0-9][0-9]_*/*.mp4
+[0-9][0-9]_*/[0-9][0-9]_*/*.csv
 
-# Editor
+# ---------------------------------------------------------------------------
+# Editor and local tooling
+# ---------------------------------------------------------------------------
 .vscode/
+.claude/
 
-# Binarios que construye el Makefile o el CMakeLists de cada ejemplo.
-# Cada uno se llama como su carpeta, igual que el objetivo del CMakeLists raiz.
+# ---------------------------------------------------------------------------
+# Retired material
+# ---------------------------------------------------------------------------
+old/*
+
+# ---------------------------------------------------------------------------
+# The binary each example builds
+#
+# Building an example on its own leaves the binary next to its sources, named
+# after its own directory. gitignore cannot express "a file named like the
+# directory that holds it", and it cannot match "no extension" either, so the
+# list below is explicit.
+#
+# That is the safer failure mode: forget an entry and the new binary shows up
+# as untracked, which is visible. A whitelist of source extensions would fail
+# the other way, hiding a new kind of source file without a word.
+#
+# Add a line when you add an example, or build from the root CMakeLists, which
+# puts every binary in vision_examples/bin/ instead.
+# ---------------------------------------------------------------------------
 /*/02_01_read_image/02_01_read_image
 /*/02_02_color_spaces/02_02_color_spaces
 /*/02_03_mat_copy_roi/02_03_mat_copy_roi
@@ -104,6 +152,3 @@ data/models/
 /*/17_02_yolo_ultralytics/17_02_yolo_ultralytics
 /*/17_03_semantic_segmentation/17_03_semantic_segmentation
 /*/05_01_dft/05_01_dft_frequencies
-
-examen_teoria_va.txt
-old/*

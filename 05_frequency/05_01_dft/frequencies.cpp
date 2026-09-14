@@ -115,7 +115,7 @@ void printHelp(char ** argv)
             << "  2) Image reconstruction: " << argv[0]
             << " [image_path] [--maxfreq=N] [--size=N]\n"
             << "     - Progressive reconstruction from frequency components\n"
-            << "     - image_path: Image to decompose and reconstruct (default: starry_night.jpg)\n"
+            << "     - image_path: Image to decompose and reconstruct (default: starry_night.png)\n"
             << "     - maxfreq: Maximum frequency (default: max(width, height) / 2)\n"
             << "     - size: Basis wave size (default: max(width, height))\n\n"
             << "Formula: Z(x,y) = cos(2π(ux/W + vy/H))\n\n"

@@ -45,6 +45,9 @@ namespace
 // always runs at full resolution: only the copy sent to the screen is reduced,
 // with INTER_AREA, which is the interpolation meant for shrinking
 constexpr int MAX_DISPLAY_SIDE = 800;
+// The comparison grid puts several panels side by side, so it allows more
+// width than a single image: at 800 px each panel would be unreadable
+constexpr int MAX_GRID_WIDTH = 1600;
 
 // Returns the copy that goes to the screen, already reduced. Whatever is drawn
 // on the result keeps its size in screen pixels, so labels are written here and
@@ -204,8 +207,8 @@ int main(int argc, char ** argv)
   cv::vconcat(row1, row2, comparison);
 
   // Resize for display if too large
-  if (comparison.cols > 1600) {
-    double scale = 1600.0 / comparison.cols;
+  if (comparison.cols > MAX_GRID_WIDTH) {
+    double scale = static_cast<double>(MAX_GRID_WIDTH) / comparison.cols;
     cv::resize(comparison, comparison, cv::Size(), scale, scale);
   }
 

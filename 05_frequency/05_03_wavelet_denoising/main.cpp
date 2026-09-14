@@ -338,6 +338,7 @@ void normalizeForDisplay(cv::Mat & mat)
 /**
  * @brief Process a static image with Haar wavelet denoising
  * @param image_path Path to the input image
+ * @param NUM_ITERATIONS Number of Haar decomposition levels
  * @return 0 on success, negative on error
  */
 int processImage(const std::string & image_path, const int NUM_ITERATIONS)
@@ -414,6 +415,7 @@ int processImage(const std::string & image_path, const int NUM_ITERATIONS)
  * 3. Filtered/denoised result
  *
  * @param capture OpenCV video capture object
+ * @param NUM_ITERATIONS Number of Haar decomposition levels
  * @return 0 on success
  */
 int processVideo(cv::VideoCapture & capture, const int NUM_ITERATIONS)

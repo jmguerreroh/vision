@@ -164,7 +164,7 @@ cv::Mat fftShift(const cv::Mat & magI)
 
 /**
  * @brief Computes the magnitude spectrum from a complex DFT result
- * @param complexI Complex matrix from DFT
+ * @param complex_i Complex matrix from DFT
  * @return Normalized magnitude spectrum ready for display
  *
  * The magnitude spectrum shows the amplitude of each frequency component.

@@ -73,7 +73,7 @@ namespace Config
 // Filter parameters
 constexpr float GAMMA_L = 0.25f;      // gain at the origin: attenuates illumination
 constexpr float GAMMA_H = 1.40f;      // gain far from the origin: boosts reflectance
-constexpr float D0 = 8.0f;            // cut-off radius, in frequency samples
+constexpr float D0 = 8.0f;            // cut-off radius, in DFT samples (cycles per image)
 constexpr float C = 1.0f;             // sharpness of the transition
 
 // Synthetic illumination: a soft spot on the upper right corner
@@ -82,6 +82,13 @@ constexpr double SPOT = 0.78;         // extra light under the spot
 
 // Local contrast measurement
 constexpr int WINDOW = 31;            // side of the window, in pixels
+
+// The two measured regions, as fractions of the image rather than in pixels,
+// so they keep pointing at the same places whatever its size: the shaded
+// corner, opposite the spot, and the lit area around it
+constexpr double SHADE_X = 0.04, SHADE_Y = 0.62;   // top-left corner of each
+constexpr double LIT_X = 0.62, LIT_Y = 0.09;
+constexpr double REGION_W = 0.29, REGION_H = 0.31; // size, shared by both
 constexpr double CLIP_PERCENT = 0.01; // discarded at each end before rescaling
 }
 
@@ -210,6 +217,22 @@ cv::Mat homomorphicFilter(const cv::Mat & gray)
 }
 
 /**
+ * @brief Builds a rectangle from fractions of an image size
+ * @param size Size of the image the rectangle refers to
+ * @param x Left edge, as a fraction of the width
+ * @param y Top edge, as a fraction of the height
+ * @param w Width, as a fraction of the width
+ * @param h Height, as a fraction of the height
+ * @return The rectangle, in pixels
+ */
+cv::Rect fractionOfImage(cv::Size size, double x, double y, double w, double h)
+{
+  return cv::Rect(
+    cvRound(x * size.width), cvRound(y * size.height),
+    cvRound(w * size.width), cvRound(h * size.height));
+}
+
+/**
  * @brief Mean local contrast inside a region
  * @param gray Image to measure
  * @param region Rectangle to average over
@@ -256,7 +279,6 @@ int main(int argc, char ** argv)
     std::cerr << "Usage: " << argv[0] << " [image_path]" << std::endl;
     return EXIT_FAILURE;
   }
-  cv::resize(original, original, cv::Size(480, 320));
 
   std::cout << "=== Homomorphic Filtering Demo ===" << std::endl;
   std::cout << "gammaL = " << Config::GAMMA_L << ", gammaH = " << Config::GAMMA_H
@@ -273,7 +295,8 @@ int main(int argc, char ** argv)
   showFit("After the homomorphic filter", filtered);
 
   // Measure the shaded area: bottom left, away from the spot
-  const cv::Rect shade(20, 200, 140, 100);
+  const cv::Rect shade = fractionOfImage(observed.size(),
+      Config::SHADE_X, Config::SHADE_Y, Config::REGION_W, Config::REGION_H);
   std::cout << "\nLocal contrast in the shaded area (" << Config::WINDOW << "x"
             << Config::WINDOW << " window):" << std::endl;
   std::cout << "  observed:   " << localContrast(observed, shade) << std::endl;
@@ -283,7 +306,8 @@ int main(int argc, char ** argv)
             << std::endl;
 
   // And how uniform the illumination has become
-  const cv::Rect lit(300, 30, 140, 100);
+  const cv::Rect lit = fractionOfImage(observed.size(),
+      Config::LIT_X, Config::LIT_Y, Config::REGION_W, Config::REGION_H);
   const double before = cv::mean(observed(lit))[0] / cv::mean(observed(shade))[0];
   const double after = cv::mean(filtered(lit))[0] / cv::mean(filtered(shade))[0];
   std::cout << "\nBrightness of the lit area divided by the shaded one:"
