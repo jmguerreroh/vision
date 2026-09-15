@@ -224,23 +224,23 @@ chapter and its code.
 
 | Chapter | Folder | Topic | Examples |
 |---------|--------|-------|----------|
-| 02 | `03_digital_image_and_color` | Image formation | read image, color spaces, Mat copy & ROI, pixel access, video capture |
-| 03 | `04_pixel_and_filtering` | Pixel operations and spatial filtering | point ops, convolution, bitwise, intensity transforms, smoothing |
-| 04 | `05_histogram` | The histogram | histogram equalization, matching, comparison |
-| 05 | `06_frequency` | Frequency-domain transforms | DFT, DCT, wavelet denoising, Gabor bank, homomorphic filter |
-| 06 | `07_geometric_and_registration` | Geometric transforms and registration | affine transforms, perspective correction |
-| 07 | `08_edge_detection` | Edge detection | Sobel, Canny, Laplacian, contour extraction, chain code |
-| 08 | `09_model_fitting` | Model fitting | Hough lines, Hough circles |
-| 09 | `10_region_segmentation` | Region segmentation | threshold, connected components, color segmentation |
-| 10 | `11_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
-| 11 | `12_region_descriptors` | Region descriptors | region moments, Hu moments |
-| 12 | `13_keypoints` | Keypoints | Harris, Shi-Tomasi, ORB, RANSAC matching |
-| 13 | `14_camera_calibration` | Camera geometry and calibration | chessboard calibration, pose estimation (PnP), stereo calibration + rectification |
-| 14 | `15_3d_and_point_clouds` | 3D vision and point clouds | epipolar geometry, disparity, disparity to point cloud, OpenCV ICP, PCL I/O, visualizers, PCL ICP, RANSAC model fitting, registration, correspondence, plane + clustering |
-| 15 | `16_optical_flow_and_tracking` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |
-| 16 | `17_classical_ml` | Classical machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map |
-| 17 | `18_deep_learning` | Deep learning | YOLOv4, YOLO11, semantic segmentation |
-| 18 | `19_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
+| 03 | `03_digital_image_and_color` | Image formation | read image, color spaces, Mat copy & ROI, pixel access, video capture |
+| 04 | `04_pixel_and_filtering` | Pixel operations and spatial filtering | point ops, convolution, bitwise, intensity transforms, smoothing |
+| 05 | `05_histogram` | The histogram | histogram equalization, matching, comparison |
+| 06 | `06_frequency` | Frequency-domain transforms | DFT, DCT, wavelet denoising, Gabor bank, homomorphic filter |
+| 07 | `07_geometric_and_registration` | Geometric transforms and registration | affine transforms, perspective correction |
+| 08 | `08_edge_detection` | Edge detection | Sobel, Canny, Laplacian, contour extraction, chain code |
+| 09 | `09_model_fitting` | Model fitting | Hough lines, Hough circles |
+| 10 | `10_region_segmentation` | Region segmentation | threshold, connected components, color segmentation |
+| 11 | `11_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
+| 12 | `12_region_descriptors` | Region descriptors | region moments, Hu moments |
+| 13 | `13_keypoints` | Keypoints | Harris, Shi-Tomasi, ORB, RANSAC matching |
+| 14 | `14_camera_calibration` | Camera geometry and calibration | chessboard calibration, pose estimation (PnP), stereo calibration + rectification |
+| 15 | `15_3d_and_point_clouds` | 3D vision and point clouds | epipolar geometry, disparity, disparity to point cloud, OpenCV ICP, PCL I/O, visualizers, PCL ICP, RANSAC model fitting, registration, correspondence, plane + clustering |
+| 16 | `16_optical_flow_and_tracking` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |
+| 17 | `17_classical_ml` | Classical machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map |
+| 18 | `18_deep_learning` | Deep learning | YOLOv4, YOLO11, semantic segmentation |
+| 19 | `19_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
 
 Every example is **self-contained and runnable on its own**: they can be run in
 any order and none of them needs another to have run first. Two of them are
