@@ -27,7 +27,7 @@ import sys
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# El capitulo 18 son paquetes de ROS 2: los construye colcon por nombre de
+# El capitulo 19 son paquetes de ROS 2: los construye colcon por nombre de
 # paquete, no por carpeta numerada, asi que no se le aplican estas reglas.
 CAP_ROS2 = '19_vision_ros2'
 
@@ -153,7 +153,7 @@ def main():
                                  re.search(r'\+\s*"' + re.escape(nombre) + r'"', s)):
                         fallos.append('%s: cita %s, que no esta bajo data/' % (ej, nombre))
 
-    # 7. Cabecera de documentacion en todo el codigo, capitulo 18 incluido
+    # 7. Cabecera de documentacion en todo el codigo, capitulo 19 incluido
     fuentes = [f for f in glob.glob(os.path.join(RAIZ, '*', '*', '*.cpp')) +
                glob.glob(os.path.join(RAIZ, '*', '*', 'src', '*.cpp')) +
                glob.glob(os.path.join(RAIZ, '*', '*', 'include', '*', '*.hpp'))

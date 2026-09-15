@@ -5,7 +5,7 @@ vision_examples/build/
 vision_examples/bin/
 *.o
 
-# colcon, for the ROS 2 packages of chapter 18
+# colcon, for the ROS 2 packages of chapter 19
 build/
 install/
 log/
@@ -85,6 +85,7 @@ data/pcl_data/result_*.pcd
 # Add a line when you add an example, or build from the root CMakeLists, which
 # puts every binary in vision_examples/bin/ instead.
 # ---------------------------------------------------------------------------
+/*/02_01_thin_lens_dof/02_01_thin_lens_dof
 /*/03_01_read_image/03_01_read_image
 /*/03_02_color_spaces/03_02_color_spaces
 /*/03_03_mat_copy_roi/03_03_mat_copy_roi
@@ -125,6 +126,7 @@ data/pcl_data/result_*.pcd
 /*/11_08_distance_watershed/11_08_distance_watershed
 /*/12_01_region_moments/12_01_region_moments
 /*/12_02_hu_moments/12_02_hu_moments
+/*/12_03_convex_hull/12_03_convex_hull
 /*/13_01_harris_corners/13_01_harris_corners
 /*/13_02_shi_tomasi_corners/13_02_shi_tomasi_corners
 /*/13_03_orb_features/13_03_orb_features

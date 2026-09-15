@@ -65,6 +65,8 @@ endfunction()
 # heading is the book chapter, which is also the prefix of the folder.
 
 # --- 02 Image formation --------------------------------------------------------
+add_cv_example(02_image_formation/02_01_thin_lens_dof)
+
 add_cv_example(03_digital_image_and_color/03_01_read_image)
 add_cv_example(03_digital_image_and_color/03_02_color_spaces)
 add_cv_example(03_digital_image_and_color/03_03_mat_copy_roi)
@@ -124,6 +126,7 @@ add_cv_example(11_morphological_operations/11_08_distance_watershed)
 # --- 11 Region descriptors -----------------------------------------------------
 add_cv_example(12_region_descriptors/12_01_region_moments)
 add_cv_example(12_region_descriptors/12_02_hu_moments)
+add_cv_example(12_region_descriptors/12_03_convex_hull)
 
 # --- 12 Keypoints --------------------------------------------------------------
 add_cv_example(13_keypoints/13_01_harris_corners)

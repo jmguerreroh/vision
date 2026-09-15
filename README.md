@@ -90,9 +90,9 @@ cmake --build build
 ./build/15_09_pcl_icp
 ```
 
-### Building the ROS 2 examples (Chapter 18)
+### Building the ROS 2 examples (Chapter 19)
 
-The Chapter 18 examples live here like every other chapter, under
+The Chapter 19 examples live here like every other chapter, under
 `19_vision_ros2/`, but they are not built with the rest. They are ROS 2
 packages, not standalone programs: they need a workspace, they are built with
 `colcon` and they are run with `ros2 run`. The top-level `CMakeLists.txt`
@@ -176,7 +176,7 @@ printed. `data/building_facade.png`, `coins.png`, `chess.png`, `smarties.png`,
 `aerial_view.png`, `starry_night.png` and `futbol.png` are the very files that
 the figure-generating scripts of the book read.
 
-The optical flow examples of chapter 15 default to the same video, the overhead
+The optical flow examples of chapter 16 default to the same video, the overhead
 shot of a busy square that the book credits to Pexels 853889.
 
 Those photographs are around 1400 px on the long side, and the video is Full HD,
@@ -217,7 +217,7 @@ It exits non-zero on the first inconsistency, so it can be used in CI.
 
 The examples are organised by chapter and follow the order in which the book
 introduces the material. There are 80 in total: 75 numbered `NN_MM` examples,
-where `NN` is the book chapter, plus the 5 ROS 2 packages of chapter 18, which
+where `NN` is the book chapter, plus the 5 ROS 2 packages of chapter 19, which
 are named after the package instead of numbered because `colcon` builds them by
 name. The folder column below is the authoritative mapping between a book
 chapter and its code.
