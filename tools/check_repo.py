@@ -29,7 +29,7 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # El capitulo 18 son paquetes de ROS 2: los construye colcon por nombre de
 # paquete, no por carpeta numerada, asi que no se le aplican estas reglas.
-CAP_ROS2 = '18_vision_ros2'
+CAP_ROS2 = '19_vision_ros2'
 
 
 def leer(ruta):
@@ -236,7 +236,7 @@ def main():
     # compilar ni al ejecutar, y el lector veia un signo en el capitulo 3 y el
     # contrario en el 7.
     NUCLEOS = {
-        '03_pixel_and_filtering/03_02_convolution/main.cpp': {
+        '04_pixel_and_filtering/04_02_convolution/main.cpp': {
             'createSobelXKernel': [-1, 0, 1, -2, 0, 2, -1, 0, 1],
             'createSobelYKernel': [-1, -2, -1, 0, 0, 0, 1, 2, 1],
         },

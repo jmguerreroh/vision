@@ -23,11 +23,11 @@ Notas:
   guiones de `cv_book/tools` para generar las figuras, que las leen de su propia
   copia en `cv_book/images/data`. Un ejemplo lanzado sin argumentos trabaja por
   tanto sobre la misma imagen que el lector acaba de ver impresa.
-- Las imágenes `right*.jpg` no aparecen en el código: `13_03_stereo_calibration`
+- Las imágenes `right*.jpg` no aparecen en el código: `14_03_stereo_calibration`
   las deriva de las `left*.jpg` sustituyendo una palabra por la otra. Son
   necesarias aunque ninguna ruta las nombre.
-- `test_pcd.pcd` lo escribe `14_05_pcl_write`, con un generador de semilla fija,
-  y lo lee `14_06_pcl_read`. Está versionado para que el segundo funcione en un
+- `test_pcd.pcd` lo escribe `15_05_pcl_write`, con un generador de semilla fija,
+  y lo lee `15_06_pcl_read`. Está versionado para que el segundo funcione en un
   clon recién hecho.
 - Antes de cualquier redistribución comercial conviene revisar esta tabla: si un
   fichero no aparece en ella, debe asumirse procedencia OpenCV salvo

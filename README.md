@@ -24,8 +24,8 @@ source ~/.bashrc
 > distribution package these are usually included; if you built OpenCV from
 > source, follow the *Installation from source* section below and pass
 > `OPENCV_EXTRA_MODULES_PATH`. The examples that need them are:
-> `10_05_skeletonization`, `13_02_pose_estimation`, `14_02_stereo_disparity`
-> and `14_04_opencv_icp`.
+> `11_05_skeletonization`, `14_02_pose_estimation`, `15_02_stereo_disparity`
+> and `15_04_opencv_icp`.
 
 ### Building all examples at once (recommended)
 
@@ -39,9 +39,9 @@ cmake --build vision_examples/build
 Executables are in `vision_examples/bin/`. For example:
 
 ```bash
-./vision_examples/bin/02_01_read_image
-./vision_examples/bin/05_01_dft_frequencies
-./vision_examples/bin/14_02_stereo_disparity
+./vision_examples/bin/03_01_read_image
+./vision_examples/bin/06_01_dft_frequencies
+./vision_examples/bin/15_02_stereo_disparity
 ```
 
 > Note: the default inputs are written as `../../data/...`, which resolves to
@@ -74,9 +74,9 @@ of its folder, exactly like the one the top-level build produces, so both ways
 of compiling give the same binary:
 
 ```bash
-cd 07_edge_detection/07_02_canny_edges
+cd 08_edge_detection/08_02_canny_edges
 make
-./07_02_canny_edges
+./08_02_canny_edges
 ```
 
 ### Building a single example (PCL)
@@ -84,16 +84,16 @@ make
 Each PCL example has its own `CMakeLists.txt`:
 
 ```bash
-cd 14_3d_and_point_clouds/14_09_pcl_icp
+cd 15_3d_and_point_clouds/15_09_pcl_icp
 cmake -B build
 cmake --build build
-./build/14_09_pcl_icp
+./build/15_09_pcl_icp
 ```
 
 ### Building the ROS 2 examples (Chapter 18)
 
 The Chapter 18 examples live here like every other chapter, under
-`18_vision_ros2/`, but they are not built with the rest. They are ROS 2
+`19_vision_ros2/`, but they are not built with the rest. They are ROS 2
 packages, not standalone programs: they need a workspace, they are built with
 `colcon` and they are run with `ros2 run`. The top-level `CMakeLists.txt`
 ignores that folder on purpose, so the repository still builds for anyone who
@@ -106,8 +106,8 @@ cloud `pcl_demo` consumes.
 
 ```bash
 cd <repository root>
-rosdep install --from-paths 18_vision_ros2 --ignore-src -r -y
-colcon build --base-paths 18_vision_ros2 --symlink-install
+rosdep install --from-paths 19_vision_ros2 --ignore-src -r -y
+colcon build --base-paths 19_vision_ros2 --symlink-install
 source install/setup.bash
 ```
 
@@ -190,7 +190,7 @@ Text is written on the reduced copy, or with the font raised by the same factor
 when it is a label anchored to a region, so that it stays readable instead of
 shrinking with the picture.
 
-The one exception to processing at full resolution is `15_03_dense_flow`:
+The one exception to processing at full resolution is `16_03_dense_flow`:
 Farneback costs 392 ms per frame at 1920x1080, ten times the 40 ms a 25 fps
 video allows, so it reduces the frames by `--scale` (0.5 by default, the same
 factor the book uses for its figures) before computing the flow. Pass
@@ -224,33 +224,33 @@ chapter and its code.
 
 | Chapter | Folder | Topic | Examples |
 |---------|--------|-------|----------|
-| 02 | `02_image_formation` | Image formation | read image, color spaces, Mat copy & ROI, pixel access, video capture |
-| 03 | `03_pixel_and_filtering` | Pixel operations and spatial filtering | point ops, convolution, bitwise, intensity transforms, smoothing |
-| 04 | `04_histogram` | The histogram | histogram equalization, matching, comparison |
-| 05 | `05_frequency` | Frequency-domain transforms | DFT, DCT, wavelet denoising, Gabor bank, homomorphic filter |
-| 06 | `06_geometric_and_registration` | Geometric transforms and registration | affine transforms, perspective correction |
-| 07 | `07_edge_detection` | Edge detection | Sobel, Canny, Laplacian, contour extraction, chain code |
-| 08 | `08_model_fitting` | Model fitting | Hough lines, Hough circles |
-| 09 | `09_region_segmentation` | Region segmentation | threshold, connected components, color segmentation |
-| 10 | `10_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
-| 11 | `11_region_descriptors` | Region descriptors | region moments, Hu moments |
-| 12 | `12_keypoints` | Keypoints | Harris, Shi-Tomasi, ORB, RANSAC matching |
-| 13 | `13_camera_calibration` | Camera geometry and calibration | chessboard calibration, pose estimation (PnP), stereo calibration + rectification |
-| 14 | `14_3d_and_point_clouds` | 3D vision and point clouds | epipolar geometry, disparity, disparity to point cloud, OpenCV ICP, PCL I/O, visualizers, PCL ICP, RANSAC model fitting, registration, correspondence, plane + clustering |
-| 15 | `15_optical_flow_and_tracking` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |
-| 16 | `16_classical_ml` | Classical machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map |
-| 17 | `17_deep_learning` | Deep learning | YOLOv4, YOLO11, semantic segmentation |
-| 18 | `18_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
+| 02 | `03_digital_image_and_color` | Image formation | read image, color spaces, Mat copy & ROI, pixel access, video capture |
+| 03 | `04_pixel_and_filtering` | Pixel operations and spatial filtering | point ops, convolution, bitwise, intensity transforms, smoothing |
+| 04 | `05_histogram` | The histogram | histogram equalization, matching, comparison |
+| 05 | `06_frequency` | Frequency-domain transforms | DFT, DCT, wavelet denoising, Gabor bank, homomorphic filter |
+| 06 | `07_geometric_and_registration` | Geometric transforms and registration | affine transforms, perspective correction |
+| 07 | `08_edge_detection` | Edge detection | Sobel, Canny, Laplacian, contour extraction, chain code |
+| 08 | `09_model_fitting` | Model fitting | Hough lines, Hough circles |
+| 09 | `10_region_segmentation` | Region segmentation | threshold, connected components, color segmentation |
+| 10 | `11_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
+| 11 | `12_region_descriptors` | Region descriptors | region moments, Hu moments |
+| 12 | `13_keypoints` | Keypoints | Harris, Shi-Tomasi, ORB, RANSAC matching |
+| 13 | `14_camera_calibration` | Camera geometry and calibration | chessboard calibration, pose estimation (PnP), stereo calibration + rectification |
+| 14 | `15_3d_and_point_clouds` | 3D vision and point clouds | epipolar geometry, disparity, disparity to point cloud, OpenCV ICP, PCL I/O, visualizers, PCL ICP, RANSAC model fitting, registration, correspondence, plane + clustering |
+| 15 | `16_optical_flow_and_tracking` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |
+| 16 | `17_classical_ml` | Classical machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map |
+| 17 | `18_deep_learning` | Deep learning | YOLOv4, YOLO11, semantic segmentation |
+| 18 | `19_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
 
 Every example is **self-contained and runnable on its own**: they can be run in
 any order and none of them needs another to have run first. Two of them are
 linked on purpose, and neither link is required:
 
-- `14_03_stereo_to_pointcloud` accepts `--calib=stereo_calibration.yml`, the
-  file that `13_03_stereo_calibration` writes. With it the pair is rectified
+- `15_03_stereo_to_pointcloud` accepts `--calib=stereo_calibration.yml`, the
+  file that `14_03_stereo_calibration` writes. With it the pair is rectified
   and the cloud comes out in real units; without it the example falls back to
   an assumed rig and says so.
-- `14_05_pcl_write` writes the `test_pcd.pcd` that `14_06_pcl_read` reads. That
+- `15_05_pcl_write` writes the `test_pcd.pcd` that `15_06_pcl_read` reads. That
   file is kept under version control, so `14_06` also works on a fresh clone.
   The generator of `14_05` is seeded, so running it rewrites the file byte for
   byte instead of producing a spurious change.
