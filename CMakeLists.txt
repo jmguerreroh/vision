@@ -14,11 +14,17 @@ add_compile_options(-Wall -Wextra -O2)
 find_package(OpenCV REQUIRED)
 find_package(Threads REQUIRED)
 find_package(MPI COMPONENTS C CXX)  # Must precede PCL so VTK::mpi resolves MPI::MPI_C
+find_package(jsoncpp CONFIG)  # Must precede PCL so VTK::jsoncpp resolves JsonCpp::JsonCpp
 
-find_package(PCL 1.10 REQUIRED COMPONENTS
+# Optional: PCL examples (chapter 15) are skipped if PCL isn't installed.
+find_package(PCL 1.10 QUIET COMPONENTS
   common io visualization keypoints features
   filters registration recognition kdtree sample_consensus
   segmentation search)
+if(NOT PCL_FOUND)
+  message(WARNING "PCL 1.10 not found - skipping chapter 15 PCL examples. "
+    "To install it on Ubuntu/Debian: sudo apt install libpcl-dev")
+endif()
 
 # --- Helper: add an OpenCV example --------------------------------------------
 # Usage: add_cv_example(<relative/path/to/dir> [EXTRA_LIBS lib1 lib2 ...])
@@ -144,15 +150,17 @@ add_cv_example(15_3d_and_point_clouds/15_01_epipolar_geometry)
 add_cv_example(15_3d_and_point_clouds/15_02_stereo_disparity)
 add_cv_example(15_3d_and_point_clouds/15_03_stereo_to_pointcloud)
 add_cv_example(15_3d_and_point_clouds/15_04_opencv_icp)
-add_pcl_example(15_3d_and_point_clouds/15_05_pcl_write)
-add_pcl_example(15_3d_and_point_clouds/15_06_pcl_read)
-add_pcl_example(15_3d_and_point_clouds/15_07_pcl_simple_visualizer)
-add_pcl_example(15_3d_and_point_clouds/15_08_pcl_advanced_visualizer)
-add_pcl_example(15_3d_and_point_clouds/15_09_pcl_icp)
-add_pcl_example(15_3d_and_point_clouds/15_10_pcl_ransac_model_fitting)
-add_pcl_example(15_3d_and_point_clouds/15_11_pcl_registration)
-add_pcl_example(15_3d_and_point_clouds/15_12_pcl_correspondence)
-add_pcl_example(15_3d_and_point_clouds/15_13_pcl_plane_clustering)
+if(PCL_FOUND)
+  add_pcl_example(15_3d_and_point_clouds/15_05_pcl_write)
+  add_pcl_example(15_3d_and_point_clouds/15_06_pcl_read)
+  add_pcl_example(15_3d_and_point_clouds/15_07_pcl_simple_visualizer)
+  add_pcl_example(15_3d_and_point_clouds/15_08_pcl_advanced_visualizer)
+  add_pcl_example(15_3d_and_point_clouds/15_09_pcl_icp)
+  add_pcl_example(15_3d_and_point_clouds/15_10_pcl_ransac_model_fitting)
+  add_pcl_example(15_3d_and_point_clouds/15_11_pcl_registration)
+  add_pcl_example(15_3d_and_point_clouds/15_12_pcl_correspondence)
+  add_pcl_example(15_3d_and_point_clouds/15_13_pcl_plane_clustering)
+endif()
 
 # --- 15 Optical flow and tracking ----------------------------------------------
 add_cv_example(16_optical_flow_and_tracking/16_01_frame_difference)
