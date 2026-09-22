@@ -18,6 +18,32 @@ fi
 
 mkdir -p "$MODEL_DIR"
 
+PIP_PACKAGES="torch torchvision onnxscript"
+MISSING=""
+for mod in torch torchvision onnxscript; do
+  python3 -c "import $mod" 2>/dev/null || MISSING="$MISSING $mod"
+done
+
+if [ -n "$MISSING" ]; then
+  echo "WARNING: missing Python modules:$MISSING"
+  if [ -t 0 ]; then
+    read -r -p "Install them now with 'pip install --user --break-system-packages $PIP_PACKAGES'? [y/N] " reply
+    if [[ "$reply" =~ ^[Yy]$ ]]; then
+      pip install --user --break-system-packages $PIP_PACKAGES
+      MISSING=""
+      for mod in torch torchvision onnxscript; do
+        python3 -c "import $mod" 2>/dev/null || MISSING="$MISSING $mod"
+      done
+    fi
+  fi
+fi
+
+if [ -n "$MISSING" ]; then
+  echo "Skipping DeepLabV3 export - still missing:$MISSING"
+  echo "To install manually: pip install --user --break-system-packages $PIP_PACKAGES"
+  exit 0
+fi
+
 echo "=== Exporting DeepLabV3-MobileNetV3 to ONNX ==="
 python3 export_model.py
 

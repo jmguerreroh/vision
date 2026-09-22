@@ -19,6 +19,35 @@ fi
 
 mkdir -p "$MODEL_DIR"
 
+# Check for the Python modules needed to export to ONNX; ultralytics tries to
+# auto-install missing onnx/onnxruntime/onnxslim itself but that fails on
+# externally-managed environments (PEP 668), so we check them all upfront.
+PIP_PACKAGES="ultralytics onnx onnxruntime onnxslim"
+MISSING=""
+for mod in ultralytics onnx onnxruntime onnxslim; do
+  python3 -c "import $mod" 2>/dev/null || MISSING="$MISSING $mod"
+done
+
+if [ -n "$MISSING" ]; then
+  echo "WARNING: missing Python modules:$MISSING"
+  if [ -t 0 ]; then
+    read -r -p "Install them now with 'pip install --user --break-system-packages $PIP_PACKAGES'? [y/N] " reply
+    if [[ "$reply" =~ ^[Yy]$ ]]; then
+      pip install --user --break-system-packages $PIP_PACKAGES
+      MISSING=""
+      for mod in ultralytics onnx onnxruntime onnxslim; do
+        python3 -c "import $mod" 2>/dev/null || MISSING="$MISSING $mod"
+      done
+    fi
+  fi
+fi
+
+if [ -n "$MISSING" ]; then
+  echo "Skipping YOLO11 export - still missing:$MISSING"
+  echo "To install manually: pip install --user --break-system-packages $PIP_PACKAGES"
+  exit 0
+fi
+
 echo "=== Exporting YOLO11n to ONNX ==="
 python3 export_model.py
 

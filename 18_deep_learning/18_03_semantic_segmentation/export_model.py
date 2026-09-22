@@ -51,8 +51,12 @@ def main():
     model = torchvision.models.segmentation.deeplabv3_mobilenet_v3_large(
         weights="DEFAULT").eval()
     dummy = torch.randn(1, 3, INPUT_SIZE, INPUT_SIZE)
+    # dynamo=False: forces the legacy TorchScript-based exporter. Torch's newer
+    # "dynamo" exporter (default since torch 2.5) produces a graph OpenCV's DNN
+    # ONNX importer cannot read and splits weights into a separate .onnx.data file.
     torch.onnx.export(OnlyOutput(model), dummy, onnx_path, opset_version=12,
-                      input_names=["input"], output_names=["output"])
+                      input_names=["input"], output_names=["output"],
+                      dynamo=False)
     print(f"Model saved to {onnx_path}")
 
     names_path = os.path.join(MODEL_DIR, "voc.names")

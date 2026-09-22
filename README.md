@@ -308,6 +308,21 @@ dpkg -s libpcl-dev | grep Version
 
 > If you have ROS installed, OpenCV and PCL are likely already available through your ROS distribution.
 
+**Deep learning models (chapter 18, optional):**
+
+`18_02_yolo_ultralytics` and `18_03_semantic_segmentation` export their ONNX
+model on first build via a `download_model.sh`/`export_model.py` pair. If the
+required Python packages aren't installed, the script prints a warning and
+skips the export instead of failing the whole build.
+
+```bash
+pip install --user --break-system-packages ultralytics onnx onnxruntime onnxslim  # 18_02
+pip install --user --break-system-packages torch torchvision onnxscript           # 18_03
+```
+
+Re-run `bash download_model.sh` inside each example's folder (or rebuild its
+target) afterwards to generate the missing model files.
+
 ---
 
 <details>
