@@ -24,8 +24,8 @@
  *          6. Draw bounding boxes
  *
  *          Usage:
- *            ./yolo11                              (default: ../../data/vtest.avi)
- *            ./yolo11 ../../data/fruits.jpg
+ *            ./18_02_yolo_ultralytics  (default: ../../data/vtest.avi)
+ *            ./18_02_yolo_ultralytics ../../data/fruits.jpg
  *
  *          Export model (requires Python + ultralytics):
  *            python3 export_model.py

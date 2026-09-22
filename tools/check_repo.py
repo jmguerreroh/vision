@@ -92,6 +92,26 @@ def main():
                         fallos.append('%s/%s:%d cita ./%s, que no es ningun ejecutable'
                                       % (ej, os.path.basename(src), n, cita))
 
+    # 3b. Ningun fichero manda ejecutar un binario que no existe.
+    # La comprobacion 3 solo miraba la linea que lleva "Usage:" o "Example:", y
+    # solo en los .cpp. Se le escapaban seis invocaciones a nombres viejos
+    # (./yolov4, ./yolo11, ./semantic_segmentation) que vivian en las lineas
+    # siguientes de la misma cabecera y en los export_model.py. Aqui se mira
+    # cualquier ./algo, en .cpp, .py y .sh.
+    TOLERADOS_EJEC = {'download_model.sh', 'export_model.py', 'build'}
+    invocacion = re.compile(r'(?<![\w./])\./([A-Za-z0-9_][A-Za-z0-9_.-]*)')
+    for cap, ej in lista:
+        for patron in ('*.cpp', '*.py', '*.sh'):
+            for src in sorted(glob.glob(os.path.join(RAIZ, cap, ej, patron))):
+                for n, linea in enumerate(leer(src).split('\n'), 1):
+                    for cita in invocacion.findall(linea):
+                        if cita in nombres or cita in TOLERADOS_EJEC:
+                            continue
+                        if cita == '%s_frequencies' % ej:
+                            continue
+                        fallos.append('%s/%s:%d manda ejecutar ./%s, que no es ningun ejecutable'
+                                      % (ej, os.path.basename(src), n, cita))
+
     # 4. Toda cita NN_MM a otro ejemplo tiene que existir
     for cap, ej in lista:
         for src in glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp')):
@@ -149,6 +169,9 @@ def main():
 
     def evidencia(linea):
         """Lo que el comentario afirma sobre el ejemplo que cita."""
+        # Sin esto, "\\nNote:" dentro de un literal se lee como la palabra
+        # "nnote", que no es de nadie y marca la linea por nada.
+        linea = re.sub(r'\\[nrt]', ' ', linea)
         ev = set(re.findall(r'cv::(\w+)', linea))
         ev |= set(re.findall(r'\b([a-z]+[A-Z]\w*)\b', linea))     # filter2D, inRange
         ev |= {w for w in re.findall(r'\b(\w+)\b', linea) if w in MODULOS}
@@ -202,6 +225,106 @@ def main():
                 fallos.append('%s:%d cita %s, pero habla de %s (seria %s)'
                               % (rel, n, num, ', '.join(sorted(ev)),
                                  ' o '.join(cand[:3]) or 'ningun ejemplo'))
+
+    # 4c. Toda referencia a un capitulo del libro apunta al capitulo que trata
+    # de eso. Es el mismo defecto que la 4b y estuvo escondido justo al lado:
+    # la renumeracion corrio los capitulos y se corrigieron las citas NN_MM a
+    # otros ejemplos, pero no los numeros de capitulo sueltos, que son otra
+    # cosa. 22 de 33 apuntaban al capitulo de al lado. Dos se delataban solos,
+    # porque el numero del ejemplo si estaba bien y el del capitulo no:
+    # "are chapter 11 (12_01_region_moments)" y "Chapter 10 (11_06_flood_fill)".
+    #
+    # El capitulo N del libro es la carpeta NN, asi que el vocabulario del
+    # capitulo es el de todos sus ejemplos juntos. Se aplica el mismo criterio
+    # que en 4b: la evidencia del propio capitulo que escribe no cuenta, y la
+    # que aparece en casi todos los capitulos tampoco, porque no distingue.
+    # Palabras que dan nombre a alguna carpeta y aun asi no identifican un
+    # capitulo: "opencv" esta en 15_04_opencv_icp y en el opencv_demo de ROS 2,
+    # "model" en 15_10_pcl_ransac_model_fitting y "video" en 03_05_video_capture,
+    # pero las tres aparecen hablando de cualquier cosa.
+    CAP_GENERICAS = {'opencv', 'model', 'video'}
+
+    # Lineas que la comprobacion marca y son correctas, con su razon.
+    CAP_TOLERADOS = {
+        # La frase hace dos afirmaciones: que ESTE ejemplo es del capitulo 8, y
+        # que los momentos son del 12. La evidencia de la segunda cae sobre la
+        # cita de la primera.
+        ('08_edge_detection/08_05_chain_code/main.cpp', 282),
+    }
+
+    fuente_cap, tokens_cap = {}, {}
+    for cap, ej in lista:
+        c = cap[:2]
+        fuente_cap.setdefault(c, '')
+        tokens_cap.setdefault(c, set())
+        for src in sorted(glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp'))):
+            fuente_cap[c] += leer(src).lower()
+        tokens_cap[c] |= tokens_ej[ej[:5]]
+    # El 19 son paquetes de ROS 2 y no pasa por ejemplos(): se arma aparte.
+    ros2 = os.path.join(RAIZ, CAP_ROS2)
+    if os.path.isdir(ros2):
+        fuente_cap['19'] = ''
+        tokens_cap['19'] = {'ros2', 'ros', 'launch', 'transport', 'sync', 'pcl', 'opencv'}
+        for src in glob.glob(os.path.join(ros2, '*', 'src', '*.cpp')):
+            fuente_cap['19'] += leer(src).lower()
+
+    # Un capitulo tiene hasta trece ejemplos, asi que su fuente junta contiene
+    # casi cualquier palabra y no distingue nada. Lo que si distingue es el
+    # nombre de las carpetas: "morphological" solo esta en el capitulo 11.
+    # De ahi los dos niveles: si la palabra da nombre a algun ejemplo, se exige
+    # que el capitulo citado sea uno de los que la llevan en el nombre; si no
+    # (una funcion de la API, por ejemplo), se acepta encontrarla en la fuente.
+    def es_tema(palabra):
+        for tk in tokens_cap.values():
+            if any(palabra.startswith(x) or x.startswith(palabra) for x in tk):
+                return True
+        return False
+
+    def respalda_cap(palabra, c):
+        if c not in fuente_cap:
+            return False
+        if any(palabra.startswith(x) or x.startswith(palabra) for x in tokens_cap[c]):
+            return True
+        if es_tema(palabra):
+            return False          # es palabra de titulo: el nombre manda
+        return palabra in fuente_cap[c]
+
+    def discrimina_cap(palabra):
+        return sum(1 for c in fuente_cap if respalda_cap(palabra, c)) <= len(fuente_cap) // 2
+
+    revisables_cap = []
+    for cap, ej in lista:
+        for patron in ('*.cpp', '*.py', '*.sh'):
+            revisables_cap += sorted(glob.glob(os.path.join(RAIZ, cap, ej, patron)))
+    for patron in (('*', 'src', '*.cpp'), ('*', 'include', '*', '*.hpp'), ('*', 'launch', '*.py')):
+        revisables_cap += sorted(glob.glob(os.path.join(ros2, *patron)))
+    revisables_cap += [os.path.join(RAIZ, 'README.md'), os.path.join(RAIZ, 'data', 'README.md'),
+                       os.path.join(RAIZ, 'CMakeLists.txt')]
+
+    ref_cap = re.compile(r'\b[Cc]hapter\s+(\d+)|\bcap[i\u00ed]tulo\s+(\d+)')
+    for f in revisables_cap:
+        if not os.path.exists(f):
+            continue
+        rel = os.path.relpath(f, RAIZ)
+        propio = rel[:2] if re.match(r'^\d\d_', rel) else None
+        for n, linea in enumerate(leer(f).split('\n'), 1):
+            for m in ref_cap.finditer(linea):
+                num = (m.group(1) or m.group(2)).zfill(2)
+                if (rel, n) in CAP_TOLERADOS:
+                    continue
+                if num not in fuente_cap and num != '01':
+                    fallos.append('%s:%d cita el capitulo %s, que no existe' % (rel, n, num))
+                    continue
+                ev = evidencia(linea)
+                if propio:
+                    ev -= tokens_cap.get(propio, set())
+                ev = {w for w in ev - CAP_GENERICAS if discrimina_cap(w)}
+                if not ev or any(respalda_cap(w, num) for w in ev):
+                    continue
+                cand = sorted(c for c in fuente_cap if all(respalda_cap(w, c) for w in ev))
+                fallos.append('%s:%d cita el capitulo %s, pero habla de %s (seria el %s)'
+                              % (rel, n, num, ', '.join(sorted(ev)),
+                                 ' o '.join(cand[:3]) or 'ninguno'))
 
     # 5. Cada ejemplo acepta --help, y lo hace con el mismo patron
     for cap, ej in lista:
@@ -381,6 +504,7 @@ def main():
         print('%d ejemplos comprobados.' % len(lista))
         print('OK: nombres, cabeceras, citas, rutas de datos y ayuda son coherentes.')
         print('OK: cada cita NN_MM apunta al ejemplo que el comentario describe.')
+        print('OK: cada referencia a un capitulo apunta al capitulo que trata de eso.')
         print('OK: los binarios que invocan los listados del libro existen.')
         print('OK: la ayuda coincide con el parser y los nucleos con los del libro.')
         print('OK: las dimensiones se escriben W y H, como en el libro.')

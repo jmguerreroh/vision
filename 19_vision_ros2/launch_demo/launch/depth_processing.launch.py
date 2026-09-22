@@ -1,4 +1,4 @@
-# Chains the depth_image_proc nodes described in Chapter 18 so that a raw depth
+# Chains the depth_image_proc nodes described in Chapter 19 so that a raw depth
 # image plus a colour image come out as a coloured point cloud on
 # /stereo/points, which is the input pcl_demo expects.
 #

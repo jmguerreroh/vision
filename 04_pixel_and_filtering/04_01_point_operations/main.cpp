@@ -182,7 +182,7 @@ int main(int argc, char ** argv)
   std::cout << "\n2. Applying binary threshold..." << std::endl;
   std::cout << "   Threshold value: " << THRESHOLD_VALUE << std::endl;
   std::cout << "   Formula: output = (input > " << THRESHOLD_VALUE << ") ? 255 : 0" << std::endl;
-  // OpenCV equivalent (signature detailed in chapter 3, used from chapter 9 onwards):
+  // OpenCV equivalent (signature detailed in chapter 4, used from chapter 10 onwards):
   //   cv::threshold(src, thresholded, THRESHOLD_VALUE, 255, cv::THRESH_BINARY);
   cv::Mat thresholded = applyThreshold(src, THRESHOLD_VALUE);
 

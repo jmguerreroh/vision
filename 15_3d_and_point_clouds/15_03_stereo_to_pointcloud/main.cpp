@@ -23,7 +23,7 @@
  *
  * so (X/W, Y/W, Z/W) gives the metric 3D point; note Z/W = f*b/disp.
  * In a real rig, Q is produced by cv::stereoRectify() during stereo
- * calibration (Chapter 13). This example accepts that file directly:
+ * calibration (Chapter 14). This example accepts that file directly:
  *
  *     ./15_03_stereo_to_pointcloud left.png right.png --calib=stereo_calibration.yml
  *
@@ -178,7 +178,7 @@ int main(int argc, char ** argv)
   // Q by hand, which gives the right SHAPES and an arbitrary SCALE.
   //
   // Passing --calib is what closes the loop between the calibration of chapter
-  // 13 and the 3D of chapter 14, and it does two things, not one: it rectifies
+  // 14 and the 3D of chapter 15, and it does two things, not one: it rectifies
   // the pair (disparity along a row only means something on rectified images)
   // and it supplies the Q that puts the result in real units.
   cv::Mat Q;

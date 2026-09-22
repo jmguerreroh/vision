@@ -15,9 +15,9 @@
  *          6. Draw bounding boxes with class labels
  *
  *          Usage:
- *            ./yolov4 (default: ../../data/vtest.avi)
- *            ./yolov4 ../../data/fruits.jpg
- *            ./yolov4 ../../data/vtest.avi
+ *            ./18_01_yolov4_darknet (default: ../../data/vtest.avi)
+ *            ./18_01_yolov4_darknet ../../data/fruits.jpg
+ *            ./18_01_yolov4_darknet ../../data/vtest.avi
  *
  *          Download model:
  *            chmod +x download_model.sh && ./download_model.sh

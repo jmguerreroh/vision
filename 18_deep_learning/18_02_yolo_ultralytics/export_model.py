@@ -8,7 +8,7 @@ Requirements:
 Usage:
     python3 export_model.py
 
-This will create cfg/yolo11n.onnx and cfg/coco.names.
+This will create yolo11n.onnx and coco.names under ../../data/models/yolo11.
 
 IMPORTANT: Requires OpenCV >= 4.9 to load the exported ONNX model.
 
@@ -29,7 +29,7 @@ print(f"=== Exporting {MODEL} to ONNX ===")
 model = YOLO(MODEL)
 model.export(format="onnx", imgsz=640, simplify=True)
 
-# Move the exported file to cfg/
+# Move the exported file next to the other models
 onnx_src = ONNX_NAME
 onnx_dst = os.path.join(CFG_DIR, ONNX_NAME)
 if os.path.exists(onnx_src):
@@ -71,4 +71,4 @@ for fname in sorted(os.listdir(CFG_DIR)):
     print(f"  {fname} ({size_mb:.1f} MB)")
 print("\nNow build and run:")
 print("  make")
-print("  ./yolo11 ../../data/vtest.avi")
+print("  ./18_02_yolo_ultralytics ../../data/vtest.avi")

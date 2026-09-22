@@ -13,7 +13,7 @@
  *   - Supports 4-connectivity (cross) or 8-connectivity (square)
  *
  * Note: connectedComponents labels ALL regions automatically in one pass.
- * Chapter 10 (11_06_flood_fill) presents the complementary interactive tool,
+ * Chapter 11 (11_06_flood_fill) presents the complementary interactive tool,
  * floodFill(), which fills ONE region starting from a chosen seed pixel.
  */
 

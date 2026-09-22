@@ -279,8 +279,8 @@ int main(int argc, char ** argv)
     const std::vector<int> first_diff = computeFirstDifference(chain_code);
 
     // Contour statistics computed from the traversed boundary itself, so this
-    // example stays within chapter 7. Moments and the OpenCV shape descriptors
-    // are chapter 11 (12_01_region_moments).
+    // example stays within chapter 8. Moments and the OpenCV shape descriptors
+    // are chapter 12 (12_01_region_moments).
     //
     // Centroid: mean of the contour points, used only to place the label.
     cv::Point2f centroid(0.f, 0.f);

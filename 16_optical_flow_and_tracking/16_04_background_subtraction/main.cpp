@@ -6,8 +6,8 @@
  * This example demonstrates:
  * - cv::createBackgroundSubtractorMOG2(): a LEARNED model of the background
  * - The foreground mask and its shadow detection (gray = shadow)
- * - Cleaning the mask with morphology (Chapter 10) and boxing the moving
- *   objects with findContours (Chapter 7)
+ * - Cleaning the mask with morphology (Chapter 11) and boxing the moving
+ *   objects with findContours (Chapter 8)
  *
  * Difference with 16_01 (frame differencing): differencing compares each
  * frame against the PREVIOUS one, so an object that stops moving disappears
@@ -137,12 +137,12 @@ int main(int argc, char ** argv)
       cv::Mat moving;
       cv::threshold(foreground_mask, moving, 200, 255, cv::THRESH_BINARY);
 
-      // Morphological opening (Chapter 10): remove isolated noise pixels,
+      // Morphological opening (Chapter 11): remove isolated noise pixels,
       // then a closing to fill small holes inside the silhouettes
       cv::morphologyEx(moving, moving, cv::MORPH_OPEN, kernel);
       cv::morphologyEx(moving, moving, cv::MORPH_CLOSE, kernel);
 
-      // Box each moving object (contours, Chapter 7)
+      // Box each moving object (contours, Chapter 8)
       std::vector<std::vector<cv::Point>> contours;
       cv::findContours(moving.clone(), contours, cv::RETR_EXTERNAL,
                        cv::CHAIN_APPROX_SIMPLE);

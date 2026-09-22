@@ -1,39 +1,70 @@
 #!/bin/bash
 # Download YOLOv4-tiny model files for OpenCV DNN
 # Author: José Miguel Guerrero Hernández
+#
+# This script runs as a PRE_BUILD step, so it must never break the build: with
+# no network it warns and exits 0, like the download scripts of 18_02 and 18_03.
+#
+# It also refuses to leave a half-written file behind. `wget -O` creates the
+# destination before it knows whether the transfer will work, so a failed
+# download used to leave a 0-byte file that the next run reported as "already
+# exists, skipping". That file was never repaired, not even once the network
+# came back.
 
 set -e
 
 CFG_DIR="../../data/models/yolov4"
 mkdir -p "$CFG_DIR"
 
+FALTAN=""
+
+# Fetch a file only if it is not already there AND complete. Returns non-zero on
+# failure, after removing whatever wget left, so the next run retries.
+descargar() {
+  local destino="$1" url="$2" tamano_minimo="$3" descripcion="$4"
+
+  if [ -s "$destino" ]; then
+    local bytes
+    bytes=$(stat -c%s "$destino")
+    if [ "$bytes" -ge "$tamano_minimo" ]; then
+      echo "$(basename "$destino") already exists, skipping."
+      return 0
+    fi
+    echo "$(basename "$destino") is only $bytes bytes, too small: downloading again."
+    rm -f "$destino"
+  fi
+
+  echo "Downloading $(basename "$destino") ($descripcion)..."
+  if wget -q --show-progress -O "$destino" "$url"; then
+    local bytes
+    bytes=$(stat -c%s "$destino")
+    if [ "$bytes" -ge "$tamano_minimo" ]; then
+      return 0
+    fi
+    echo "WARNING: $(basename "$destino") came out as $bytes bytes, expected at least $tamano_minimo."
+  else
+    echo "WARNING: could not download $(basename "$destino")."
+  fi
+  rm -f "$destino"          # nunca dejar un fichero a medias
+  return 1
+}
+
 echo "=== Downloading YOLOv4-tiny model ==="
 
-# Download config file
-if [ ! -f "$CFG_DIR/yolov4-tiny.cfg" ]; then
-  echo "Downloading yolov4-tiny.cfg..."
-  wget -q --show-progress -O "$CFG_DIR/yolov4-tiny.cfg" \
-    "https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-tiny.cfg"
-else
-  echo "yolov4-tiny.cfg already exists, skipping."
-fi
+BASE_RAW="https://raw.githubusercontent.com/AlexeyAB/darknet/master"
+BASE_REL="https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre"
 
-# Download weights file (~24 MB)
-if [ ! -f "$CFG_DIR/yolov4-tiny.weights" ]; then
-  echo "Downloading yolov4-tiny.weights (~24 MB)..."
-  wget -q --show-progress -O "$CFG_DIR/yolov4-tiny.weights" \
-    "https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-tiny.weights"
-else
-  echo "yolov4-tiny.weights already exists, skipping."
-fi
+descargar "$CFG_DIR/yolov4-tiny.cfg"     "$BASE_RAW/cfg/yolov4-tiny.cfg"  1000     "~3 KB"  || FALTAN="$FALTAN yolov4-tiny.cfg"
+descargar "$CFG_DIR/yolov4-tiny.weights" "$BASE_REL/yolov4-tiny.weights"  20000000 "~24 MB" || FALTAN="$FALTAN yolov4-tiny.weights"
+descargar "$CFG_DIR/coco.names"          "$BASE_RAW/data/coco.names"      500      "~1 KB"  || FALTAN="$FALTAN coco.names"
 
-# Download COCO class names
-if [ ! -f "$CFG_DIR/coco.names" ]; then
-  echo "Downloading coco.names..."
-  wget -q --show-progress -O "$CFG_DIR/coco.names" \
-    "https://raw.githubusercontent.com/AlexeyAB/darknet/master/data/coco.names"
-else
-  echo "coco.names already exists, skipping."
+if [ -n "$FALTAN" ]; then
+  echo ""
+  echo "Skipping the YOLOv4-tiny download - still missing:$FALTAN"
+  echo "The build continues; 18_01_yolov4_darknet will report the missing model"
+  echo "when you run it. Re-run 'bash download_model.sh' in this folder once you"
+  echo "have network access."
+  exit 0
 fi
 
 echo ""

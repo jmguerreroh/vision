@@ -16,8 +16,9 @@ source ~/.bashrc
 > Note: The examples use modern features and require a compiler that supports **C++17** or higher.
 
 > Note: Developed against OpenCV 4.6.0 and PCL 1.14.0. The build requires
-> OpenCV 4 and at least PCL 1.10, which is what the top-level `CMakeLists.txt`
-> asks for.
+> OpenCV 4. PCL is optional: the top-level `CMakeLists.txt` looks for PCL 1.10
+> and, if it is not there, warns and skips the nine PCL examples of chapter 15
+> instead of failing. The other 69 targets build without it.
 
 > Note: Some examples require the **opencv_contrib** modules (`ximgproc`,
 > `aruco`, `surface_matching`, `viz`, `tracking`). If you installed OpenCV from
@@ -234,7 +235,8 @@ chapter and its code.
 
 | Chapter | Folder | Topic | Examples |
 |---------|--------|-------|----------|
-| 03 | `03_digital_image_and_color` | Image formation | read image, color spaces, Mat copy & ROI, pixel access, video capture |
+| 02 | `02_image_formation` | Image formation | thin lens and depth of field |
+| 03 | `03_digital_image_and_color` | The digital image and color | read image, color spaces, Mat copy & ROI, pixel access, video capture |
 | 04 | `04_pixel_and_filtering` | Pixel operations and spatial filtering | point ops, convolution, bitwise, intensity transforms, smoothing |
 | 05 | `05_histogram` | The histogram | histogram equalization, matching, comparison |
 | 06 | `06_frequency` | Frequency-domain transforms | DFT, DCT, wavelet denoising, Gabor bank, homomorphic filter |
@@ -243,7 +245,7 @@ chapter and its code.
 | 09 | `09_model_fitting` | Model fitting | Hough lines, Hough circles |
 | 10 | `10_region_segmentation` | Region segmentation | threshold, connected components, color segmentation |
 | 11 | `11_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
-| 12 | `12_region_descriptors` | Region descriptors | region moments, Hu moments |
+| 12 | `12_region_descriptors` | Region descriptors | region moments, Hu moments, convex hull |
 | 13 | `13_keypoints` | Keypoints | Harris, Shi-Tomasi, ORB, RANSAC matching |
 | 14 | `14_camera_calibration` | Camera geometry and calibration | chessboard calibration, pose estimation (PnP), stereo calibration + rectification |
 | 15 | `15_3d_and_point_clouds` | 3D vision and point clouds | epipolar geometry, disparity, disparity to point cloud, OpenCV ICP, PCL I/O, visualizers, PCL ICP, RANSAC model fitting, registration, correspondence, plane + clustering |
@@ -310,10 +312,19 @@ dpkg -s libpcl-dev | grep Version
 
 **Deep learning models (chapter 18, optional):**
 
+The three examples of chapter 18 get their model on first build, each with the
+`download_model.sh` that lives beside its source. None of them can fail the
+build: if the model cannot be obtained they warn and let the build finish, and
+the example reports the missing model when you run it.
+
+`18_01_yolov4_darknet` **downloads about 24 MB** from
+`github.com/AlexeyAB/darknet`, so the first build needs network access. A failed
+download leaves nothing behind, and re-running the script retries it.
+
 `18_02_yolo_ultralytics` and `18_03_semantic_segmentation` export their ONNX
-model on first build via a `download_model.sh`/`export_model.py` pair. If the
+model locally instead, with a `download_model.sh`/`export_model.py` pair. If the
 required Python packages aren't installed, the script prints a warning and
-skips the export instead of failing the whole build.
+skips the export.
 
 ```bash
 pip install --user --break-system-packages ultralytics onnx onnxruntime onnxslim  # 18_02

@@ -70,7 +70,7 @@ def main():
         print(f"  {name} ({size_mb:.1f} MB)")
     print("\nNow build and run:")
     print("  make")
-    print("  ./semantic_segmentation ../../data/futbol.png")
+    print("  ./18_03_semantic_segmentation ../../data/futbol.png")
 
 
 if __name__ == "__main__":

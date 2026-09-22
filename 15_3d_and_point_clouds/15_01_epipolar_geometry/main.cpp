@@ -4,7 +4,7 @@
  * @author José Miguel Guerrero Hernández
  *
  * This example demonstrates:
- * - Matching two views with ORB + ratio test (Chapter 12)
+ * - Matching two views with ORB + ratio test (Chapter 13)
  * - cv::findFundamentalMat() with RANSAC: F estimated from correspondences
  *   alone, without knowing anything about the two cameras
  * - cv::computeCorrespondEpilines(): the line the homologous point must be on
