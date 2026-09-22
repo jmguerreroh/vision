@@ -9,7 +9,7 @@
  * - Cleaning the mask with morphology (Chapter 10) and boxing the moving
  *   objects with findContours (Chapter 7)
  *
- * Difference with 15_01 (frame differencing): differencing compares each
+ * Difference with 16_01 (frame differencing): differencing compares each
  * frame against the PREVIOUS one, so an object that stops moving disappears
  * instantly. MOG2 instead models every pixel as a mixture of Gaussians
  * learned over MANY frames: it tolerates gradual lighting changes, adapts
@@ -67,7 +67,7 @@ constexpr double MIN_BLOB_AREA = 300.0;  // Ignore smaller foreground blobs
 
 int main(int argc, char ** argv)
 {
-  // Command-line parser (same pattern as 15_01)
+  // Command-line parser (same pattern as 16_01)
   const std::string keys =
     "{help h | | Show this help message}"
     "{@video | ../../data/853889-hd_1920_1080_25fps.mp4 | Input video file}";

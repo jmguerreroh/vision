@@ -4,7 +4,7 @@
  * @author José Miguel Guerrero Hernández
  *
  * This example demonstrates:
- * - Calibrating each camera of a stereo pair (same procedure as 13_01)
+ * - Calibrating each camera of a stereo pair (same procedure as 14_01)
  * - cv::stereoCalibrate(): the rigid transform (R, T) BETWEEN the two cameras
  * - cv::stereoRectify() + cv::remap(): reprojecting both images so that their
  *   rows are aligned
@@ -104,7 +104,7 @@ int main(int argc, char ** argv)
   }
 
   // ========================================
-  // Step 1: the same detection as 13_01, but on BOTH cameras
+  // Step 1: the same detection as 14_01, but on BOTH cameras
   // ========================================
   // A view is only useful if the pattern is complete in the two images: the
   // point of stereo calibration is to relate what one camera sees with what
@@ -180,7 +180,7 @@ int main(int argc, char ** argv)
   // Step 2: calibrate each camera on its own
   // ========================================
   // The intrinsics of each camera do not depend on the other one, so they are
-  // estimated separately -- exactly as in 13_01. Doing it first lets the
+  // estimated separately -- exactly as in 14_01. Doing it first lets the
   // stereo step concentrate on the only thing left: the transform between them.
   cv::Mat K1, D1, K2, D2;
   std::vector<cv::Mat> rvecs, tvecs;
@@ -234,7 +234,7 @@ int main(int argc, char ** argv)
     cv::CALIB_ZERO_DISPARITY,   // Keep the principal points aligned
     0);                         // alpha = 0: crop until no invalid pixel is left
 
-  // The maps are computed once and reused on every frame, as in 13_01. Here
+  // The maps are computed once and reused on every frame, as in 14_01. Here
   // R is no longer the identity: it carries the rectifying rotation, so the
   // same remap corrects distortion AND rectifies in a single interpolation.
   cv::Mat map1x, map1y, map2x, map2y;

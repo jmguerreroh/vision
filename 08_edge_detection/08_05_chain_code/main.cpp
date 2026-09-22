@@ -239,7 +239,7 @@ int main(int argc, char ** argv)
 
   // Use Otsu's method for automatic threshold. Binarising is unavoidable
   // before tracing a contour; cv::threshold and Otsu are the subject of
-  // 09_01, here they are just the step that gets us a silhouette
+  // 10_01, here they are just the step that gets us a silhouette
   cv::threshold(gray, binary,
                Config::THRESH_VALUE,
                Config::THRESH_MAX_VALUE,

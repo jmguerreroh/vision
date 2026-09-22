@@ -4,10 +4,10 @@
  * @author José Miguel Guerrero Hernández
  *
  * This example demonstrates:
- * - Why HSV (seen in 02_02) is the right space for color segmentation
+ * - Why HSV (seen in 03_02) is the right space for color segmentation
  * - Selecting pixels inside a color range with cv::inRange()
  * - Handling the red hue wrap-around (red spans both ends of the H axis)
- * - Extracting the selected pixels with bitwise_and (seen in 03_03)
+ * - Extracting the selected pixels with bitwise_and (seen in 04_03)
  *
  * Why HSV and not BGR? In BGR, the "same" color under different lighting
  * produces very different (B,G,R) triplets, so a box in BGR space captures
@@ -128,7 +128,7 @@ int main(int argc, char ** argv)
   std::cout << "=== HSV Color Segmentation ===" << std::endl;
   std::cout << "Image: " << src.cols << "x" << src.rows << " pixels" << std::endl;
 
-  // Convert BGR -> HSV (exactly as in 02_02)
+  // Convert BGR -> HSV (exactly as in 03_02)
   cv::Mat hsv;
   cv::cvtColor(src, hsv, cv::COLOR_BGR2HSV);
 
@@ -149,7 +149,7 @@ int main(int argc, char ** argv)
     const cv::Mat mask = maskForColor(hsv, color);
 
     // Keep only the selected pixels: AND of the image with itself, limited
-    // by the mask (the bitwise operations were introduced in 03_03)
+    // by the mask (the bitwise operations were introduced in 04_03)
     cv::Mat segmented;
     cv::bitwise_and(src, src, segmented, mask);
 

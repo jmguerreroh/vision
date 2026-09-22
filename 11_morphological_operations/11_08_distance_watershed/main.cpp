@@ -8,19 +8,19 @@
  * - Extracting one marker per object from the distance-transform peaks
  * - cv::watershed(): flooding from the markers to separate TOUCHING objects
  *
- * The problem it solves: with the tools seen so far (threshold in 09_01,
- * connected components in 09_02), coins that touch each other become ONE
+ * The problem it solves: with the tools seen so far (threshold in 10_01,
+ * connected components in 10_02), coins that touch each other become ONE
  * single blob. Watershed treats the image as a topographic relief and
  * "floods" it from one seed (marker) per object; where two floods meet, a
  * watershed line is drawn -- splitting the blob into its real objects.
  *
  * Pipeline (the classic recipe):
- *   1. Binarize (Otsu, 09_01)
- *   2. Clean noise with morphological opening (10_02)
- *   3. Sure BACKGROUND = dilation of the blob (10_01)
+ *   1. Binarize (Otsu, 10_01)
+ *   2. Clean noise with morphological opening (11_02)
+ *   3. Sure BACKGROUND = dilation of the blob (11_01)
  *   4. Sure FOREGROUND = high peaks of the distance transform
  *   5. Unknown region = background minus foreground
- *   6. Label the sure regions (connectedComponents, 09_02) -> markers
+ *   6. Label the sure regions (connectedComponents, 10_02) -> markers
  *   7. cv::watershed() resolves the unknown region
  */
 

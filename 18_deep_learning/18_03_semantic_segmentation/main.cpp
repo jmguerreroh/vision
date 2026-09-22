@@ -11,7 +11,7 @@
  * - Turning the score volume into a label image with an argmax per pixel
  * - The PASCAL VOC colour palette, and blending the mask with the photo
  *
- * Detection (17_01, 17_02) answers "what is there and roughly where".
+ * Detection (18_01, 18_02) answers "what is there and roughly where".
  * Semantic segmentation answers the same question PIXEL BY PIXEL: every
  * pixel gets the label of one of the 21 classes, background included.
  *

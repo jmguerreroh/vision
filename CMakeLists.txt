@@ -15,6 +15,25 @@ find_package(OpenCV REQUIRED)
 find_package(Threads REQUIRED)
 find_package(MPI COMPONENTS C CXX)  # Must precede PCL so VTK::mpi resolves MPI::MPI_C
 
+# VTK headers are needed to resolve the symbols PCL links transitively. The
+# directory carries the version in its name (vtk-9.1 on Ubuntu 22.04, vtk-9.3 on
+# 24.04) and lives elsewhere on other distributions, so it is asked for instead
+# of hardcoded.
+#
+# VTK 9 exports targets and leaves VTK_INCLUDE_DIRS empty, so it has to be
+# rebuilt from the prefix and the version. Checked, not assumed: writing
+# ${VTK_INCLUDE_DIRS} alone dropped the path without a single warning, which is
+# the same silent failure this block is here to avoid.
+find_package(VTK QUIET)
+if(VTK_FOUND AND NOT VTK_INCLUDE_DIRS)
+  set(VTK_INCLUDE_DIRS
+      "${VTK_PREFIX_PATH}/include/vtk-${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR}")
+endif()
+if(VTK_INCLUDE_DIRS AND NOT EXISTS "${VTK_INCLUDE_DIRS}")
+  message(WARNING "VTK headers not found at ${VTK_INCLUDE_DIRS}; "
+                  "the PCL examples may fail to compile")
+endif()
+
 find_package(PCL 1.10 REQUIRED COMPONENTS
   common io visualization keypoints features
   filters registration recognition kdtree sample_consensus
@@ -54,7 +73,7 @@ function(add_pcl_example REL_PATH)
   add_executable(${DIR_NAME} "${CMAKE_SOURCE_DIR}/${REL_PATH}/main.cpp")
   target_include_directories(${DIR_NAME} PRIVATE
     ${PCL_INCLUDE_DIRS}
-    /usr/include/vtk-9.1)
+    ${VTK_INCLUDE_DIRS})
   target_link_libraries(${DIR_NAME} PRIVATE ${PCL_LIBRARIES})
   target_compile_definitions(${DIR_NAME} PRIVATE ${PCL_DEFINITIONS})
   target_compile_options(${DIR_NAME} PRIVATE -Wno-array-bounds)

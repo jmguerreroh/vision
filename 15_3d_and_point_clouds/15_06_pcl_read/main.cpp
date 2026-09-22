@@ -25,7 +25,7 @@
  * Usage: ./15_06_pcl_read [path_to_pcd_file]
  * Input: Reads test_pcd.pcd from pcl_data folder. That file is under version
  *        control, so this example runs on a fresh clone without having to run
- *        15_05_pcl_write first. Running 14_05 rewrites it byte for byte,
+ *        15_05_pcl_write first. Running 15_05 rewrites it byte for byte,
  *        because its generator is seeded, so the pair can be read either way
  */
 

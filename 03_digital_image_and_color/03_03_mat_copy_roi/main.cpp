@@ -55,7 +55,7 @@ void showFit(const std::string & window, const cv::Mat & image)
 
 int main(int argc, char ** argv)
 {
-  // Load the image (same pattern as 02_01)
+  // Load the image (same pattern as 03_01)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
@@ -133,7 +133,7 @@ int main(int argc, char ** argv)
   cv::Mat roi = original(roi_rect);
 
   // Proof: converting the ROI to grayscale-looking colors modifies the
-  // center of 'original' in place (cvtColor is the conversion of 02_02;
+  // center of 'original' in place (cvtColor is the conversion of 03_02;
   // here it is only the excuse to write into the ROI)
   cv::Mat gray_roi;
   cv::cvtColor(roi, gray_roi, cv::COLOR_BGR2GRAY);

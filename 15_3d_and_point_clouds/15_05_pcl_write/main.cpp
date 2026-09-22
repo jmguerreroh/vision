@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
   //                savePCDFileBinaryCompressed() for smallest files
   // Written into data/pcl_data on purpose: the NEXT example (15_06_pcl_read)
   // reads this exact file, regardless of which directory each one runs from.
-  // The file is also under version control, so 14_06 does not depend on this
+  // The file is also under version control, so 15_06 does not depend on this
   // example having run: the seeded generator above reproduces it exactly
   const std::string output_file = argc > 1 ? argv[1] : "../../data/pcl_data/test_pcd.pcd";
   pcl::io::savePCDFileASCII(output_file, cloud);

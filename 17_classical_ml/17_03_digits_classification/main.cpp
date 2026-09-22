@@ -6,7 +6,7 @@
  * This example demonstrates:
  * - Building a real dataset from an image mosaic (data/digits.png)
  * - A proper TRAIN / TEST split (never evaluate on the training data!)
- * - Training the classifiers of 16_01 and 16_02 (KNN and SVM) on real data
+ * - Training the classifiers of 17_01 and 17_02 (KNN and SVM) on real data
  * - Computing the metrics of the book: accuracy, confusion matrix and
  *   per-class precision / recall
  *
@@ -66,9 +66,9 @@ void buildDataset(
     const int digit = cell_row / rows_per_digit;
 
     for (int cell_col = 0; cell_col < cells_per_row; ++cell_col) {
-      // Extract the 20x20 cell as an ROI (02_03) and flatten it into a
+      // Extract the 20x20 cell as an ROI (03_03) and flatten it into a
       // single row of 400 float features -- the same reshape+convertTo
-      // pattern used to feed TrainData in 16_01
+      // pattern used to feed TrainData in 17_01
       const cv::Rect cell_rect(cell_col * Config::CELL_SIZE,
                                cell_row * Config::CELL_SIZE,
                                Config::CELL_SIZE, Config::CELL_SIZE);
@@ -203,7 +203,7 @@ int main(int argc, char ** argv)
   cv::imshow("digits.png (5000 samples)", mosaic);
 
   // ========================================
-  // Classifier 1: KNN (as introduced in 16_01)
+  // Classifier 1: KNN (as introduced in 17_01)
   // ========================================
   std::cout << "\n[KNN] training (K = " << Config::KNN_K << ")..." << std::endl;
   cv::Ptr<cv::ml::KNearest> knn = cv::ml::KNearest::create();
@@ -222,7 +222,7 @@ int main(int argc, char ** argv)
   printConfusionMatrix(knn_confusion);
 
   // ========================================
-  // Classifier 2: SVM (as introduced in 16_02)
+  // Classifier 2: SVM (as introduced in 17_02)
   // ========================================
   // Linear kernel: fast to train on 2500 samples of 400 features. An RBF
   // kernel with tuned (C, gamma) reaches a few points more at the cost of

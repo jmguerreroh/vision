@@ -11,13 +11,13 @@
  *
  * The PnP problem: given (a) N points with KNOWN 3D coordinates in some
  * world frame, (b) their 2D projections in the image, and (c) the intrinsic
- * calibration K (obtained in 13_01), estimate the rotation and translation
+ * calibration K (obtained in 14_01), estimate the rotation and translation
  * that place the camera with respect to that world frame. This is the basis
  * of augmented reality, robot localization and camera-in-hand systems.
  *
  * A ChArUco board is a chessboard with ArUco markers printed inside the
  * white squares. The markers make each corner IDENTIFIABLE (the plain
- * chessboard of 13_01 requires seeing the whole pattern), so the pose can
+ * chessboard of 14_01 requires seeing the whole pattern), so the pose can
  * be estimated even under partial occlusion.
  *
  * @note Uses the classic cv::aruco API (opencv_contrib, OpenCV <= 4.6).
@@ -78,7 +78,7 @@ int main(int argc, char ** argv)
   }
 
   // The calibration file stores the intrinsic matrix and the distortion
-  // coefficients -- exactly what 13_01 computed. cv::FileStorage reads the
+  // coefficients -- exactly what 14_01 computed. cv::FileStorage reads the
   // YAML/XML format OpenCV uses to serialize matrices.
   cv::Mat camera_matrix, dist_coeffs;
   cv::FileStorage fs(calib_path, cv::FileStorage::READ);

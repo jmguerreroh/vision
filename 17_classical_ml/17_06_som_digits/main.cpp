@@ -13,7 +13,7 @@
  * - Measuring what the map is worth: quantization error, its accuracy when
  *   used as a classifier, and how many neighbouring neurons disagree
  *
- * The dataset and the train/test split are the same as 16_03, so the accuracy
+ * The dataset and the train/test split are the same as 17_03, so the accuracy
  * printed here can be put next to the KNN and SVM of that example. The
  * comparison is not fair on purpose: KNN keeps the 2500 training samples,
  * while the SOM compresses them into a handful of prototypes and still gets
@@ -40,7 +40,7 @@ namespace Config
 {
 constexpr int CELL_SIZE = 20;        // Each digit is a 20x20 cell of the mosaic
 constexpr int NUM_CLASSES = 10;
-constexpr float TRAIN_RATIO = 0.5f;  // Left half train, right half test (16_03)
+constexpr float TRAIN_RATIO = 0.5f;  // Left half train, right half test (17_03)
 constexpr int MAP_ROWS = 12;         // The map: 12x12 = 144 neurons
 constexpr int MAP_COLS = 12;
 constexpr int EPOCHS = 50;          // About ten seconds of training
@@ -52,7 +52,7 @@ constexpr uint64_t SEED = 7;             // Fixed: the run is reproducible
 }
 
 /**
- * @brief Slices digits.png into samples, split by columns as in 16_03
+ * @brief Slices digits.png into samples, split by columns as in 17_03
  */
 void buildDataset(
   const cv::Mat & mosaic,

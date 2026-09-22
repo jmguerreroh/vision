@@ -4,12 +4,12 @@
  * @author José Miguel Guerrero Hernández
  *
  * This example demonstrates:
- * - Computing a disparity map with StereoSGBM (same idea as 14_02)
+ * - Computing a disparity map with StereoSGBM (same idea as 15_02)
  * - Turning disparity into 3D points with cv::reprojectImageTo3D()
  * - Saving the result as a PLY file you can open in MeshLab/CloudCompare
  *
  * This is the bridge between the 2D stereo world and the 3D examples that
- * follow: the equation presented in 14_02,
+ * follow: the equation presented in 15_02,
  *
  *     Z = f * b / disparity
  *
@@ -34,7 +34,7 @@
  * is not. The aloe pair shipped with the repository comes pre-rectified and
  * without its calibration, so it uses the fallback.
  *
- * @note Plain OpenCV: no opencv_contrib needed (14_02 does need ximgproc for
+ * @note Plain OpenCV: no opencv_contrib needed (15_02 does need ximgproc for
  *       the WLS filter, this one only uses StereoSGBM).
  *       Output: cloud.ply in the current directory, or wherever --out says.
  *       One vertex per valid pixel, so it is a big ASCII file.
@@ -126,13 +126,13 @@ int savePointCloudPLY(
 
 int main(int argc, char ** argv)
 {
-  // Load the rectified stereo pair (same images as 14_02)
+  // Load the rectified stereo pair (same images as 15_02)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
     "{@left  | ../../data/aloeL.jpg | Left image of the stereo pair}"
     "{@right | ../../data/aloeR.jpg | Right image of the stereo pair}"
-    "{calib c | | Optional stereo_calibration.yml written by 13_03. With it the "
+    "{calib c | | Optional stereo_calibration.yml written by 14_03. With it the "
     "pair is rectified and the cloud is metric; without it the scale is arbitrary}"
     "{maxz | 10.0 | Discard points beyond this Z, in the units of Q: metres with "
     "the assumed rig, calibration-pattern units with --calib}"
@@ -215,7 +215,7 @@ int main(int argc, char ** argv)
       return EXIT_FAILURE;
     }
 
-    // Rectification: the same remap that 13_03 applies, so that corresponding
+    // Rectification: the same remap that 14_03 applies, so that corresponding
     // points land on the same row and the disparity search along it is valid.
     if (!K1.empty() && !R1.empty() && !P1.empty()) {
       const cv::Size size(left.cols, left.rows);
@@ -261,7 +261,7 @@ int main(int argc, char ** argv)
   // ========================================
   // Step 2: disparity with SGBM
   // ========================================
-  // Minimal SGBM setup (14_02 explores the parameters and post-filtering
+  // Minimal SGBM setup (15_02 explores the parameters and post-filtering
   // in depth; here disparity is just the input of the 3D step)
   cv::Ptr<cv::StereoSGBM> matcher = cv::StereoSGBM::create(
     0, Config::NUM_DISPARITIES, Config::BLOCK_SIZE);
@@ -274,7 +274,7 @@ int main(int argc, char ** argv)
   cv::Mat disparity_16s;
   matcher->compute(left, right, disparity_16s);
 
-  // SGBM returns fixed-point disparities scaled by 16 (see 14_02):
+  // SGBM returns fixed-point disparities scaled by 16 (see 15_02):
   // convert to real float pixels before doing geometry with them
   cv::Mat disparity;
   disparity_16s.convertTo(disparity, CV_32F, 1.0 / 16.0);

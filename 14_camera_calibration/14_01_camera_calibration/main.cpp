@@ -285,7 +285,7 @@ int main(int argc, char ** argv)
   // Save the calibration
   // ========================================
   // The result of a calibration is worth nothing if it is not stored: the
-  // pose estimation of 13_02 needs exactly this file. cv::FileStorage
+  // pose estimation of 14_02 needs exactly this file. cv::FileStorage
   // writes the YAML format that OpenCV reads back with the same class.
   cv::FileStorage fs(out_path, cv::FileStorage::WRITE);
   fs << "image_width" << frame_size.width << "image_height" << frame_size.height;

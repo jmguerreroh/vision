@@ -20,12 +20,12 @@ source ~/.bashrc
 > asks for.
 
 > Note: Some examples require the **opencv_contrib** modules (`ximgproc`,
-> `aruco`, `surface_matching`, `viz`). If you installed OpenCV from the
-> distribution package these are usually included; if you built OpenCV from
+> `aruco`, `surface_matching`, `viz`, `tracking`). If you installed OpenCV from
+> the distribution package these are usually included; if you built OpenCV from
 > source, follow the *Installation from source* section below and pass
 > `OPENCV_EXTRA_MODULES_PATH`. The examples that need them are:
-> `11_05_skeletonization`, `14_02_pose_estimation`, `15_02_stereo_disparity`
-> and `15_04_opencv_icp`.
+> `11_05_skeletonization`, `14_02_pose_estimation`, `15_02_stereo_disparity`,
+> `15_04_opencv_icp` and `16_06_object_tracking`.
 
 ### Building all examples at once (recommended)
 
@@ -62,10 +62,20 @@ reading its source first:
 
 OpenCV examples use `cv::CommandLineParser`; PCL examples use PCL's own
 `pcl::console` parser. Both accept `-h` and `--help`. Inputs are **positional
-and optional**: an example with no arguments always works. The few examples
-that write a file take the destination on the command line and default to the
-current directory: `--out` in `13_01`, `13_03`, `14_03` and `16_02`, and
-`--dst_path` (plus `--dst_raw_path` and `--dst_conf_path`) in `14_02`.
+and optional**: an example with no arguments always works. The one exception is
+`15_08_pcl_advanced_visualizer`, which is a menu of seven demos and prints that
+menu when called with no option; pick one, for instance `-s`.
+
+The few examples that write a file take the destination on the command line and
+default to the current directory: `--out` in `14_01`, `14_03`, `15_03` and
+`17_02`, and `--dst_path` (plus `--dst_raw_path` and `--dst_conf_path`) in
+`15_02`. Note that `15_03_stereo_to_pointcloud` writes a `cloud.ply` of about
+40 MB. Two examples write without asking, and neither takes a destination:
+`03_05_video_capture` always saves what it captures to `output.avi` in the
+current directory, and `15_11_pcl_registration` writes one
+`result_00N.pcd` per registered pair into `data/pcl_data/`, next to the
+captures it read. Both names are fixed, and the `result_*.pcd` are ignored by
+`.gitignore`.
 
 ### Building a single example (OpenCV)
 
@@ -251,8 +261,8 @@ linked on purpose, and neither link is required:
   and the cloud comes out in real units; without it the example falls back to
   an assumed rig and says so.
 - `15_05_pcl_write` writes the `test_pcd.pcd` that `15_06_pcl_read` reads. That
-  file is kept under version control, so `14_06` also works on a fresh clone.
-  The generator of `14_05` is seeded, so running it rewrites the file byte for
+  file is kept under version control, so `15_06` also works on a fresh clone.
+  The generator of `15_05` is seeded, so running it rewrites the file byte for
   byte instead of producing a spurious change.
 
 What does follow the book order is the material each one assumes you have
@@ -278,10 +288,10 @@ pkg-config --modversion opencv4
 ```
 
 Every example but one runs on OpenCV 4.6, the version the Ubuntu 22.04 package
-installs. The exception is `17_02`: its YOLO11 model in ONNX needs **OpenCV 4.9
+installs. The exception is `18_02`: its YOLO11 model in ONNX needs **OpenCV 4.9
 or newer**, because earlier ONNX readers do not understand the `Split` node the
 way YOLO11 writes it. With an older OpenCV the example reports exactly that and
-exits, and `17_01` covers the same ground with a model that loads anywhere.
+exits, and `18_01` covers the same ground with a model that loads anywhere.
 
 **PCL:**
 

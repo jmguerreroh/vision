@@ -101,6 +101,108 @@ def main():
                         fallos.append('%s/%s:%d cita %s, que no existe'
                                       % (ej, os.path.basename(src), n, cita))
 
+    # 4b. Toda cita NN_MM desnuda apunta al ejemplo que el comentario describe.
+    # La comprobacion 4 no alcanza a estas: exige el nombre completo
+    # (NN_MM_algo), y una cita desnuda no lo lleva. El resultado fue que la
+    # renumeracion dejo 57 de 61 citas apuntando al ejemplo de al lado sin que
+    # nada fallara, porque el numero corrido TAMBIEN existe: el lector llegaba a
+    # un ejemplo real pero de otro tema, y ni el compilador ni este guion
+    # decian nada.
+    #
+    # La idea es pedirle a la cita que se describa a si misma. Si el comentario
+    # nombra una funcion de la API o una palabra que da nombre a algun ejemplo,
+    # esa evidencia tiene que encontrarse en el ejemplo citado. "threshold in
+    # 09_01" falla porque 09_01 es hough_lines; "threshold in 10_01" pasa.
+    # Se descarta la evidencia que viene del propio ejemplo que cita, que
+    # describe a quien escribe y no a quien es citado.
+    #
+    # Lo que esta comprobacion NO puede ver: si el ejemplo citado por error
+    # tambien usa esa funcion. "threshold in 09_01" pasa, porque
+    # 09_01_hough_lines tambien binariza antes de buscar rectas. No hay forma
+    # mecanica de distinguir ese caso de "Sobel ... 04_02", que es correcto
+    # aunque el nombre del ejemplo no diga Sobel.
+    GENERICAS = {'image', 'images', 'simple', 'advanced', 'read', 'write',
+                 'comparison', 'operations', 'transforms', 'code'}
+    MODULOS = {'ximgproc', 'aruco', 'surface_matching', 'viz', 'tracking'}
+
+    # Citas que la comprobacion marca y son correctas, con su razon.
+    TOLERADAS = {
+        # "Sure BACKGROUND" es vocabulario del watershed, no una referencia a
+        # 16_04_background_subtraction. La palabra coincide por casualidad.
+        ('11_morphological_operations/11_08_distance_watershed/main.cpp', 20),
+        # Anecdota historica: cita a proposito los numeros viejos, que eran los
+        # que quedaron obsoletos cuando el libro paso de 14 a 18 capitulos.
+        ('tools/check_repo.py', 181),
+    }
+
+    fuente_ej, tokens_ej = {}, {}
+    for cap, ej in lista:
+        texto = ''
+        for src in sorted(glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp'))):
+            texto += leer(src)
+        fuente_ej[ej[:5]] = texto.lower()
+        tokens_ej[ej[:5]] = {w for w in ej[6:].split('_')
+                             if len(w) >= 3 and w not in GENERICAS}
+    todos_tokens = set()
+    for tk in tokens_ej.values():
+        todos_tokens |= tk
+
+    def evidencia(linea):
+        """Lo que el comentario afirma sobre el ejemplo que cita."""
+        ev = set(re.findall(r'cv::(\w+)', linea))
+        ev |= set(re.findall(r'\b([a-z]+[A-Z]\w*)\b', linea))     # filter2D, inRange
+        ev |= {w for w in re.findall(r'\b(\w+)\b', linea) if w in MODULOS}
+        ev |= {w for w in re.findall(r'[a-zA-Z]{3,}', linea.lower())
+               if w in todos_tokens}
+        return {w.lower() for w in ev if len(w) >= 3 and w.lower() not in GENERICAS}
+
+    def respalda(palabra, clave):
+        if palabra in fuente_ej[clave]:
+            return True
+        return any(palabra.startswith(t) or t.startswith(palabra)
+                   for t in tokens_ej[clave])
+
+    # Una palabra que esta en la mitad de los ejemplos no distingue nada, y de
+    # hecho tapaba un fallo real: "no opencv_contrib needed (14_02 does need
+    # ximgproc...)" pasaba porque "opencv" aparece en 68 de los 77 ejemplos, asi
+    # que respaldaba a cualquiera. Solo cuenta la evidencia que discrimina.
+    def discrimina(palabra):
+        return sum(1 for k in fuente_ej if respalda(palabra, k)) <= len(fuente_ej) // 2
+
+    revisables = [os.path.join(RAIZ, cap, ej, os.path.basename(s))
+                  for cap, ej in lista
+                  for s in sorted(glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp')))]
+    revisables += [os.path.join(RAIZ, 'README.md'),
+                   os.path.join(RAIZ, 'tools', 'check_repo.py')]
+
+    desnuda = re.compile(r'(?<![\w])(\d\d_\d\d)(?![\w\d])')
+    for f in revisables:
+        rel = os.path.relpath(f, RAIZ)
+        propio = None
+        m_pro = re.match(r'^\d\d_[a-z0-9_]+/(\d\d_\d\d)_', rel)
+        if m_pro:
+            propio = m_pro.group(1)
+        for n, linea in enumerate(leer(f).split('\n'), 1):
+            for m in desnuda.finditer(linea):
+                num = m.group(1)
+                if (rel, n) in TOLERADAS:
+                    continue
+                if num not in fuente_ej:
+                    fallos.append('%s:%d cita %s, que no es ningun ejemplo'
+                                  % (rel, n, num))
+                    continue
+                ev = evidencia(linea)
+                if propio:
+                    ev -= tokens_ej[propio] | {propio}
+                ev = {w for w in ev if discrimina(w)}
+                if not ev or any(respalda(w, num) for w in ev):
+                    continue
+                cand = sorted(k for k in fuente_ej
+                              if all(respalda(w, k) for w in ev))
+                fallos.append('%s:%d cita %s, pero habla de %s (seria %s)'
+                              % (rel, n, num, ', '.join(sorted(ev)),
+                                 ' o '.join(cand[:3]) or 'ningun ejemplo'))
+
     # 5. Cada ejemplo acepta --help, y lo hace con el mismo patron
     for cap, ej in lista:
         src = os.path.join(RAIZ, cap, ej, 'main.cpp')
@@ -133,7 +235,7 @@ def main():
 
     # 6b. Todo nombre de fichero citado en el codigo existe bajo data/.
     # Va aparte de la comprobacion anterior porque hay ejemplos que arman la
-    # ruta concatenando: 04_03 junta el directorio que recibe por argumento con
+    # ruta concatenando: 05_03 junta el directorio que recibe por argumento con
     # "Histogram_Comparison_Source_0.jpg", de modo que ninguna cadena del
     # fuente contiene la ruta entera. Buscar el nombre suelto es lo unico que
     # detecta que el fichero ya no esta
@@ -230,11 +332,11 @@ def main():
                           % (rel, nombre, ', '.join(sorted(por_defecto)) or 'otro'))
 
     # Los nucleos que el repositorio escribe a mano tienen que coincidir con los
-    # que imprime el libro. Sobel es el caso que lo justifica: 03_02 definia sus
+    # que imprime el libro. Sobel es el caso que lo justifica: 04_02 definia sus
     # dos mascaras con el signo cambiado respecto del libro y de cv::Sobel, de
     # modo que el ejemplo devolvia el gradiente negado. Nada fallaba al
-    # compilar ni al ejecutar, y el lector veia un signo en el capitulo 3 y el
-    # contrario en el 7.
+    # compilar ni al ejecutar, y el lector veia un signo en el capitulo 4 y el
+    # contrario en el 8.
     NUCLEOS = {
         '04_pixel_and_filtering/04_02_convolution/main.cpp': {
             'createSobelXKernel': [-1, 0, 1, -2, 0, 2, -1, 0, 1],
@@ -260,7 +362,7 @@ def main():
 
     # El libro fija W (columnas) y H (filas) para las dimensiones de una imagen,
     # y reserva M y N para otras cosas. Dos ejemplos de frecuencia usaban M y N,
-    # y ademas con sentidos opuestos entre si: en 05_01 N era el alto y en 05_02
+    # y ademas con sentidos opuestos entre si: en 06_01 N era el alto y en 06_02
     # era el ancho. Un lector que compare la formula del libro con la del
     # ejemplo encuentra letras distintas para lo mismo.
     for f in sorted(glob.glob(os.path.join(RAIZ, '*', '*', '*.cpp'))):
@@ -278,6 +380,7 @@ def main():
     if not quiet:
         print('%d ejemplos comprobados.' % len(lista))
         print('OK: nombres, cabeceras, citas, rutas de datos y ayuda son coherentes.')
+        print('OK: cada cita NN_MM apunta al ejemplo que el comentario describe.')
         print('OK: los binarios que invocan los listados del libro existen.')
         print('OK: la ayuda coincide con el parser y los nucleos con los del libro.')
         print('OK: las dimensiones se escriben W y H, como en el libro.')
