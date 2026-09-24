@@ -13,16 +13,27 @@
 
 #include "sync_demo/sync_processing.hpp"
 
+#include <rclcpp/version.h>
+
 namespace sync_demo
 {
 
 SyncProcessing::SyncProcessing()
 : Node("sync_processing")
 {
+  // Sensor-data QoS (best effort), like the other nodes of the chapter. The
+  // message_filters subscriber takes it as an rclcpp::QoS from Kilted on
+  // (rclcpp 29), and as the older rmw_qos_profile_t up to Jazzy (rclcpp 28):
+  // neither form compiles on the other side.
+#if RCLCPP_VERSION_GTE(29, 0, 0)
+  const rclcpp::QoS qos = rclcpp::SensorDataQoS();
+#else
+  const rmw_qos_profile_t qos = rmw_qos_profile_sensor_data;
+#endif
   left_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(this,
-      "/left/image");
+      "/left/image", qos);
   right_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(this,
-      "/right/image");
+      "/right/image", qos);
 
   sync_ = std::make_shared<message_filters::Synchronizer<SyncPolicy>>(SyncPolicy(10), *left_sub_,
       *right_sub_);

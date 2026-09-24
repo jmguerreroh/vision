@@ -326,6 +326,22 @@ def main():
                               % (rel, n, num, ', '.join(sorted(ev)),
                                  ' o '.join(cand[:3]) or 'ninguno'))
 
+    # 4d. Los package.xml de ROS 2 citan su propio capitulo. Su <description> es
+    # lo que ensena `ros2 pkg xml`, y los cinco siguieron diciendo «Chapter 18»
+    # despues de que ROS 2 pasara al 19, sin que nada lo viera. No se hace con la
+    # heuristica de 4c, que adivina el tema por palabras y aqui se equivoca: toma
+    # «chain», «Mat» o «PointCloud2» por temas de los capitulos 8, 3 o 15. La
+    # regla exacta es mas simple: todos estos paquetes son de un solo capitulo.
+    propio_ros2 = str(int(CAP_ROS2[:2]))
+    for f in sorted(glob.glob(os.path.join(RAIZ, CAP_ROS2, '*', 'package.xml'))):
+        rel = os.path.relpath(f, RAIZ)
+        for n, linea in enumerate(leer(f).split('\n'), 1):
+            for m in ref_cap.finditer(linea):
+                num = m.group(1) or m.group(2)
+                if num != propio_ros2:
+                    fallos.append('%s:%d cita el capitulo %s; los paquetes de %s son del %s'
+                                  % (rel, n, num, CAP_ROS2, propio_ros2))
+
     # 5. Cada ejemplo acepta --help, y lo hace con el mismo patron
     for cap, ej in lista:
         src = os.path.join(RAIZ, cap, ej, 'main.cpp')

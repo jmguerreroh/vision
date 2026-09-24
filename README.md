@@ -15,7 +15,8 @@ source ~/.bashrc
 
 > Note: The examples use modern features and require a compiler that supports **C++17** or higher.
 
-> Note: Developed against OpenCV 4.6.0 and PCL 1.14.0. The build requires
+> Note: Developed against OpenCV 4.6.0 and PCL 1.14.0, and also tested with
+> OpenCV 4.10.0 and PCL 1.15.1 (see *Installation*). The build requires
 > OpenCV 4. PCL is optional: the top-level `CMakeLists.txt` looks for PCL 1.10
 > and, if it is not there, warns and skips the nine PCL examples of chapter 15
 > instead of failing. The other 69 targets build without it.
@@ -37,35 +38,41 @@ cmake -B vision_examples/build
 cmake --build vision_examples/build
 ```
 
-Executables are in `vision_examples/bin/`. For example:
+Executables are in `vision_examples/bin/`. Run them from that folder:
 
 ```bash
-./vision_examples/bin/03_01_read_image
-./vision_examples/bin/06_01_dft_frequencies
-./vision_examples/bin/15_02_stereo_disparity
+cd vision_examples/bin
+./03_01_read_image
+./06_01_dft_frequencies
+./15_02_stereo_disparity
 ```
 
-> Note: the default inputs are written as `../../data/...`, which resolves to
-> the `data/` folder of the repository both from `vision_examples/bin/` and
-> from the folder of the example itself. Either way of building works without
-> touching the paths.
+> Note: the default inputs are written as `../../data/...`, and
+> `cv::samples::findFile` looks for them from the current working directory.
+> That path resolves to the `data/` folder of the repository from
+> `vision_examples/bin/` and from the folder of the example itself, but **not
+> from the repository root**. Either way of building works without touching the
+> paths, as long as the example is launched from one of those two folders.
 
 ### Command-line interface
 
-From the repository root, every example follows the same convention, so any of them can be run without
-reading its source first:
+Every example follows the same convention, so any of them can be run without
+reading its source first. From `vision_examples/bin/`:
 
 ```bash
-./vision_examples/bin/example                 # runs with its default input, taken from data/
-./vision_examples/bin/example my_image.jpg    # overrides the input
-./vision_examples/bin/example --help          # prints what the example accepts and its defaults
+./example                 # runs with its default input, taken from data/
+./example my_image.jpg    # overrides the input
+./example --help          # prints what the example accepts and its defaults
 ```
 
 OpenCV examples use `cv::CommandLineParser`; PCL examples use PCL's own
 `pcl::console` parser. Both accept `-h` and `--help`. Inputs are **positional
-and optional**: an example with no arguments always works. The one exception is
-`15_08_pcl_advanced_visualizer`, which is a menu of seven demos and prints that
-menu when called with no option; pick one, for instance `-s`.
+and optional**: an example with no arguments works, with three exceptions. `15_08_pcl_advanced_visualizer` is a menu of seven demos and prints
+that menu when called with no option; pick one, for instance `-s`. And
+`03_05_video_capture` and `06_03_wavelet_denoising` are real-time examples that
+open the default camera when called with no argument; without a camera, give
+them a file, for instance `../../data/vtest.avi` and
+`../../data/starry_night.png`.
 
 The few examples that write a file take the destination on the command line and
 default to the current directory: `--out` in `14_01`, `14_03`, `15_03` and
@@ -117,6 +124,7 @@ cloud `pcl_demo` consumes.
 
 ```bash
 cd <repository root>
+sudo rosdep init && rosdep update      # only once per machine, if never done
 rosdep install --from-paths 19_vision_ros2 --ignore-src -r -y
 colcon build --base-paths 19_vision_ros2 --symlink-install
 source install/setup.bash
@@ -125,7 +133,25 @@ source install/setup.bash
 `--base-paths` is what keeps `colcon` from descending into the rest of the
 repository, where it would find the OpenCV/PCL project of the other chapters.
 
-Requirements, beyond a current ROS 2 distribution: `cv_bridge`,
+The packages are tested with **ROS 2 Jazzy** (Ubuntu 24.04) and **ROS 2 Lyrical**
+(Ubuntu 26.04). Where the ROS API changed between them (the removal of
+`ament_target_dependencies`, the `.hpp` headers of `message_filters`, and QoS
+passed as `rclcpp::QoS`), the code builds on both without warnings.
+
+> **Large messages on Lyrical.** With its default transport, the Fast DDS of
+> Lyrical often drops large best-effort messages: a 640×480 point cloud (about
+> 5 MB) can take tens of seconds to get through to `pcl_demo`, or not arrive at
+> all, while a small cloud arrives at once. Jazzy does not show this. Enabling
+> the large-data mode of Fast DDS, in every terminal that runs a node, fixes it:
+>
+> ```bash
+> export FASTDDS_BUILTIN_TRANSPORTS=LARGE_DATA
+> ```
+>
+> Measured over five runs each: without it, 4 of 5 clouds arrived, after 7 to
+> 55 s; with it, 5 of 5 in 1 to 2 s.
+
+Requirements, beyond one of those distributions: `cv_bridge`,
 `image_transport` (plus `image-transport-plugins`), `message_filters`,
 `pcl_ros` and `depth_image_proc`. `rosdep` installs them from the manifests, or
 by hand:
@@ -276,6 +302,13 @@ already read, which is the reason for studying them from beginning to end.
 
 ### From packages (recommended)
 
+**Build tools** (a fresh Ubuntu does not ship them):
+
+```bash
+sudo apt update
+sudo apt install build-essential cmake git pkg-config
+```
+
 **OpenCV:**
 
 ```bash
@@ -289,11 +322,13 @@ Verify:
 pkg-config --modversion opencv4
 ```
 
-Every example but one runs on OpenCV 4.6, the version the Ubuntu 22.04 package
-installs. The exception is `18_02`: its YOLO11 model in ONNX needs **OpenCV 4.9
-or newer**, because earlier ONNX readers do not understand the `Split` node the
-way YOLO11 writes it. With an older OpenCV the example reports exactly that and
-exits, and `18_01` covers the same ground with a model that loads anywhere.
+The examples are tested from a fresh install on **Ubuntu 24.04** (OpenCV 4.6,
+PCL 1.14) and **Ubuntu 26.04** (OpenCV 4.10, PCL 1.15): all of them build on
+both. One runs only on the second: `18_02`, whose YOLO11 model in ONNX needs
+**OpenCV 4.9 or newer**, because earlier ONNX readers do not understand the
+`Split` node the way YOLO11 writes it. With an older OpenCV the example reports
+exactly that and exits, and `18_01` covers the same ground with a model that
+loads anywhere.
 
 **PCL:**
 
@@ -318,7 +353,8 @@ build: if the model cannot be obtained they warn and let the build finish, and
 the example reports the missing model when you run it.
 
 `18_01_yolov4_darknet` **downloads about 24 MB** from
-`github.com/AlexeyAB/darknet`, so the first build needs network access. A failed
+`github.com/AlexeyAB/darknet`, so the first build needs network access and
+`wget` or `curl` (`sudo apt install wget`; a fresh Ubuntu has neither). A failed
 download leaves nothing behind, and re-running the script retries it.
 
 `18_02_yolo_ultralytics` and `18_03_semantic_segmentation` export their ONNX
@@ -326,10 +362,20 @@ model locally instead, with a `download_model.sh`/`export_model.py` pair. If the
 required Python packages aren't installed, the script prints a warning and
 skips the export.
 
+`pip` itself is not installed by default either:
+
 ```bash
+sudo apt install python3-pip
 pip install --user --break-system-packages ultralytics onnx onnxruntime onnxslim  # 18_02
 pip install --user --break-system-packages torch torchvision onnxscript           # 18_03
 ```
+
+The 18_03 export has been tested with torch 2.3.1 and 2.14. Since torch 2.5,
+`torch.onnx.export` accepts a `dynamo` argument, and since 2.9 the dynamo exporter
+is the default; whenever the argument exists the script asks for the legacy
+exporter, because the dynamo one produces a graph that OpenCV's ONNX importer
+cannot read. If an export fails for any other reason,
+the script warns and the build still finishes.
 
 Re-run `bash download_model.sh` inside each example's folder (or rebuild its
 target) afterwards to generate the missing model files.

@@ -33,22 +33,16 @@ OpenCVProcessing::OpenCVProcessing()
 void OpenCVProcessing::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
 {
   try {
-    // Convert to cv::Mat
+    // Convert to cv::Mat (own copy)
     cv::Mat frame = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
 
-    // Show received image
-    cv::resize(frame, frame, cv::Size(frame.cols / 4, frame.rows / 4));
-    cv::imshow("Received Image", frame);
-
-    // Convert to grayscale
+    // Process with OpenCV: convert to grayscale, at full resolution, so the
+    // result still matches the CameraInfo of the camera it came from
     cv::Mat gray;
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
-    // Show processed image
-    cv::imshow("Grayscale Image", gray);
-    cv::waitKey(1);
-
-    // Convert back to ROS image message and publish
+    // Convert back to ROS image message, keeping the original header, and publish.
+    // To look at the result: ros2 run rqt_image_view rqt_image_view /image_processed
     std_msgs::msg::Header header = msg->header;
     sensor_msgs::msg::Image::SharedPtr output_msg =
       cv_bridge::CvImage(header, sensor_msgs::image_encodings::MONO8, gray).toImageMsg();

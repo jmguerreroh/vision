@@ -101,11 +101,29 @@ int main(int argc, char ** argv)
   // different ids). The board object knows the 3D position of every corner
   // in the board's own reference frame -- these are the "known 3D points"
   // that PnP needs.
+  //
+  // OpenCV 4.7 changed how both objects are built: the dictionary became a
+  // value instead of a Ptr, and CharucoBoard::create() gave way to a
+  // constructor. The functions used below (detectMarkers,
+  // interpolateCornersCharuco, estimatePoseCharucoBoard) still take the Ptr
+  // form in every version, so only the construction depends on it. The board
+  // has an odd number of rows, so the 4.7 change of pattern for even-row
+  // boards does not affect it.
+#if CV_VERSION_MAJOR > 4 || (CV_VERSION_MAJOR == 4 && CV_VERSION_MINOR >= 7)
+  cv::Ptr<cv::aruco::Dictionary> dictionary = cv::makePtr<cv::aruco::Dictionary>(
+    cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250));
+  cv::Ptr<cv::aruco::CharucoBoard> board = cv::makePtr<cv::aruco::CharucoBoard>(
+    cv::Size(Config::SQUARES_X, Config::SQUARES_Y),
+    Config::SQUARE_LENGTH, Config::MARKER_LENGTH, *dictionary);
+  const std::vector<cv::Point3f> & board_corners = board->getChessboardCorners();
+#else
   cv::Ptr<cv::aruco::Dictionary> dictionary =
     cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
   cv::Ptr<cv::aruco::CharucoBoard> board = cv::aruco::CharucoBoard::create(
     Config::SQUARES_X, Config::SQUARES_Y,
     Config::SQUARE_LENGTH, Config::MARKER_LENGTH, dictionary);
+  const std::vector<cv::Point3f> & board_corners = board->chessboardCorners;
+#endif
 
   // ========================================
   // Step 1: detect the ArUco markers
@@ -171,7 +189,7 @@ int main(int argc, char ** argv)
   // with where it was actually found.
   std::vector<cv::Point3f> object_points;
   for (int id : charuco_ids) {
-    object_points.push_back(board->chessboardCorners[id]);
+    object_points.push_back(board_corners[id]);
   }
 
   std::vector<cv::Point2f> reprojected;

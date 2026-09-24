@@ -14,8 +14,10 @@
  *
  * Haar Wavelet Decomposition:
  * - Approximation (LL): low-pass in both directions (top-left)
- * - Horizontal detail (LH): vertical edges (top-right)
- * - Vertical detail (HL): horizontal edges (bottom-left)
+ * - Horizontal detail (HL): vertical edges (top-right)
+ * - Vertical detail (LH): horizontal edges (bottom-left)
+ * The first letter is the filter along x and the second the filter along y,
+ * as in the book (HL = PA/PB, LH = PB/PA).
  * - Diagonal detail (HH): diagonal edges (bottom-right)
  *
  * Mathematical basis (unnormalized Haar, block p00..p11):
@@ -178,16 +180,16 @@ static cv::Mat padForWavelet(const cv::Mat & src, int nIterations)
  *
  * Decomposes the image into four sub-bands at each level:
  * - LL (Approximation): Average of 2x2 block - top-left quadrant
- * - LH (Horizontal detail): Vertical edge info - top-right quadrant
- * - HL (Vertical detail): Horizontal edge info - bottom-left quadrant
+ * - HL (Horizontal detail): Vertical edge info - top-right quadrant
+ * - LH (Vertical detail): Horizontal edge info - bottom-left quadrant
  * - HH (Diagonal detail): Diagonal edge info - bottom-right quadrant
  *
  * Layout after transform (NIter=1):
  * +-------+-------+
- * |  LL   |  LH   |
+ * |  LL   |  HL   |
  * | (c)   | (dh)  |
  * +-------+-------+
- * |  HL   |  HH   |
+ * |  LH   |  HH   |
  * | (dv)  | (dd)  |
  * +-------+-------+
  *
@@ -223,11 +225,11 @@ static void haarWaveletTransform(cv::Mat & src, cv::Mat & dst, int nIterations)
         float c = (p00 + p01 + p10 + p11) * 0.5f;
         dst.at<float>(y, x) = c;
 
-        // Horizontal detail (LH): difference between columns
+        // Horizontal detail (HL): difference between columns
         float dh = (p00 + p10 - p01 - p11) * 0.5f;
         dst.at<float>(y, x + half_width) = dh;
 
-        // Vertical detail (HL): difference between rows
+        // Vertical detail (LH): difference between rows
         float dv = (p00 + p01 - p10 - p11) * 0.5f;
         dst.at<float>(y + half_height, x) = dv;
 
@@ -247,7 +249,7 @@ static void haarWaveletTransform(cv::Mat & src, cv::Mat & dst, int nIterations)
  * Reconstructs the image from wavelet coefficients while optionally
  * applying shrinkage to detail coefficients for denoising.
  *
- * The shrinkage is applied only to detail coefficients (LH, HL, HH),
+ * The shrinkage is applied only to detail coefficients (HL, LH, HH),
  * not to the approximation (LL), as noise primarily affects high-frequency
  * components.
  *
@@ -277,9 +279,9 @@ static void inverseHaarWavelet(
       for (int x = 0; x < half_width; x++) {
         // Extract coefficients from the four quadrants
         float c = src.at<float>(y, x);                                 // LL (approximation)
-        float dh = src.at<float>(y, x + half_width);                    // LH (horizontal detail)
-        float dv = src.at<float>(y + half_height, x);                   // HL (vertical detail)
-        float dd = src.at<float>(y + half_height, x + half_width);       // HH (diagonal detail)
+        float dh = src.at<float>(y, x + half_width);                   // HL (horizontal detail)
+        float dv = src.at<float>(y + half_height, x);                  // LH (vertical detail)
+        float dd = src.at<float>(y + half_height, x + half_width);     // HH (diagonal detail)
 
         // Apply shrinkage to detail coefficients for denoising
         switch (shrinkageType) {

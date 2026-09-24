@@ -10,6 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(pcl_ros REQUIRED)
+find_package(pcl_conversions REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io filters)
 
 # Create executable
@@ -25,15 +26,25 @@ target_include_directories(pcl_processing PUBLIC
   ${PCL_INCLUDE_DIRS}
 )
 
-# Link ament dependencies
-ament_target_dependencies(pcl_processing
-  rclcpp
-  sensor_msgs
-  pcl_ros
+# Link the ROS 2 dependencies through their exported CMake targets.
+# ament_target_dependencies() was deprecated in Kilted and removed in
+# Lyrical; target_link_libraries() with the exported targets works in both
+# distributions the examples are tested with, Jazzy and Lyrical.
+target_link_libraries(pcl_processing PUBLIC
+  rclcpp::rclcpp
+  ${sensor_msgs_TARGETS}
 )
+# pcl_conversions exports a CMake target only in the newer distributions; in
+# Jazzy it still hands over its include directories and libraries as variables.
+if(TARGET pcl_conversions::pcl_conversions)
+  target_link_libraries(pcl_processing PUBLIC pcl_conversions::pcl_conversions)
+else()
+  target_include_directories(pcl_processing PUBLIC ${pcl_conversions_INCLUDE_DIRS})
+  target_link_libraries(pcl_processing PUBLIC ${pcl_conversions_LIBRARIES})
+endif()
 
 # Link non-ament libraries
-target_link_libraries(pcl_processing
+target_link_libraries(pcl_processing PUBLIC
   ${PCL_LIBRARIES}
 )
 

@@ -3,7 +3,7 @@
 <package format="3">
   <name>transport_demo</name>
   <version>0.0.0</version>
-  <description>The same node through image_transport: one publisher, several wire formats. Chapter 18 of the book.</description>
+  <description>The same node through image_transport: one publisher, several wire formats. Chapter 19 of the book.</description>
   <maintainer email="josemiguel.guerrero@urjc.es">Jose Miguel Guerrero Hernandez</maintainer>
   <license>MIT</license>
 
@@ -14,6 +14,9 @@
   <depend>cv_bridge</depend>
   <depend>OpenCV</depend>
   <depend>image_transport</depend>
+  <!-- The formats beyond raw (compressed, theora, zstd...) are plugins loaded at
+       run time. Without them the node only offers raw, which defeats its point. -->
+  <exec_depend>image_transport_plugins</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

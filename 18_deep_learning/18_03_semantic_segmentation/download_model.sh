@@ -45,7 +45,13 @@ if [ -n "$MISSING" ]; then
 fi
 
 echo "=== Exporting DeepLabV3-MobileNetV3 to ONNX ==="
-python3 export_model.py
+# A failed export must not stop the build (set -e would): warn, remove any
+# half-written file and let the example report the missing model.
+if ! python3 export_model.py; then
+  echo "WARNING: DeepLabV3 export failed; the example will report the missing model."
+  rm -f "$ONNX_FILE" "$NAMES_FILE"
+  exit 0
+fi
 
 echo ""
 echo "=== Done! ==="

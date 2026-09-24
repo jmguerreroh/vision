@@ -17,6 +17,7 @@ The input size is fixed at 384x384 on export: OpenCV feeds it exactly that.
 Author: José Miguel Guerrero Hernández
 """
 
+import inspect
 import os
 import torch
 import torchvision
@@ -52,11 +53,16 @@ def main():
         weights="DEFAULT").eval()
     dummy = torch.randn(1, 3, INPUT_SIZE, INPUT_SIZE)
     # dynamo=False: forces the legacy TorchScript-based exporter. Torch's newer
-    # "dynamo" exporter (default since torch 2.5) produces a graph OpenCV's DNN
-    # ONNX importer cannot read and splits weights into a separate .onnx.data file.
+    # "dynamo" exporter (an option since torch 2.5, the default since 2.9)
+    # produces a graph OpenCV's DNN ONNX importer cannot read and splits weights
+    # into a separate .onnx.data file. Before torch 2.5 the argument does not
+    # exist and the legacy exporter is the only one, so it is passed only when
+    # export() accepts it. Tested with torch 2.3.1 and 2.14.
+    extra = {}
+    if "dynamo" in inspect.signature(torch.onnx.export).parameters:
+        extra["dynamo"] = False
     torch.onnx.export(OnlyOutput(model), dummy, onnx_path, opset_version=12,
-                      input_names=["input"], output_names=["output"],
-                      dynamo=False)
+                      input_names=["input"], output_names=["output"], **extra)
     print(f"Model saved to {onnx_path}")
 
     names_path = os.path.join(MODEL_DIR, "voc.names")

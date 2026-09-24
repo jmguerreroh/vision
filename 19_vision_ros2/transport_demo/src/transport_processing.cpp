@@ -13,6 +13,14 @@
 
 #include "transport_demo/transport_processing.hpp"
 
+// image_transport moved from a Node pointer and rmw_qos_profile_t to node
+// interfaces and rclcpp::QoS. Where the new API exists (Lyrical) the old one
+// is deprecated; in Jazzy the old one is the only one. The header of the new
+// API tells which side we are on.
+#if __has_include(<image_transport/node_interfaces.hpp>)
+#define TRANSPORT_DEMO_NODE_INTERFACES 1
+#endif
+
 namespace transport_demo
 {
 
@@ -33,15 +41,28 @@ void TransportProcessing::initialize()
   auto node = this->shared_from_this();
 
   // Create an ImageTransport object for handling image subscriptions and publications
+#ifdef TRANSPORT_DEMO_NODE_INTERFACES
+  image_transport::ImageTransport it(*this);
+#else
   image_transport::ImageTransport it(node);
+#endif
   try {
     // Create a subscription to the image topic with the specified transport
     // - node: the ROS 2 node used to create the subscription
     // - topic_name: the name of the topic to subscribe to
     // - transport_name: the transport to use ("raw", "compressed", etc.)
     // - image_callback: the callback function triggered when a new image is received
-    // - rmw_qos_profile_sensor_data: recommended QoS for sensor data (low latency)
+    // - sensor-data QoS: recommended for sensor data (best effort, low latency)
     // - SubscriptionOptions: optional settings like intra-process communication or custom callbacks
+#ifdef TRANSPORT_DEMO_NODE_INTERFACES
+    image_sub_ = image_transport::create_subscription(
+      *this,
+      topic_name,
+      std::bind(&TransportProcessing::image_callback, this, std::placeholders::_1),
+      transport_name,
+      rclcpp::SensorDataQoS(),
+      rclcpp::SubscriptionOptions());
+#else
     image_sub_ = image_transport::create_subscription(
       node.get(),
       topic_name,
@@ -49,6 +70,7 @@ void TransportProcessing::initialize()
       transport_name,
       rmw_qos_profile_sensor_data,
       rclcpp::SubscriptionOptions());
+#endif
     RCLCPP_INFO(
       node->get_logger(), "Image received: unwrapping using '%s' transport.",
       image_sub_.getTransport().c_str());
@@ -70,17 +92,12 @@ void TransportProcessing::image_callback(const sensor_msgs::msg::Image::ConstSha
     // Convert to cv::Mat
     cv::Mat frame = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8)->image;
 
-    // Show received image
-    cv::resize(frame, frame, cv::Size(frame.cols / 4, frame.rows / 4));
-    cv::imshow("Received Image", frame);
-
-    // Process: convert to grayscale
+    // Process: convert to grayscale, at full resolution
     cv::Mat gray;
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-    cv::imshow("Grayscale Image", gray);
-    cv::waitKey(1);
 
-    // Convert to ROS message and publish
+    // Convert to ROS message, keeping the original header, and publish.
+    // To look at the result: ros2 run rqt_image_view rqt_image_view --force-discover
     std_msgs::msg::Header header = msg->header;
     sensor_msgs::msg::Image::SharedPtr output_msg =
       cv_bridge::CvImage(header, sensor_msgs::image_encodings::MONO8, gray).toImageMsg();

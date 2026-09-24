@@ -18,8 +18,21 @@ mkdir -p "$CFG_DIR"
 
 FALTAN=""
 
+# wget if it is there, curl otherwise: a fresh Ubuntu ships neither, and saying
+# only "could not download" hid the real reason, which was the missing tool.
+if command -v wget > /dev/null 2>&1; then
+  transferir() { wget -q --show-progress -O "$1" "$2"; }
+elif command -v curl > /dev/null 2>&1; then
+  transferir() { curl -fL --progress-bar -o "$1" "$2"; }
+else
+  echo "WARNING: neither wget nor curl is installed, so the YOLOv4-tiny model"
+  echo "cannot be downloaded. Install one (sudo apt install wget) and re-run"
+  echo "'bash download_model.sh' in this folder. The build continues."
+  exit 0
+fi
+
 # Fetch a file only if it is not already there AND complete. Returns non-zero on
-# failure, after removing whatever wget left, so the next run retries.
+# failure, after removing whatever the download left, so the next run retries.
 descargar() {
   local destino="$1" url="$2" tamano_minimo="$3" descripcion="$4"
 
@@ -35,7 +48,7 @@ descargar() {
   fi
 
   echo "Downloading $(basename "$destino") ($descripcion)..."
-  if wget -q --show-progress -O "$destino" "$url"; then
+  if transferir "$destino" "$url"; then
     local bytes
     bytes=$(stat -c%s "$destino")
     if [ "$bytes" -ge "$tamano_minimo" ]; then

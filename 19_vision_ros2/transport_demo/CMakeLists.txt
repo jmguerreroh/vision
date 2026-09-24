@@ -26,16 +26,19 @@ target_include_directories(transport_processing PUBLIC
   ${OpenCV_INCLUDE_DIRS}
 )
 
-# Link ament dependencies
-ament_target_dependencies(transport_processing
-  rclcpp
-  sensor_msgs
-  cv_bridge
-  image_transport
+# Link the ROS 2 dependencies through their exported CMake targets.
+# ament_target_dependencies() was deprecated in Kilted and removed in
+# Lyrical; target_link_libraries() with the exported targets works in both
+# distributions the examples are tested with, Jazzy and Lyrical.
+target_link_libraries(transport_processing PUBLIC
+  rclcpp::rclcpp
+  ${sensor_msgs_TARGETS}
+  cv_bridge::cv_bridge
+  image_transport::image_transport
 )
 
 # Link non-ament libraries
-target_link_libraries(transport_processing
+target_link_libraries(transport_processing PUBLIC
   ${OpenCV_LIBRARIES}
 )
 
