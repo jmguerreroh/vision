@@ -3,7 +3,7 @@
 <package format="3">
   <name>opencv_demo</name>
   <version>0.0.0</version>
-  <description>The cv_bridge round trip: a ROS image message to cv::Mat and back, keeping the original header. Chapter 18 of the book.</description>
+  <description>The cv_bridge round trip: a ROS image message to cv::Mat and back, keeping the original header. Chapter 19 of the book.</description>
   <maintainer email="josemiguel.guerrero@urjc.es">Jose Miguel Guerrero Hernandez</maintainer>
   <license>MIT</license>
 

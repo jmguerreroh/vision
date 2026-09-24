@@ -3,7 +3,7 @@
 <package format="3">
   <name>pcl_demo</name>
   <version>0.0.0</version>
-  <description>pcl_conversions: PointCloud2 to pcl::PointCloud and back, with the gap between both conversions left for your own PCL algorithm. Chapter 18 of the book.</description>
+  <description>pcl_conversions: PointCloud2 to pcl::PointCloud and back, with the gap between both conversions left for your own PCL algorithm. Chapter 19 of the book.</description>
   <maintainer email="josemiguel.guerrero@urjc.es">Jose Miguel Guerrero Hernandez</maintainer>
   <license>MIT</license>
 
