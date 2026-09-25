@@ -80,10 +80,9 @@ The build requires **OpenCV 4**. **PCL** is optional: the top-level
 nine PCL examples of chapter 15 instead of failing. The other 69 targets build
 without it.
 
-The examples were developed against OpenCV 4.6.0 and PCL 1.14.0, and are tested
-from a fresh install on **Ubuntu 24.04** (OpenCV 4.6, PCL 1.14) and **Ubuntu
-26.04** (OpenCV 4.10, PCL 1.15): all of them build on both. One runs only on the
-second: `18_02`, whose YOLO11 model in ONNX needs **OpenCV 4.9 or newer**,
+The examples were developed on **Ubuntu 24.04** (OpenCV 4.6.0, PCL 1.14.0) and
+are also tested on **Ubuntu 26.04** (OpenCV 4.10.0, PCL 1.15.1), both from a
+fresh install: all of them build on both. One runs only on the second: `18_02`, whose YOLO11 model in ONNX needs **OpenCV 4.9 or newer**,
 because earlier ONNX readers do not understand the `Split` node the way YOLO11
 writes it. With an older OpenCV the example reports exactly that and exits, and
 `18_01` covers the same ground with a model that loads anywhere.
