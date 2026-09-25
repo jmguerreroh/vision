@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.8)
+# 3.12 and not the 3.8 of the other packages: find_package(PCL) finds PCL_ROOT
+# set, and before 3.12 (policy CMP0074) CMake ignores it with a warning.
+cmake_minimum_required(VERSION 3.12)
 project(pcl_demo)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")

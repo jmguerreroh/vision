@@ -2,9 +2,9 @@
 # image plus a colour image come out as a coloured point cloud on
 # /stereo/points, which is the input pcl_demo expects.
 #
-#   depth (16UC1, mm) --convert_metric--> depth (32FC1, m) --+
-#                                                            +--> point_cloud_xyzrgb --> /stereo/points
-#   colour image ---------------------------------------------+
+#   depth 16UC1, mm --convert_metric--> 32FC1, m --+
+#                                                  +--> point_cloud_xyzrgb --> /stereo/points
+#   colour image ----------------------------------+
 #
 # Both stages exist as standalone nodes, so this file adds no code: it only
 # fixes the remappings that would otherwise have to be typed by hand.

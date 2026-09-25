@@ -1,0 +1,17 @@
+# The official ROS 2 image, plus what a headless run needs. The dependencies of
+# the packages are not installed here: ros2_check.py installs them with rosdep,
+# which is the README step being tested.
+#
+#   docker build -f tools/ci/Dockerfile.ros2 --build-arg ROS_DISTRO=lyrical -t vision-ci:lyrical tools/ci
+
+ARG ROS_DISTRO=jazzy
+FROM ros:${ROS_DISTRO}
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# A virtual display for the windows of sync_demo, and xwininfo to see them.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      xvfb xauth x11-utils libgl1-mesa-dri \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git config --global --add safe.directory '*'

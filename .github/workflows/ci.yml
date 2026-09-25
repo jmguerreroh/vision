@@ -1,0 +1,104 @@
+# Builds and runs every example on the two Ubuntu releases the README
+# supports, and the ROS 2 packages of chapter 19 on their two distributions.
+# Everything runs in the images of tools/ci/, the same ones
+# tools/ci/run_local.sh uses, so a failure here can be reproduced locally.
+#
+# Two depths. A push or a pull request gets the quick checks: the build with no
+# warnings, check_repo.py, --help, and colcon build and test. The weekly run
+# and a manual run also build each example on its own, run every example, check
+# .gitignore and feed the ROS 2 nodes: minutes instead of seconds, and GUI
+# runs that are better not in the way of every push.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Run everything, not only the quick checks'
+        type: boolean
+        default: true
+  # Weekly, to notice when an update of the distribution packages breaks
+  # something even though the repository did not change.
+  schedule:
+    - cron: '0 5 * * 1'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FULL: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.full) }}
+
+jobs:
+  examples:
+    name: Ubuntu ${{ matrix.ubuntu }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu: ['24.04', '26.04']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the image
+        uses: docker/build-push-action@v6
+        with:
+          context: tools/ci
+          file: tools/ci/Dockerfile
+          build-args: UBUNTU=${{ matrix.ubuntu }}
+          tags: vision-ci:${{ matrix.ubuntu }}
+          load: true
+          cache-from: type=gha,scope=ubuntu-${{ matrix.ubuntu }}
+          cache-to: type=gha,mode=max,scope=ubuntu-${{ matrix.ubuntu }}
+
+      - name: Build, check and (full run) run the examples
+        run: |
+          docker run --rm --init \
+            -v "$PWD":/src:ro \
+            -v "$GITHUB_STEP_SUMMARY":/summary.md -e GITHUB_STEP_SUMMARY=/summary.md \
+            vision-ci:${{ matrix.ubuntu }} \
+            xvfb-run -a -s "-screen 0 1920x1080x24" \
+            python3 /src/tools/ci/run_examples.py --src /src --work /work \
+              --require-models --title "Ubuntu ${{ matrix.ubuntu }}" \
+              --steps ${{ env.FULL == 'true' && 'build,check,standalone,help,run,clean' || 'build,check,help' }}
+
+  ros2:
+    name: ROS 2 ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [jazzy, lyrical]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the image
+        uses: docker/build-push-action@v6
+        with:
+          context: tools/ci
+          file: tools/ci/Dockerfile.ros2
+          build-args: ROS_DISTRO=${{ matrix.distro }}
+          tags: vision-ci:${{ matrix.distro }}
+          load: true
+          cache-from: type=gha,scope=ros2-${{ matrix.distro }}
+          cache-to: type=gha,mode=max,scope=ros2-${{ matrix.distro }}
+
+      - name: rosdep, colcon build, colcon test and (full run) smoke test
+        run: |
+          docker run --rm --init \
+            -v "$PWD":/src:ro \
+            -v "$GITHUB_STEP_SUMMARY":/summary.md -e GITHUB_STEP_SUMMARY=/summary.md \
+            vision-ci:${{ matrix.distro }} \
+            xvfb-run -a -s "-screen 0 1920x1080x24" \
+            python3 /src/tools/ci/ros2_check.py --src /src --work /work \
+              --title "ROS 2 ${{ matrix.distro }}" \
+              --steps ${{ env.FULL == 'true' && 'deps,build,test,smoke' || 'deps,build,test' }}

@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Comprueba la coherencia del repositorio de ejemplos.
+Checks the consistency of the examples repository.
 
-Casi todo lo que encontro la auditoria era mecanizable, y de la clase que
-vuelve sola: nombres de ejecutable que se desincronizan al renombrar una
-carpeta, cabeceras que citan un binario que ya no existe, capitulos
-renumerados que dejan comentarios apuntando al numero antiguo. Este guion
-comprueba justo eso, para que no haga falta descubrirlo dos veces.
+Almost everything the audit found could be checked mechanically, and was of
+the kind that comes back on its own: executable names that drift when a folder
+is renamed, headers citing a binary that no longer exists, renumbered chapters
+leaving comments that point at the old number. This script checks exactly
+that, so nobody has to find it out twice.
 
-Lo que NO comprueba es si el codigo hace lo que dice: eso se verifica
-compilando y ejecutando, no leyendo.
+What it does NOT check is whether the code does what it says: that is
+verified by compiling and running, not by reading (see tools/ci/). Nor does it
+read the sources of the book, which are not part of this repository: the
+citations of the book are checked on the book side.
 
-Uso:
-    python3 tools/check_repo.py            # informe completo
-    python3 tools/check_repo.py --quiet    # solo el veredicto
+Usage:
+    python3 tools/check_repo.py            # full report
+    python3 tools/check_repo.py --quiet    # verdict only
 
-Devuelve 0 si no hay infracciones y 1 si las hay.
+Returns 0 if there are no violations and 1 if there are.
 """
 
 import glob
@@ -25,506 +27,469 @@ import os
 import re
 import sys
 
-RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# El capitulo 19 son paquetes de ROS 2: los construye colcon por nombre de
-# paquete, no por carpeta numerada, asi que no se le aplican estas reglas.
-CAP_ROS2 = '19_vision_ros2'
-
-
-def leer(ruta):
-    return io.open(ruta, encoding='utf-8').read()
+# Chapter 19 is made of ROS 2 packages: colcon builds them by package name, not
+# by numbered folder, so these rules do not apply to it.
+ROS2_CHAPTER = '19_vision_ros2'
 
 
-def ejemplos():
-    """Devuelve [(carpeta_capitulo, carpeta_ejemplo)] ordenado."""
-    salida = []
-    for cap in sorted(os.listdir(RAIZ)):
-        if not re.match(r'^\d\d_', cap) or cap == CAP_ROS2:
+def read(path):
+    return io.open(path, encoding='utf-8').read()
+
+
+def examples():
+    """Returns [(chapter_folder, example_folder)], sorted."""
+    out = []
+    for chap in sorted(os.listdir(ROOT)):
+        if not re.match(r'^\d\d_', chap) or chap == ROS2_CHAPTER:
             continue
-        for ej in sorted(os.listdir(os.path.join(RAIZ, cap))):
-            if re.match(r'^\d\d_\d\d_', ej):
-                salida.append((cap, ej))
-    return salida
+        for ex in sorted(os.listdir(os.path.join(ROOT, chap))):
+            if re.match(r'^\d\d_\d\d_', ex):
+                out.append((chap, ex))
+    return out
 
 
 def main():
     quiet = '--quiet' in sys.argv
-    fallos = []
-    lista = ejemplos()
-    nombres = {ej for _, ej in lista}
+    failures = []
+    ex_list = examples()
+    names = {ex for _, ex in ex_list}
 
-    cmake_raiz = leer(os.path.join(RAIZ, 'CMakeLists.txt'))
-    declarados = set(re.findall(r'add_(?:cv|pcl)_example\(\s*(\S+?)[\s)]', cmake_raiz))
-    declarados = {d.split('/')[-1] for d in declarados if not d.startswith('<')}
+    root_cmake = read(os.path.join(ROOT, 'CMakeLists.txt'))
+    declared = set(re.findall(r'add_(?:cv|pcl)_example\(\s*(\S+?)[\s)]', root_cmake))
+    declared = {d.split('/')[-1] for d in declared if not d.startswith('<')}
 
-    # 1. Cobertura: cada ejemplo en disco se construye, y nada sobra
-    for cap, ej in lista:
-        if ej not in declarados:
-            fallos.append('%s/%s no aparece en el CMakeLists.txt raiz' % (cap, ej))
-    for d in sorted(declarados - nombres):
-        fallos.append('el CMakeLists.txt raiz declara %s, que no existe en disco' % d)
+    # 1. Coverage: every example on disk is built, and nothing is left over
+    for chap, ex in ex_list:
+        if ex not in declared:
+            failures.append('%s/%s is missing from the top-level CMakeLists.txt' % (chap, ex))
+    for d in sorted(declared - names):
+        failures.append('the top-level CMakeLists.txt declares %s, which does not exist on disk' % d)
 
-    # 2. El binario se llama como su carpeta, se compile como se compile
-    for cap, ej in lista:
-        base = os.path.join(RAIZ, cap, ej)
+    # 2. The binary is named after its folder, however it is compiled
+    for chap, ex in ex_list:
+        base = os.path.join(ROOT, chap, ex)
         mk = os.path.join(base, 'Makefile')
         if os.path.exists(mk):
-            for var, esperado in re.findall(r'^(TARGET\d?)\s*=\s*(.+)$', leer(mk), re.M):
-                esperado = esperado.strip()
-                valido = ('$(notdir $(CURDIR))', '$(notdir $(CURDIR))_frequencies')
-                if esperado not in valido:
-                    fallos.append('%s/Makefile: %s = %s (deberia derivarse de la carpeta)'
-                                  % (ej, var, esperado))
+            for var, expected in re.findall(r'^(TARGET\d?)\s*=\s*(.+)$', read(mk), re.M):
+                expected = expected.strip()
+                valid = ('$(notdir $(CURDIR))', '$(notdir $(CURDIR))_frequencies')
+                if expected not in valid:
+                    failures.append('%s/Makefile: %s = %s (should be derived from the folder)'
+                                    % (ex, var, expected))
         cm = os.path.join(base, 'CMakeLists.txt')
         if os.path.exists(cm):
-            for tgt in re.findall(r'add_executable\((\S+)', leer(cm)):
-                if tgt != ej:
-                    fallos.append('%s/CMakeLists.txt genera "%s" en vez de "%s"'
-                                  % (ej, tgt, ej))
+            for tgt in re.findall(r'add_executable\((\S+)', read(cm)):
+                if tgt != ex:
+                    failures.append('%s/CMakeLists.txt builds "%s" instead of "%s"'
+                                    % (ex, tgt, ex))
 
-    # 3. Las cabeceras no citan ejecutables que no existen
-    for cap, ej in lista:
-        for src in glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp')):
-            for n, linea in enumerate(leer(src).split('\n'), 1):
-                for cita in re.findall(r'(?:Usage|Example):\s+\./(\S+)', linea):
-                    if cita not in nombres and cita not in ('%s_frequencies' % ej,):
-                        fallos.append('%s/%s:%d cita ./%s, que no es ningun ejecutable'
-                                      % (ej, os.path.basename(src), n, cita))
+    # 3. Headers do not cite executables that do not exist
+    for chap, ex in ex_list:
+        for src in glob.glob(os.path.join(ROOT, chap, ex, '*.cpp')):
+            for n, line in enumerate(read(src).split('\n'), 1):
+                for cited in re.findall(r'(?:Usage|Example):\s+\./(\S+)', line):
+                    if cited not in names and cited not in ('%s_frequencies' % ex,):
+                        failures.append('%s/%s:%d cites ./%s, which is not an executable'
+                                        % (ex, os.path.basename(src), n, cited))
 
-    # 3b. Ningun fichero manda ejecutar un binario que no existe.
-    # La comprobacion 3 solo miraba la linea que lleva "Usage:" o "Example:", y
-    # solo en los .cpp. Se le escapaban seis invocaciones a nombres viejos
-    # (./yolov4, ./yolo11, ./semantic_segmentation) que vivian en las lineas
-    # siguientes de la misma cabecera y en los export_model.py. Aqui se mira
-    # cualquier ./algo, en .cpp, .py y .sh.
-    TOLERADOS_EJEC = {'download_model.sh', 'export_model.py', 'build'}
-    invocacion = re.compile(r'(?<![\w./])\./([A-Za-z0-9_][A-Za-z0-9_.-]*)')
-    for cap, ej in lista:
-        for patron in ('*.cpp', '*.py', '*.sh'):
-            for src in sorted(glob.glob(os.path.join(RAIZ, cap, ej, patron))):
-                for n, linea in enumerate(leer(src).split('\n'), 1):
-                    for cita in invocacion.findall(linea):
-                        if cita in nombres or cita in TOLERADOS_EJEC:
+    # 3b. No file tells the reader to run a binary that does not exist.
+    # Check 3 only looked at the line carrying "Usage:" or "Example:", and only
+    # in the .cpp files. It missed six invocations of old names (./yolov4,
+    # ./yolo11, ./semantic_segmentation) that lived on the following lines of
+    # the same header and in the export_model.py scripts. This one looks at any
+    # ./something, in .cpp, .py and .sh.
+    ALLOWED_EXEC = {'download_model.sh', 'export_model.py', 'build'}
+    invocation = re.compile(r'(?<![\w./])\./([A-Za-z0-9_][A-Za-z0-9_.-]*)')
+    for chap, ex in ex_list:
+        for pattern in ('*.cpp', '*.py', '*.sh'):
+            for src in sorted(glob.glob(os.path.join(ROOT, chap, ex, pattern))):
+                for n, line in enumerate(read(src).split('\n'), 1):
+                    for cited in invocation.findall(line):
+                        if cited in names or cited in ALLOWED_EXEC:
                             continue
-                        if cita == '%s_frequencies' % ej:
+                        if cited == '%s_frequencies' % ex:
                             continue
-                        fallos.append('%s/%s:%d manda ejecutar ./%s, que no es ningun ejecutable'
-                                      % (ej, os.path.basename(src), n, cita))
+                        failures.append('%s/%s:%d tells to run ./%s, which is not an executable'
+                                        % (ex, os.path.basename(src), n, cited))
 
-    # 4. Toda cita NN_MM a otro ejemplo tiene que existir
-    for cap, ej in lista:
-        for src in glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp')):
-            for n, linea in enumerate(leer(src).split('\n'), 1):
-                for cita in re.findall(r'\b(\d\d_\d\d_[a-z0-9_]+)', linea):
-                    if cita not in nombres:
-                        fallos.append('%s/%s:%d cita %s, que no existe'
-                                      % (ej, os.path.basename(src), n, cita))
+    # 4. Every NN_MM citation of another example must exist
+    for chap, ex in ex_list:
+        for src in glob.glob(os.path.join(ROOT, chap, ex, '*.cpp')):
+            for n, line in enumerate(read(src).split('\n'), 1):
+                for cited in re.findall(r'\b(\d\d_\d\d_[a-z0-9_]+)', line):
+                    if cited not in names:
+                        failures.append('%s/%s:%d cites %s, which does not exist'
+                                        % (ex, os.path.basename(src), n, cited))
 
-    # 4b. Toda cita NN_MM desnuda apunta al ejemplo que el comentario describe.
-    # La comprobacion 4 no alcanza a estas: exige el nombre completo
-    # (NN_MM_algo), y una cita desnuda no lo lleva. El resultado fue que la
-    # renumeracion dejo 57 de 61 citas apuntando al ejemplo de al lado sin que
-    # nada fallara, porque el numero corrido TAMBIEN existe: el lector llegaba a
-    # un ejemplo real pero de otro tema, y ni el compilador ni este guion
-    # decian nada.
+    # 4b. Every bare NN_MM citation points at the example the comment describes.
+    # Check 4 does not reach these: it requires the full name (NN_MM_something),
+    # and a bare citation does not carry it. As a result the renumbering left 57
+    # of 61 citations pointing at the neighbouring example without anything
+    # failing, because the shifted number ALSO exists: the reader landed on a
+    # real example, but about something else, and neither the compiler nor this
+    # script said a word.
     #
-    # La idea es pedirle a la cita que se describa a si misma. Si el comentario
-    # nombra una funcion de la API o una palabra que da nombre a algun ejemplo,
-    # esa evidencia tiene que encontrarse en el ejemplo citado. "threshold in
-    # 09_01" falla porque 09_01 es hough_lines; "threshold in 10_01" pasa.
-    # Se descarta la evidencia que viene del propio ejemplo que cita, que
-    # describe a quien escribe y no a quien es citado.
+    # The idea is to ask the citation to describe itself. If the comment names
+    # an API function or a word that names some example, that evidence has to
+    # be found in the cited example. "threshold in 09_01" fails because 09_01
+    # is hough_lines; "threshold in 10_01" passes. Evidence coming from the
+    # citing example itself is discarded: it describes the writer, not the
+    # example being cited.
     #
-    # Lo que esta comprobacion NO puede ver: si el ejemplo citado por error
-    # tambien usa esa funcion. "threshold in 09_01" pasa, porque
-    # 09_01_hough_lines tambien binariza antes de buscar rectas. No hay forma
-    # mecanica de distinguir ese caso de "Sobel ... 04_02", que es correcto
-    # aunque el nombre del ejemplo no diga Sobel.
-    GENERICAS = {'image', 'images', 'simple', 'advanced', 'read', 'write',
-                 'comparison', 'operations', 'transforms', 'code'}
-    MODULOS = {'ximgproc', 'aruco', 'surface_matching', 'viz', 'tracking'}
+    # What this check can NOT see: whether the wrongly cited example also uses
+    # that function. "threshold in 09_01" passes, because 09_01_hough_lines
+    # also binarizes before looking for lines. There is no mechanical way to
+    # tell that case apart from "Sobel ... 04_02", which is right even though
+    # the name of the example does not say Sobel.
+    GENERIC = {'image', 'images', 'simple', 'advanced', 'read', 'write',
+               'comparison', 'operations', 'transforms', 'code'}
+    MODULES = {'ximgproc', 'aruco', 'surface_matching', 'viz', 'tracking'}
 
-    # Citas que la comprobacion marca y son correctas, con su razon.
-    TOLERADAS = {
-        # "Sure BACKGROUND" es vocabulario del watershed, no una referencia a
-        # 16_04_background_subtraction. La palabra coincide por casualidad.
+    # Citations the check flags that are correct, with the reason.
+    ALLOWED = {
+        # "Sure BACKGROUND" is watershed vocabulary, not a reference to
+        # 16_04_background_subtraction. The word matches by chance.
         ('11_morphological_operations/11_08_distance_watershed/main.cpp', 20),
-        # Anecdota historica: cita a proposito los numeros viejos, que eran los
-        # que quedaron obsoletos cuando el libro paso de 14 a 18 capitulos.
-        ('tools/check_repo.py', 181),
     }
 
-    fuente_ej, tokens_ej = {}, {}
-    for cap, ej in lista:
-        texto = ''
-        for src in sorted(glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp'))):
-            texto += leer(src)
-        fuente_ej[ej[:5]] = texto.lower()
-        tokens_ej[ej[:5]] = {w for w in ej[6:].split('_')
-                             if len(w) >= 3 and w not in GENERICAS}
-    todos_tokens = set()
-    for tk in tokens_ej.values():
-        todos_tokens |= tk
+    ex_source, ex_tokens = {}, {}
+    for chap, ex in ex_list:
+        text = ''
+        for src in sorted(glob.glob(os.path.join(ROOT, chap, ex, '*.cpp'))):
+            text += read(src)
+        ex_source[ex[:5]] = text.lower()
+        ex_tokens[ex[:5]] = {w for w in ex[6:].split('_')
+                             if len(w) >= 3 and w not in GENERIC}
+    all_tokens = set()
+    for tk in ex_tokens.values():
+        all_tokens |= tk
 
-    def evidencia(linea):
-        """Lo que el comentario afirma sobre el ejemplo que cita."""
-        # Sin esto, "\\nNote:" dentro de un literal se lee como la palabra
-        # "nnote", que no es de nadie y marca la linea por nada.
-        linea = re.sub(r'\\[nrt]', ' ', linea)
-        ev = set(re.findall(r'cv::(\w+)', linea))
-        ev |= set(re.findall(r'\b([a-z]+[A-Z]\w*)\b', linea))     # filter2D, inRange
-        ev |= {w for w in re.findall(r'\b(\w+)\b', linea) if w in MODULOS}
-        ev |= {w for w in re.findall(r'[a-zA-Z]{3,}', linea.lower())
-               if w in todos_tokens}
-        return {w.lower() for w in ev if len(w) >= 3 and w.lower() not in GENERICAS}
+    def evidence(line):
+        """What the comment claims about the example it cites."""
+        # Without this, "\\nNote:" inside a literal reads as the word "nnote",
+        # which belongs to nobody and flags the line for nothing.
+        line = re.sub(r'\\[nrt]', ' ', line)
+        ev = set(re.findall(r'cv::(\w+)', line))
+        ev |= set(re.findall(r'\b([a-z]+[A-Z]\w*)\b', line))     # filter2D, inRange
+        ev |= {w for w in re.findall(r'\b(\w+)\b', line) if w in MODULES}
+        ev |= {w for w in re.findall(r'[a-zA-Z]{3,}', line.lower())
+               if w in all_tokens}
+        return {w.lower() for w in ev if len(w) >= 3 and w.lower() not in GENERIC}
 
-    def respalda(palabra, clave):
-        if palabra in fuente_ej[clave]:
+    def supports(word, key):
+        if word in ex_source[key]:
             return True
-        return any(palabra.startswith(t) or t.startswith(palabra)
-                   for t in tokens_ej[clave])
+        return any(word.startswith(t) or t.startswith(word)
+                   for t in ex_tokens[key])
 
-    # Una palabra que esta en la mitad de los ejemplos no distingue nada, y de
-    # hecho tapaba un fallo real: "no opencv_contrib needed (14_02 does need
-    # ximgproc...)" pasaba porque "opencv" aparece en 68 de los 77 ejemplos, asi
-    # que respaldaba a cualquiera. Solo cuenta la evidencia que discrimina.
-    def discrimina(palabra):
-        return sum(1 for k in fuente_ej if respalda(palabra, k)) <= len(fuente_ej) // 2
+    # A word found in half the examples tells nothing apart, and in fact it hid
+    # a real bug: "no opencv_contrib needed (14_02 does need
+    # ximgproc...)" passed because "opencv" appears in 68 of the 77 examples, so
+    # it supported any of them. Only evidence that discriminates counts.
+    def discriminates(word):
+        return sum(1 for k in ex_source if supports(word, k)) <= len(ex_source) // 2
 
-    revisables = [os.path.join(RAIZ, cap, ej, os.path.basename(s))
-                  for cap, ej in lista
-                  for s in sorted(glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp')))]
-    revisables += [os.path.join(RAIZ, 'README.md'),
-                   os.path.join(RAIZ, 'tools', 'check_repo.py')]
+    reviewed = [os.path.join(ROOT, chap, ex, os.path.basename(s))
+                for chap, ex in ex_list
+                for s in sorted(glob.glob(os.path.join(ROOT, chap, ex, '*.cpp')))]
+    reviewed += [os.path.join(ROOT, 'README.md'),
+                 os.path.join(ROOT, 'tools', 'check_repo.py')]
 
-    desnuda = re.compile(r'(?<![\w])(\d\d_\d\d)(?![\w\d])')
-    for f in revisables:
-        rel = os.path.relpath(f, RAIZ)
-        propio = None
-        m_pro = re.match(r'^\d\d_[a-z0-9_]+/(\d\d_\d\d)_', rel)
-        if m_pro:
-            propio = m_pro.group(1)
-        for n, linea in enumerate(leer(f).split('\n'), 1):
-            for m in desnuda.finditer(linea):
+    bare = re.compile(r'(?<![\w])(\d\d_\d\d)(?![\w\d])')
+    for f in reviewed:
+        rel = os.path.relpath(f, ROOT)
+        own = None
+        m_own = re.match(r'^\d\d_[a-z0-9_]+/(\d\d_\d\d)_', rel)
+        if m_own:
+            own = m_own.group(1)
+        for n, line in enumerate(read(f).split('\n'), 1):
+            for m in bare.finditer(line):
                 num = m.group(1)
-                if (rel, n) in TOLERADAS:
+                if (rel, n) in ALLOWED:
                     continue
-                if num not in fuente_ej:
-                    fallos.append('%s:%d cita %s, que no es ningun ejemplo'
-                                  % (rel, n, num))
+                if num not in ex_source:
+                    failures.append('%s:%d cites %s, which is not an example'
+                                    % (rel, n, num))
                     continue
-                ev = evidencia(linea)
-                if propio:
-                    ev -= tokens_ej[propio] | {propio}
-                ev = {w for w in ev if discrimina(w)}
-                if not ev or any(respalda(w, num) for w in ev):
+                ev = evidence(line)
+                if own:
+                    ev -= ex_tokens[own] | {own}
+                ev = {w for w in ev if discriminates(w)}
+                if not ev or any(supports(w, num) for w in ev):
                     continue
-                cand = sorted(k for k in fuente_ej
-                              if all(respalda(w, k) for w in ev))
-                fallos.append('%s:%d cita %s, pero habla de %s (seria %s)'
-                              % (rel, n, num, ', '.join(sorted(ev)),
-                                 ' o '.join(cand[:3]) or 'ningun ejemplo'))
+                candidates = sorted(k for k in ex_source
+                                    if all(supports(w, k) for w in ev))
+                failures.append('%s:%d cites %s, but talks about %s (that would be %s)'
+                                % (rel, n, num, ', '.join(sorted(ev)),
+                                   ' or '.join(candidates[:3]) or 'no example'))
 
-    # 4c. Toda referencia a un capitulo del libro apunta al capitulo que trata
-    # de eso. Es el mismo defecto que la 4b y estuvo escondido justo al lado:
-    # la renumeracion corrio los capitulos y se corrigieron las citas NN_MM a
-    # otros ejemplos, pero no los numeros de capitulo sueltos, que son otra
-    # cosa. 22 de 33 apuntaban al capitulo de al lado. Dos se delataban solos,
-    # porque el numero del ejemplo si estaba bien y el del capitulo no:
-    # "are chapter 11 (12_01_region_moments)" y "Chapter 10 (11_06_flood_fill)".
+    # 4c. Every reference to a book chapter points at the chapter that deals
+    # with that. It is the same defect as 4b, and it hid right next to it: the
+    # renumbering shifted the chapters and the NN_MM citations of other
+    # examples were fixed, but not the loose chapter numbers, which are a
+    # different thing. 22 of 33 pointed at the neighbouring chapter. Two gave
+    # themselves away, because the example number was right and the chapter
+    # number was not: "are chapter 11 (12_01_region_moments)" and
+    # "Chapter 10 (11_06_flood_fill)".
     #
-    # El capitulo N del libro es la carpeta NN, asi que el vocabulario del
-    # capitulo es el de todos sus ejemplos juntos. Se aplica el mismo criterio
-    # que en 4b: la evidencia del propio capitulo que escribe no cuenta, y la
-    # que aparece en casi todos los capitulos tampoco, porque no distingue.
-    # Palabras que dan nombre a alguna carpeta y aun asi no identifican un
-    # capitulo: "opencv" esta en 15_04_opencv_icp y en el opencv_demo de ROS 2,
-    # "model" en 15_10_pcl_ransac_model_fitting y "video" en 03_05_video_capture,
-    # pero las tres aparecen hablando de cualquier cosa.
-    CAP_GENERICAS = {'opencv', 'model', 'video'}
+    # Chapter N of the book is folder NN, so the vocabulary of a chapter is that
+    # of all its examples together. The same criterion as in 4b applies:
+    # evidence from the writing chapter itself does not count, and neither does
+    # evidence found in nearly every chapter, because it tells nothing apart.
+    # Words that name some folder and still do not identify a chapter:
+    # "opencv" is in 15_04_opencv_icp and in the ROS 2 opencv_demo, "model" in
+    # 15_10_pcl_ransac_model_fitting and "video" in 03_05_video_capture, but all
+    # three show up when talking about anything.
+    CHAP_GENERIC = {'opencv', 'model', 'video'}
 
-    # Lineas que la comprobacion marca y son correctas, con su razon.
-    CAP_TOLERADOS = {
-        # La frase hace dos afirmaciones: que ESTE ejemplo es del capitulo 8, y
-        # que los momentos son del 12. La evidencia de la segunda cae sobre la
-        # cita de la primera.
+    # Lines the check flags that are correct, with the reason.
+    CHAP_ALLOWED = {
+        # The sentence makes two claims: that THIS example belongs to chapter 8,
+        # and that moments belong to chapter 12. The evidence of the second one
+        # falls on the citation of the first.
         ('08_edge_detection/08_05_chain_code/main.cpp', 282),
     }
 
-    fuente_cap, tokens_cap = {}, {}
-    for cap, ej in lista:
-        c = cap[:2]
-        fuente_cap.setdefault(c, '')
-        tokens_cap.setdefault(c, set())
-        for src in sorted(glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp'))):
-            fuente_cap[c] += leer(src).lower()
-        tokens_cap[c] |= tokens_ej[ej[:5]]
-    # El 19 son paquetes de ROS 2 y no pasa por ejemplos(): se arma aparte.
-    ros2 = os.path.join(RAIZ, CAP_ROS2)
+    chap_source, chap_tokens = {}, {}
+    for chap, ex in ex_list:
+        c = chap[:2]
+        chap_source.setdefault(c, '')
+        chap_tokens.setdefault(c, set())
+        for src in sorted(glob.glob(os.path.join(ROOT, chap, ex, '*.cpp'))):
+            chap_source[c] += read(src).lower()
+        chap_tokens[c] |= ex_tokens[ex[:5]]
+    # Chapter 19 is made of ROS 2 packages and does not go through examples():
+    # it is assembled separately.
+    ros2 = os.path.join(ROOT, ROS2_CHAPTER)
     if os.path.isdir(ros2):
-        fuente_cap['19'] = ''
-        tokens_cap['19'] = {'ros2', 'ros', 'launch', 'transport', 'sync', 'pcl', 'opencv'}
+        chap_source['19'] = ''
+        chap_tokens['19'] = {'ros2', 'ros', 'launch', 'transport', 'sync', 'pcl', 'opencv'}
         for src in glob.glob(os.path.join(ros2, '*', 'src', '*.cpp')):
-            fuente_cap['19'] += leer(src).lower()
+            chap_source['19'] += read(src).lower()
 
-    # Un capitulo tiene hasta trece ejemplos, asi que su fuente junta contiene
-    # casi cualquier palabra y no distingue nada. Lo que si distingue es el
-    # nombre de las carpetas: "morphological" solo esta en el capitulo 11.
-    # De ahi los dos niveles: si la palabra da nombre a algun ejemplo, se exige
-    # que el capitulo citado sea uno de los que la llevan en el nombre; si no
-    # (una funcion de la API, por ejemplo), se acepta encontrarla en la fuente.
-    def es_tema(palabra):
-        for tk in tokens_cap.values():
-            if any(palabra.startswith(x) or x.startswith(palabra) for x in tk):
+    # A chapter has up to thirteen examples, so their joint source contains
+    # almost any word and tells nothing apart. What does tell chapters apart is
+    # the folder names: "morphological" is only in chapter 11. Hence the two
+    # levels: if the word names some example, the cited chapter must be one of
+    # those carrying it in the name; if not (an API function, for instance),
+    # finding it in the source is enough.
+    def is_topic(word):
+        for tk in chap_tokens.values():
+            if any(word.startswith(x) or x.startswith(word) for x in tk):
                 return True
         return False
 
-    def respalda_cap(palabra, c):
-        if c not in fuente_cap:
+    def supports_chap(word, c):
+        if c not in chap_source:
             return False
-        if any(palabra.startswith(x) or x.startswith(palabra) for x in tokens_cap[c]):
+        if any(word.startswith(x) or x.startswith(word) for x in chap_tokens[c]):
             return True
-        if es_tema(palabra):
-            return False          # es palabra de titulo: el nombre manda
-        return palabra in fuente_cap[c]
+        if is_topic(word):
+            return False          # a title word: the folder name decides
+        return word in chap_source[c]
 
-    def discrimina_cap(palabra):
-        return sum(1 for c in fuente_cap if respalda_cap(palabra, c)) <= len(fuente_cap) // 2
+    def discriminates_chap(word):
+        return sum(1 for c in chap_source if supports_chap(word, c)) <= len(chap_source) // 2
 
-    revisables_cap = []
-    for cap, ej in lista:
-        for patron in ('*.cpp', '*.py', '*.sh'):
-            revisables_cap += sorted(glob.glob(os.path.join(RAIZ, cap, ej, patron)))
-    for patron in (('*', 'src', '*.cpp'), ('*', 'include', '*', '*.hpp'), ('*', 'launch', '*.py')):
-        revisables_cap += sorted(glob.glob(os.path.join(ros2, *patron)))
-    revisables_cap += [os.path.join(RAIZ, 'README.md'), os.path.join(RAIZ, 'data', 'README.md'),
-                       os.path.join(RAIZ, 'CMakeLists.txt')]
+    reviewed_chap = []
+    for chap, ex in ex_list:
+        for pattern in ('*.cpp', '*.py', '*.sh'):
+            reviewed_chap += sorted(glob.glob(os.path.join(ROOT, chap, ex, pattern)))
+    for pattern in (('*', 'src', '*.cpp'), ('*', 'include', '*', '*.hpp'), ('*', 'launch', '*.py')):
+        reviewed_chap += sorted(glob.glob(os.path.join(ros2, *pattern)))
+    reviewed_chap += [os.path.join(ROOT, 'README.md'), os.path.join(ROOT, 'data', 'README.md'),
+                      os.path.join(ROOT, 'CMakeLists.txt')]
 
-    ref_cap = re.compile(r'\b[Cc]hapter\s+(\d+)|\bcap[i\u00ed]tulo\s+(\d+)')
-    for f in revisables_cap:
+    # "capítulo N" too: data/README.md is written in Spanish.
+    chap_ref = re.compile(r'\b[Cc]hapter\s+(\d+)|\bcap[i\u00ed]tulo\s+(\d+)')
+    for f in reviewed_chap:
         if not os.path.exists(f):
             continue
-        rel = os.path.relpath(f, RAIZ)
-        propio = rel[:2] if re.match(r'^\d\d_', rel) else None
-        for n, linea in enumerate(leer(f).split('\n'), 1):
-            for m in ref_cap.finditer(linea):
+        rel = os.path.relpath(f, ROOT)
+        own = rel[:2] if re.match(r'^\d\d_', rel) else None
+        for n, line in enumerate(read(f).split('\n'), 1):
+            for m in chap_ref.finditer(line):
                 num = (m.group(1) or m.group(2)).zfill(2)
-                if (rel, n) in CAP_TOLERADOS:
+                if (rel, n) in CHAP_ALLOWED:
                     continue
-                if num not in fuente_cap and num != '01':
-                    fallos.append('%s:%d cita el capitulo %s, que no existe' % (rel, n, num))
+                if num not in chap_source and num != '01':
+                    failures.append('%s:%d cites chapter %s, which does not exist' % (rel, n, num))
                     continue
-                ev = evidencia(linea)
-                if propio:
-                    ev -= tokens_cap.get(propio, set())
-                ev = {w for w in ev - CAP_GENERICAS if discrimina_cap(w)}
-                if not ev or any(respalda_cap(w, num) for w in ev):
+                ev = evidence(line)
+                if own:
+                    ev -= chap_tokens.get(own, set())
+                ev = {w for w in ev - CHAP_GENERIC if discriminates_chap(w)}
+                if not ev or any(supports_chap(w, num) for w in ev):
                     continue
-                cand = sorted(c for c in fuente_cap if all(respalda_cap(w, c) for w in ev))
-                fallos.append('%s:%d cita el capitulo %s, pero habla de %s (seria el %s)'
-                              % (rel, n, num, ', '.join(sorted(ev)),
-                                 ' o '.join(cand[:3]) or 'ninguno'))
+                candidates = sorted(c for c in chap_source
+                                    if all(supports_chap(w, c) for w in ev))
+                failures.append('%s:%d cites chapter %s, but talks about %s (that would be %s)'
+                                % (rel, n, num, ', '.join(sorted(ev)),
+                                   ' or '.join(candidates[:3]) or 'none'))
 
-    # 4d. Los package.xml de ROS 2 citan su propio capitulo. Su <description> es
-    # lo que ensena `ros2 pkg xml`, y los cinco siguieron diciendo «Chapter 18»
-    # despues de que ROS 2 pasara al 19, sin que nada lo viera. No se hace con la
-    # heuristica de 4c, que adivina el tema por palabras y aqui se equivoca: toma
-    # «chain», «Mat» o «PointCloud2» por temas de los capitulos 8, 3 o 15. La
-    # regla exacta es mas simple: todos estos paquetes son de un solo capitulo.
-    propio_ros2 = str(int(CAP_ROS2[:2]))
-    for f in sorted(glob.glob(os.path.join(RAIZ, CAP_ROS2, '*', 'package.xml'))):
-        rel = os.path.relpath(f, RAIZ)
-        for n, linea in enumerate(leer(f).split('\n'), 1):
-            for m in ref_cap.finditer(linea):
+    # 4d. The ROS 2 package.xml files cite their own chapter. Their
+    # <description> is what `ros2 pkg xml` shows, and all five kept saying
+    # "Chapter 18" after ROS 2 moved to 19, without anything noticing. This is
+    # not done with the heuristic of 4c, which guesses the topic from words and
+    # gets it wrong here: it takes "chain", "Mat" or "PointCloud2" for topics of
+    # chapters 8, 3 or 15. The exact rule is simpler: all these packages belong
+    # to a single chapter.
+    ros2_own = str(int(ROS2_CHAPTER[:2]))
+    for f in sorted(glob.glob(os.path.join(ROOT, ROS2_CHAPTER, '*', 'package.xml'))):
+        rel = os.path.relpath(f, ROOT)
+        for n, line in enumerate(read(f).split('\n'), 1):
+            for m in chap_ref.finditer(line):
                 num = m.group(1) or m.group(2)
-                if num != propio_ros2:
-                    fallos.append('%s:%d cita el capitulo %s; los paquetes de %s son del %s'
-                                  % (rel, n, num, CAP_ROS2, propio_ros2))
+                if num != ros2_own:
+                    failures.append('%s:%d cites chapter %s; the packages of %s belong to %s'
+                                    % (rel, n, num, ROS2_CHAPTER, ros2_own))
 
-    # 5. Cada ejemplo acepta --help, y lo hace con el mismo patron
-    for cap, ej in lista:
-        src = os.path.join(RAIZ, cap, ej, 'main.cpp')
+    # 5. Every example accepts --help, and with the same pattern
+    for chap, ex in ex_list:
+        src = os.path.join(ROOT, chap, ex, 'main.cpp')
         if not os.path.exists(src):
             continue
-        s = leer(src)
+        s = read(src)
         if 'pcl::console' in s:
             if '"--help"' not in s or '"-h"' not in s:
-                fallos.append('%s: ejemplo PCL que no acepta -h y --help' % ej)
+                failures.append('%s: PCL example that does not accept -h and --help' % ex)
         elif 'cv::CommandLineParser' in s:
             if 'parser.has("help")' not in s:
-                fallos.append('%s: no atiende --help' % ej)
+                failures.append('%s: does not handle --help' % ex)
         else:
-            fallos.append('%s: no usa ninguno de los dos parseadores' % ej)
+            failures.append('%s: uses neither of the two parsers' % ex)
 
-    # 6. Las rutas de datos por defecto apuntan a ficheros que existen
-    for cap, ej in lista:
-        for src in glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp')):
-            for ruta in set(re.findall(r'\.\./\.\./(data/[A-Za-z0-9_./?*-]+)', leer(src))):
-                completa = os.path.join(RAIZ, ruta)
-                # Un prefijo que el codigo completa en ejecucion (result_000.pcd)
-                # no nombra ningun fichero que se pueda comprobar aqui
-                if ruta.endswith('_'):
+    # 6. The default data paths point at files that exist
+    for chap, ex in ex_list:
+        for src in glob.glob(os.path.join(ROOT, chap, ex, '*.cpp')):
+            for path in set(re.findall(r'\.\./\.\./(data/[A-Za-z0-9_./?*-]+)', read(src))):
+                full = os.path.join(ROOT, path)
+                # A prefix the code completes at run time (result_000.pcd) does
+                # not name any file that can be checked here
+                if path.endswith('_'):
                     continue
-                if any(c in ruta for c in '*?'):
-                    if not glob.glob(completa):
-                        fallos.append('%s: el patron %s no encuentra ningun fichero' % (ej, ruta))
-                elif not os.path.exists(completa):
-                    fallos.append('%s: %s no existe' % (ej, ruta))
+                if any(c in path for c in '*?'):
+                    if not glob.glob(full):
+                        failures.append('%s: the pattern %s matches no file' % (ex, path))
+                elif not os.path.exists(full):
+                    failures.append('%s: %s does not exist' % (ex, path))
 
-    # 6b. Todo nombre de fichero citado en el codigo existe bajo data/.
-    # Va aparte de la comprobacion anterior porque hay ejemplos que arman la
-    # ruta concatenando: 05_03 junta el directorio que recibe por argumento con
-    # "Histogram_Comparison_Source_0.jpg", de modo que ninguna cadena del
-    # fuente contiene la ruta entera. Buscar el nombre suelto es lo unico que
-    # detecta que el fichero ya no esta
-    disponibles = set()
-    for base, _, ficheros in os.walk(os.path.join(RAIZ, 'data')):
-        for f in ficheros:
-            disponibles.add(f)
-    for cap, ej in lista:
-        for src in glob.glob(os.path.join(RAIZ, cap, ej, '*.cpp')):
-            s = leer(src)
-            for nombre in set(re.findall(
+    # 6b. Every file name cited in the code exists under data/.
+    # Separate from the previous check because some examples build the path by
+    # concatenation: 05_03 joins the directory it gets as an argument with
+    # "Histogram_Comparison_Source_0.jpg", so no string in the source holds the
+    # whole path. Looking for the bare name is the only way to detect that the
+    # file is gone
+    available = set()
+    for base, _, files in os.walk(os.path.join(ROOT, 'data')):
+        for f in files:
+            available.add(f)
+    for chap, ex in ex_list:
+        for src in glob.glob(os.path.join(ROOT, chap, ex, '*.cpp')):
+            s = read(src)
+            for name in set(re.findall(
                     r'"([A-Za-z0-9_][A-Za-z0-9_.-]*\.(?:jpg|jpeg|png|avi|mp4|ply|pcd))"', s)):
-                if nombre not in disponibles and nombre not in s.split('imwrite')[0][:0]:
-                    # solo interesa si el ejemplo lo LEE, no si lo escribe
+                if name not in available and name not in s.split('imwrite')[0][:0]:
+                    # it only matters if the example READS it, not if it writes it
                     if re.search(r'(imread|VideoCapture|loadPCDFile|readPLY|FileStorage)\b[^;]*'
-                                 + re.escape(nombre), s) or ('/' not in nombre and
-                                 re.search(r'\+\s*"' + re.escape(nombre) + r'"', s)):
-                        fallos.append('%s: cita %s, que no esta bajo data/' % (ej, nombre))
+                                 + re.escape(name), s) or ('/' not in name and
+                                 re.search(r'\+\s*"' + re.escape(name) + r'"', s)):
+                        failures.append('%s: cites %s, which is not under data/' % (ex, name))
 
-    # 7. Cabecera de documentacion en todo el codigo, capitulo 19 incluido
-    fuentes = [f for f in glob.glob(os.path.join(RAIZ, '*', '*', '*.cpp')) +
-               glob.glob(os.path.join(RAIZ, '*', '*', 'src', '*.cpp')) +
-               glob.glob(os.path.join(RAIZ, '*', '*', 'include', '*', '*.hpp'))
+    # 7. Documentation header in all the code, chapter 19 included
+    sources = [f for f in glob.glob(os.path.join(ROOT, '*', '*', '*.cpp')) +
+               glob.glob(os.path.join(ROOT, '*', '*', 'src', '*.cpp')) +
+               glob.glob(os.path.join(ROOT, '*', '*', 'include', '*', '*.hpp'))
                if '/old/' not in f and '/build/' not in f and '/install/' not in f]
-    for f in fuentes:
-        cab = leer(f)[:400]
-        if '@file' not in cab or '@brief' not in cab:
-            fallos.append('%s: sin cabecera @file/@brief'
-                          % os.path.relpath(f, RAIZ))
+    for f in sources:
+        head = read(f)[:400]
+        if '@file' not in head or '@brief' not in head:
+            failures.append('%s: no @file/@brief header'
+                            % os.path.relpath(f, ROOT))
 
-    # 8. Restos de plantilla y anchura de linea
-    for f in fuentes + glob.glob(os.path.join(RAIZ, CAP_ROS2, '*', 'package.xml')):
-        rel = os.path.relpath(f, RAIZ)
-        s = leer(f)
+    # 8. Template leftovers and line width
+    for f in sources + glob.glob(os.path.join(ROOT, ROS2_CHAPTER, '*', 'package.xml')):
+        rel = os.path.relpath(f, ROOT)
+        s = read(f)
         if 'TODO' in s:
-            fallos.append('%s: queda un TODO sin resolver' % rel)
-        for n, linea in enumerate(s.split('\n'), 1):
-            if len(linea) > 100 and not rel.endswith('.xml'):
-                fallos.append('%s:%d pasa de 100 caracteres (%d)' % (rel, n, len(linea)))
+            failures.append('%s: an unresolved TODO is left' % rel)
+        for n, line in enumerate(s.split('\n'), 1):
+            if len(line) > 100 and not rel.endswith('.xml'):
+                failures.append('%s:%d is longer than 100 characters (%d)' % (rel, n, len(line)))
 
-    # Los listados del libro invocan los binarios por su nombre completo. Ese
-    # nombre lleva dentro el numero del capitulo, asi que una renumeracion lo
-    # deja obsoleto, y como vive dentro de un lstlisting no lo alcanza ninguna
-    # comprobacion del lado del libro. Ya paso: dos ordenes del capitulo de
-    # vision 3D siguieron invocando 10_03 y 11_03 despues de que el libro
-    # pasara de 14 a 18 capitulos, y quien las copiaba obtenia un error.
-    libro = os.path.join(os.path.dirname(RAIZ), 'cv_book', 'chapters')
-    if os.path.isdir(libro):
-        existentes = nombres          # los nombres de ejemplo, ya reunidos arriba
-        for ruta in sorted(glob.glob(os.path.join(libro, 'chapter*.tex'))):
-            texto = leer(ruta)
-            for n_lin, linea in enumerate(texto.split('\n'), 1):
-                for m in re.finditer(r'\./(\d{2}_\d{2}_[a-z0-9_]+)', linea):
-                    if m.group(1) not in existentes:
-                        fallos.append('%s:%d invoca ./%s, que no existe en el repositorio'
-                                      % (os.path.relpath(ruta, os.path.dirname(RAIZ)),
-                                         n_lin, m.group(1)))
+    # The string printHelp prints announces the default file, but the one really
+    # used is the CommandLineParser's. Both are written by hand, in different
+    # places of the file, so they drift apart without anything failing: three
+    # examples announced starry_night.jpg and opened starry_night.png. Since
+    # both files exist, neither the program nor the path check noticed; the
+    # only thing wrong was the --help.
+    for f in sorted(glob.glob(os.path.join(ROOT, '*', '*', 'main.cpp'))):
+        rel = os.path.relpath(f, ROOT)
+        s_cpp = read(f)
+        # file names only: the stem has some letter and the extension is
+        # alphabetic, so that a 0.015 is not taken for a file
+        FILE = r'([\w-]*[A-Za-z][\w-]*\.[A-Za-z]{2,4})'
+        defaults = set(re.findall(r'\{@\w+\s*\|\s*\S*?' + FILE + r'\s*\|', s_cpp))
+        announced = set(re.findall(r'default:\s*' + FILE + r'\s*\)', s_cpp))
+        for name in sorted(announced - defaults):
+            failures.append('%s: the help announces %s and the parser uses %s'
+                            % (rel, name, ', '.join(sorted(defaults)) or 'another one'))
 
-        # Las rutas de datos que aparecen en la PROSA del libro no las alcanzaba
-        # ninguna comprobacion: las de los listados y las del printHelp si, pero
-        # una frase como "las monedas de data/coins.jpg" no. Asi sobrevivio a
-        # cuatro auditorias que el fichero se llama coins.png, mientras el propio
-        # ejemplo abria el .png correcto. Basta con exigir que todo data/algo.ext
-        # escrito en \texttt{} exista de verdad.
-        datos = os.path.join(RAIZ, 'data')
-        for ruta in sorted(glob.glob(os.path.join(libro, '*.tex'))):
-            texto = leer(ruta)
-            for n_lin, linea in enumerate(texto.split('\n'), 1):
-                for m in re.finditer(r'\\texttt\{[^}]*?data/([A-Za-z0-9_\\.-]+\.[A-Za-z0-9]{2,5})\}',
-                                     linea):
-                    nombre = m.group(1).replace('\\_', '_')
-                    if not glob.glob(os.path.join(datos, '**', nombre),
-                                     recursive=True):
-                        fallos.append('%s:%d cita data/%s en la prosa, y no existe'
-                                      % (os.path.relpath(ruta, os.path.dirname(RAIZ)),
-                                         n_lin, nombre))
-
-    # La cadena que imprime printHelp anuncia el fichero por defecto, pero el
-    # que se usa de verdad es el del CommandLineParser. Las dos se escriben a
-    # mano y en sitios distintos del fichero, asi que se separan sin que nada
-    # falle: tres ejemplos anunciaban starry_night.jpg y abrian starry_night.png.
-    # Como los dos ficheros existen, ni el programa ni la comprobacion de rutas
-    # se enteraban; lo unico que quedaba mal era el --help.
-    for f in sorted(glob.glob(os.path.join(RAIZ, '*', '*', 'main.cpp'))):
-        rel = os.path.relpath(f, RAIZ)
-        s_cpp = leer(f)
-        # solo nombres de fichero: el radical lleva alguna letra y la extension
-        # es alfabetica, para no confundir un 0.015 con un fichero
-        FICHERO = r'([\w-]*[A-Za-z][\w-]*\.[A-Za-z]{2,4})'
-        por_defecto = set(re.findall(r'\{@\w+\s*\|\s*\S*?' + FICHERO + r'\s*\|', s_cpp))
-        anunciados = set(re.findall(r'default:\s*' + FICHERO + r'\s*\)', s_cpp))
-        for nombre in sorted(anunciados - por_defecto):
-            fallos.append('%s: la ayuda anuncia %s y el parser usa %s'
-                          % (rel, nombre, ', '.join(sorted(por_defecto)) or 'otro'))
-
-    # Los nucleos que el repositorio escribe a mano tienen que coincidir con los
-    # que imprime el libro. Sobel es el caso que lo justifica: 04_02 definia sus
-    # dos mascaras con el signo cambiado respecto del libro y de cv::Sobel, de
-    # modo que el ejemplo devolvia el gradiente negado. Nada fallaba al
-    # compilar ni al ejecutar, y el lector veia un signo en el capitulo 4 y el
-    # contrario en el 8.
-    NUCLEOS = {
+    # The kernels the repository writes by hand must match the ones the book
+    # prints. Sobel is the case that justifies it: 04_02 defined its two masks
+    # with the sign flipped with respect to the book and to cv::Sobel, so the
+    # example returned the negated gradient. Nothing failed to compile or to
+    # run, and the reader saw one sign in chapter 4 and the opposite in 8.
+    KERNELS = {
         '04_pixel_and_filtering/04_02_convolution/main.cpp': {
             'createSobelXKernel': [-1, 0, 1, -2, 0, 2, -1, 0, 1],
             'createSobelYKernel': [-1, -2, -1, 0, 0, 0, 1, 2, 1],
         },
     }
-    for rel, funciones in NUCLEOS.items():
-        ruta = os.path.join(RAIZ, rel)
-        if not os.path.isfile(ruta):
-            fallos.append('%s: no existe y hay nucleos declarados sobre el' % rel)
+    for rel, functions in KERNELS.items():
+        path = os.path.join(ROOT, rel)
+        if not os.path.isfile(path):
+            failures.append('%s: does not exist and kernels are declared on it' % rel)
             continue
-        s_cpp = leer(ruta)
-        for funcion, esperado in funciones.items():
-            m = re.search(re.escape(funcion) + r'\(\)\s*\{(.*?)\n\}', s_cpp, re.S)
+        s_cpp = read(path)
+        for function, expected in functions.items():
+            m = re.search(re.escape(function) + r'\(\)\s*\{(.*?)\n\}', s_cpp, re.S)
             if not m:
-                fallos.append('%s: no se encuentra %s' % (rel, funcion))
+                failures.append('%s: %s not found' % (rel, function))
                 continue
-            visto = [int(x) for x in re.findall(r'-?\d+', m.group(1))
-                     if x not in ('3', '32')][:len(esperado)]
-            if visto != esperado:
-                fallos.append('%s: %s vale %s y el libro escribe %s'
-                              % (rel, funcion, visto, esperado))
+            seen = [int(x) for x in re.findall(r'-?\d+', m.group(1))
+                    if x not in ('3', '32')][:len(expected)]
+            if seen != expected:
+                failures.append('%s: %s is %s and the book writes %s'
+                                % (rel, function, seen, expected))
 
-    # El libro fija W (columnas) y H (filas) para las dimensiones de una imagen,
-    # y reserva M y N para otras cosas. Dos ejemplos de frecuencia usaban M y N,
-    # y ademas con sentidos opuestos entre si: en 06_01 N era el alto y en 06_02
-    # era el ancho. Un lector que compare la formula del libro con la del
-    # ejemplo encuentra letras distintas para lo mismo.
-    for f in sorted(glob.glob(os.path.join(RAIZ, '*', '*', '*.cpp'))):
-        rel = os.path.relpath(f, RAIZ)
-        for n_lin, linea in enumerate(leer(f).split('\n'), 1):
-            if re.search(r'\bint\s+[MN]\s*[,)=]', linea):
-                fallos.append('%s:%d declara M o N como dimension; el libro usa W y H'
-                              % (rel, n_lin))
+    # The book uses W (columns) and H (rows) for the dimensions of an image, and
+    # keeps M and N for other things. Two frequency examples used M and N, and
+    # with opposite meanings at that: in 06_01 N was the height and in 06_02 it
+    # was the width. A reader comparing the formula of the book with the one of
+    # the example finds different letters for the same thing.
+    for f in sorted(glob.glob(os.path.join(ROOT, '*', '*', '*.cpp'))):
+        rel = os.path.relpath(f, ROOT)
+        for n_line, line in enumerate(read(f).split('\n'), 1):
+            if re.search(r'\bint\s+[MN]\s*[,)=]', line):
+                failures.append('%s:%d declares M or N as a dimension; the book uses W and H'
+                                % (rel, n_line))
 
-    if fallos:
-        print('\nFALLO: %d incoherencia(s)\n' % len(fallos))
-        for f in fallos:
+    if failures:
+        print('\nFAILED: %d inconsistenc%s\n' % (len(failures),
+                                                 'y' if len(failures) == 1 else 'ies'))
+        for f in failures:
             print('  ' + f)
         return 1
     if not quiet:
-        print('%d ejemplos comprobados.' % len(lista))
-        print('OK: nombres, cabeceras, citas, rutas de datos y ayuda son coherentes.')
-        print('OK: cada cita NN_MM apunta al ejemplo que el comentario describe.')
-        print('OK: cada referencia a un capitulo apunta al capitulo que trata de eso.')
-        print('OK: los binarios que invocan los listados del libro existen.')
-        print('OK: la ayuda coincide con el parser y los nucleos con los del libro.')
-        print('OK: las dimensiones se escriben W y H, como en el libro.')
-        print('OK: las rutas data/ citadas en la prosa del libro existen.')
+        print('%d examples checked.' % len(ex_list))
+        print('OK: names, headers, citations, data paths and help are consistent.')
+        print('OK: every NN_MM citation points at the example the comment describes.')
+        print('OK: every chapter reference points at the chapter that deals with it.')
+        print('OK: the help matches the parser, and the kernels match the book.')
+        print('OK: dimensions are written W and H, as in the book.')
     return 0
 
 
