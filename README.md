@@ -4,249 +4,21 @@ Code examples for the Computer Vision subject of the Robotics Software Engineeri
 
 ---
 
-## Usage
+## Quick start
 
-First, set the environment variable so examples can find the data folder. Run this from the repository root:
-
-```bash
-echo "export OPENCV_SAMPLES_DATA_PATH=$(pwd)/data/" >> ~/.bashrc
-source ~/.bashrc
-```
-
-> Note: The examples use modern features and require a compiler that supports **C++17** or higher.
-
-> Note: Developed against OpenCV 4.6.0 and PCL 1.14.0, and also tested with
-> OpenCV 4.10.0 and PCL 1.15.1 (see *Installation*). The build requires
-> OpenCV 4. PCL is optional: the top-level `CMakeLists.txt` looks for PCL 1.10
-> and, if it is not there, warns and skips the nine PCL examples of chapter 15
-> instead of failing. The other 69 targets build without it.
-
-> Note: Some examples require the **opencv_contrib** modules (`ximgproc`,
-> `aruco`, `surface_matching`, `viz`, `tracking`). If you installed OpenCV from
-> the distribution package these are usually included; if you built OpenCV from
-> source, follow the *Installation from source* section below and pass
-> `OPENCV_EXTRA_MODULES_PATH`. The examples that need them are:
-> `11_05_skeletonization`, `14_02_pose_estimation`, `15_02_stereo_disparity`,
-> `15_04_opencv_icp` and `16_06_object_tracking`.
-
-### Building all examples at once (recommended)
-
-A top-level `CMakeLists.txt` compiles every example in one step and places all executables in the `vision_examples/bin/` folder, named after their source directory:
+On Ubuntu, with the distribution packages:
 
 ```bash
-cmake -B vision_examples/build
-cmake --build vision_examples/build
+sudo apt update
+sudo apt install build-essential cmake git pkg-config libopencv-dev libpcl-dev
+git clone https://github.com/jmguerreroh/vision.git && cd vision
+echo "export OPENCV_SAMPLES_DATA_PATH=$(pwd)/data/" >> ~/.bashrc && source ~/.bashrc
+cmake -B vision_examples/build && cmake --build vision_examples/build
+cd vision_examples/bin && ./03_01_read_image
 ```
 
-Executables are in `vision_examples/bin/`. Run them from that folder:
-
-```bash
-cd vision_examples/bin
-./03_01_read_image
-./06_01_dft_frequencies
-./15_02_stereo_disparity
-```
-
-> Note: the default inputs are written as `../../data/...`, and
-> `cv::samples::findFile` looks for them from the current working directory.
-> That path resolves to the `data/` folder of the repository from
-> `vision_examples/bin/` and from the folder of the example itself, but **not
-> from the repository root**. Either way of building works without touching the
-> paths, as long as the example is launched from one of those two folders.
-
-### Command-line interface
-
-Every example follows the same convention, so any of them can be run without
-reading its source first. From `vision_examples/bin/`:
-
-```bash
-./example                 # runs with its default input, taken from data/
-./example my_image.jpg    # overrides the input
-./example --help          # prints what the example accepts and its defaults
-```
-
-OpenCV examples use `cv::CommandLineParser`; PCL examples use PCL's own
-`pcl::console` parser. Both accept `-h` and `--help`. Inputs are **positional
-and optional**: an example with no arguments works, with three exceptions. `15_08_pcl_advanced_visualizer` is a menu of seven demos and prints
-that menu when called with no option; pick one, for instance `-s`. And
-`03_05_video_capture` and `06_03_wavelet_denoising` are real-time examples that
-open the default camera when called with no argument; without a camera, give
-them a file, for instance `../../data/vtest.avi` and
-`../../data/starry_night.png`.
-
-The few examples that write a file take the destination on the command line and
-default to the current directory: `--out` in `14_01`, `14_03`, `15_03` and
-`17_02`, and `--dst_path` (plus `--dst_raw_path` and `--dst_conf_path`) in
-`15_02`. Note that `15_03_stereo_to_pointcloud` writes a `cloud.ply` of about
-40 MB. Two examples write without asking, and neither takes a destination:
-`03_05_video_capture` always saves what it captures to `output.avi` in the
-current directory, and `15_11_pcl_registration` writes one
-`result_00N.pcd` per registered pair into `data/pcl_data/`, next to the
-captures it read. Both names are fixed, and the `result_*.pcd` are ignored by
-`.gitignore`.
-
-### Building a single example (OpenCV)
-
-Each OpenCV example also has its own `Makefile`. The executable takes the name
-of its folder, exactly like the one the top-level build produces, so both ways
-of compiling give the same binary:
-
-```bash
-cd 08_edge_detection/08_02_canny_edges
-make
-./08_02_canny_edges
-```
-
-### Building a single example (PCL)
-
-Each PCL example has its own `CMakeLists.txt`:
-
-```bash
-cd 15_3d_and_point_clouds/15_09_pcl_icp
-cmake -B build
-cmake --build build
-./build/15_09_pcl_icp
-```
-
-### Building the ROS 2 examples (Chapter 19)
-
-The Chapter 19 examples live here like every other chapter, under
-`19_vision_ros2/`, but they are not built with the rest. They are ROS 2
-packages, not standalone programs: they need a workspace, they are built with
-`colcon` and they are run with `ros2 run`. The top-level `CMakeLists.txt`
-ignores that folder on purpose, so the repository still builds for anyone who
-only wants the OpenCV examples and has no ROS 2 installed.
-
-There are five packages: `opencv_demo`, `transport_demo`, `sync_demo` and
-`pcl_demo`, one per piece developed in the chapter, plus `launch_demo`, which
-holds the launch file that chains the `depth_image_proc` nodes to produce the
-cloud `pcl_demo` consumes.
-
-```bash
-cd <repository root>
-sudo rosdep init && rosdep update      # only once per machine, if never done
-rosdep install --from-paths 19_vision_ros2 --ignore-src -r -y
-colcon build --base-paths 19_vision_ros2 --symlink-install
-source install/setup.bash
-```
-
-`--base-paths` is what keeps `colcon` from descending into the rest of the
-repository, where it would find the OpenCV/PCL project of the other chapters.
-
-The packages are tested with **ROS 2 Jazzy** (Ubuntu 24.04) and **ROS 2 Lyrical**
-(Ubuntu 26.04). Where the ROS API changed between them (the removal of
-`ament_target_dependencies`, the `.hpp` headers of `message_filters`, and QoS
-passed as `rclcpp::QoS`), the code builds on both without warnings.
-
-> **Large messages on Lyrical.** With its default transport, the Fast DDS of
-> Lyrical often drops large best-effort messages: a 640×480 point cloud (about
-> 5 MB) can take tens of seconds to get through to `pcl_demo`, or not arrive at
-> all, while a small cloud arrives at once. Jazzy does not show this. Enabling
-> the large-data mode of Fast DDS, in every terminal that runs a node, fixes it:
->
-> ```bash
-> export FASTDDS_BUILTIN_TRANSPORTS=LARGE_DATA
-> ```
->
-> Measured over five runs each: without it, 4 of 5 clouds arrived, after 7 to
-> 55 s; with it, 5 of 5 in 1 to 2 s.
-
-Requirements, beyond one of those distributions: `cv_bridge`,
-`image_transport` (plus `image-transport-plugins`), `message_filters`,
-`pcl_ros` and `depth_image_proc`. `rosdep` installs them from the manifests, or
-by hand:
-
-```bash
-sudo apt install ros-${ROS_DISTRO}-cv-bridge \
-                 ros-${ROS_DISTRO}-image-transport \
-                 ros-${ROS_DISTRO}-image-transport-plugins \
-                 ros-${ROS_DISTRO}-message-filters \
-                 ros-${ROS_DISTRO}-pcl-ros \
-                 ros-${ROS_DISTRO}-depth-image-proc
-```
-
-| Package | Executable | Subscribes to | Publishes | What it shows |
-|---|---|---|---|---|
-| `opencv_demo` | `opencv_processing` | `/color/image` | `/image_processed` | The `cv_bridge` round trip: ROS message to `cv::Mat` and back, keeping the original header |
-| `transport_demo` | `transport_processing` | `/color/image` | `image_processed` (+ transport sub-topics) | The same node through `image_transport`: one publisher, several wire formats |
-| `sync_demo` | `sync_processing` | `/left/image`, `/right/image` | (displays) | `message_filters` with an `ApproximateTime` policy: one callback, two images already paired |
-| `pcl_demo` | `pcl_processing` | `/stereo/points` | `/pcl_processed` | `pcl_conversions`: `PointCloud2` to `pcl::PointCloud` and back. The gap between both conversions is where your PCL algorithm goes |
-| `launch_demo` | (launch only) | | `/stereo/points` | Chains the `depth_image_proc` nodes that produce the cloud `pcl_demo` consumes |
-
-Every node works the same against a live camera or against a recording:
-
-```bash
-ros2 bag record /color/image /color/camera_info /stereo/depth -o session
-ros2 bag play session
-```
-
-Things worth trying:
-
-- **`opencv_demo`**: ask `toCvCopy` for `BGR8` on a depth topic and watch the
-  `cv_bridge` exception; then ask for `BGR8` on an `rgb8` camera and notice that
-  nothing breaks, because `cv_bridge` converts.
-- **`transport_demo`**: compare `ros2 topic bw /image_processed` with
-  `ros2 topic bw /image_processed/compressed`. The saving depends on the scene,
-  not on the format in the abstract.
-- **`sync_demo`**: drop the queue size to 1 and count how many pairs are lost;
-  switch the policy to `ExactTime` and watch the callback stop firing unless the
-  cameras share a hardware trigger.
-- **`pcl_demo`**: drop a `VoxelGrid` filter between the two conversions and
-  compare `ros2 topic hz` on input and output.
-
-A note on QoS: these nodes use plain `rclcpp::SensorDataQoS()`, which is *best
-effort*, on both ends. Forcing it to `.reliable()` on the subscriber makes it
-incompatible with any publisher that offers best effort, which is what most
-camera drivers do, and there is no error message when that happens: the topic is
-listed, `ros2 topic hz` reports data, and the callback simply never runs. Check
-the actual profiles with:
-
-```bash
-ros2 topic info /color/image --verbose
-```
-
-### Default images
-
-The examples default to the **same photographs the book uses in its figures**,
-so running one without arguments reproduces what the reader has just seen
-printed. `data/building_facade.png`, `coins.png`, `chess.png`, `smarties.png`,
-`aerial_view.png`, `starry_night.png` and `futbol.png` are the very files that
-the figure-generating scripts of the book read.
-
-The optical flow examples of chapter 16 default to the same video, the overhead
-shot of a busy square that the book credits to Pexels 853889.
-
-Those photographs are around 1400 px on the long side, and the video is Full HD,
-which does not fit on a normal screen once an example opens four or five
-windows. Every example that uses them reduces **only what it sends to the
-screen**, with `INTER_AREA` and a long side of 800 px; the processing always
-runs at full resolution. The reduction is a no-op on smaller inputs, so passing
-your own image changes nothing.
-
-Text is written on the reduced copy, or with the font raised by the same factor
-when it is a label anchored to a region, so that it stays readable instead of
-shrinking with the picture.
-
-The one exception to processing at full resolution is `16_03_dense_flow`:
-Farneback costs 392 ms per frame at 1920x1080, ten times the 40 ms a 25 fps
-video allows, so it reduces the frames by `--scale` (0.5 by default, the same
-factor the book uses for its figures) before computing the flow. Pass
-`--scale=1.0` to see the difference.
-
-### Checking the repository
-
-`tools/check_repo.py` verifies the things that drift when a chapter is renamed
-or an example moves: that every example on disk is built by the top-level
-`CMakeLists.txt`, that each one produces a binary named after its folder
-whichever way it is compiled, that no header cites an executable or an example
-that does not exist, that the default input paths point at files that are
-really there, and that every example answers `-h` and `--help`.
-
-```bash
-python3 tools/check_repo.py
-```
-
-It exits non-zero on the first inconsistency, so it can be used in CI.
+The rest of this README explains each step, the optional pieces (chapter 18
+models, ROS 2) and how to build from source.
 
 ---
 
@@ -278,7 +50,7 @@ chapter and its code.
 | 16 | `16_optical_flow_and_tracking` | Optical flow and tracking | frame difference, Lucas-Kanade, Farneback dense flow, background subtraction, Kalman tracking, object tracking |
 | 17 | `17_classical_ml` | Classical machine learning | k-NN, SVM, digit classification, k-means, classifier comparison, self-organizing map |
 | 18 | `18_deep_learning` | Deep learning | YOLOv4, YOLO11, semantic segmentation |
-| 19 | `19_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see above) |
+| 19 | `19_vision_ros2` | Vision in ROS 2 | opencv_demo (cv_bridge), transport_demo (image_transport), sync_demo (message_filters), pcl_demo (pcl_conversions), launch_demo (built with `colcon`, see [ROS 2 examples](#ros-2-examples-chapter-19)) |
 
 Every example is **self-contained and runnable on its own**: they can be run in
 any order and none of them needs another to have run first. Two of them are
@@ -295,6 +67,37 @@ linked on purpose, and neither link is required:
 
 What does follow the book order is the material each one assumes you have
 already read, which is the reason for studying them from beginning to end.
+
+---
+
+## Requirements
+
+The examples use modern features and require a compiler that supports **C++17**
+or higher.
+
+The build requires **OpenCV 4**. **PCL** is optional: the top-level
+`CMakeLists.txt` looks for PCL 1.10 and, if it is not there, warns and skips the
+nine PCL examples of chapter 15 instead of failing. The other 69 targets build
+without it.
+
+The examples were developed against OpenCV 4.6.0 and PCL 1.14.0, and are tested
+from a fresh install on **Ubuntu 24.04** (OpenCV 4.6, PCL 1.14) and **Ubuntu
+26.04** (OpenCV 4.10, PCL 1.15): all of them build on both. One runs only on the
+second: `18_02`, whose YOLO11 model in ONNX needs **OpenCV 4.9 or newer**,
+because earlier ONNX readers do not understand the `Split` node the way YOLO11
+writes it. With an older OpenCV the example reports exactly that and exits, and
+`18_01` covers the same ground with a model that loads anywhere.
+
+Some examples require the **opencv_contrib** modules (`ximgproc`, `aruco`,
+`surface_matching`, `viz`, `tracking`). If you installed OpenCV from the
+distribution package these are usually included; if you built OpenCV from
+source, follow [OpenCV from source](#opencv-from-source) and pass
+`OPENCV_EXTRA_MODULES_PATH`. The examples that need them are:
+`11_05_skeletonization`, `14_02_pose_estimation`, `15_02_stereo_disparity`,
+`15_04_opencv_icp` and `16_06_object_tracking`.
+
+The chapter 19 examples also need ROS 2 (Jazzy or Lyrical); see
+[ROS 2 examples](#ros-2-examples-chapter-19).
 
 ---
 
@@ -321,14 +124,6 @@ Verify:
 ```bash
 pkg-config --modversion opencv4
 ```
-
-The examples are tested from a fresh install on **Ubuntu 24.04** (OpenCV 4.6,
-PCL 1.14) and **Ubuntu 26.04** (OpenCV 4.10, PCL 1.15): all of them build on
-both. One runs only on the second: `18_02`, whose YOLO11 model in ONNX needs
-**OpenCV 4.9 or newer**, because earlier ONNX readers do not understand the
-`Split` node the way YOLO11 writes it. With an older OpenCV the example reports
-exactly that and exits, and `18_01` covers the same ground with a model that
-loads anywhere.
 
 **PCL:**
 
@@ -379,8 +174,6 @@ the script warns and the build still finishes.
 
 Re-run `bash download_model.sh` inside each example's folder (or rebuild its
 target) afterwards to generate the missing model files.
-
----
 
 <details>
 <summary><strong>Installation from source</strong></summary>
@@ -488,6 +281,230 @@ sudo ldconfig
 
 </details>
 
+### Data path
+
+Whichever way you installed the libraries, set the environment variable so the
+examples can find the data folder. Run this from the repository root:
+
+```bash
+echo "export OPENCV_SAMPLES_DATA_PATH=$(pwd)/data/" >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
+
+## Building
+
+### All examples at once (recommended)
+
+A top-level `CMakeLists.txt` compiles every example in one step and places all executables in the `vision_examples/bin/` folder, named after their source directory:
+
+```bash
+cmake -B vision_examples/build
+cmake --build vision_examples/build
+```
+
+Executables are in `vision_examples/bin/`. Run them from that folder:
+
+```bash
+cd vision_examples/bin
+./03_01_read_image
+./06_01_dft_frequencies
+./15_02_stereo_disparity
+```
+
+> Note: the default inputs are written as `../../data/...`, and
+> `cv::samples::findFile` looks for them from the current working directory.
+> That path resolves to the `data/` folder of the repository from
+> `vision_examples/bin/` and from the folder of the example itself, but **not
+> from the repository root**. Either way of building works without touching the
+> paths, as long as the example is launched from one of those two folders.
+
+### A single example (OpenCV)
+
+Each OpenCV example also has its own `Makefile`. The executable takes the name
+of its folder, exactly like the one the top-level build produces, so both ways
+of compiling give the same binary:
+
+```bash
+cd 08_edge_detection/08_02_canny_edges
+make
+./08_02_canny_edges
+```
+
+### A single example (PCL)
+
+Each PCL example has its own `CMakeLists.txt`:
+
+```bash
+cd 15_3d_and_point_clouds/15_09_pcl_icp
+cmake -B build
+cmake --build build
+./build/15_09_pcl_icp
+```
+
+---
+
+## Running the examples
+
+### Command-line interface
+
+Every example follows the same convention, so any of them can be run without
+reading its source first. From `vision_examples/bin/`:
+
+```bash
+./example                 # runs with its default input, taken from data/
+./example my_image.jpg    # overrides the input
+./example --help          # prints what the example accepts and its defaults
+```
+
+OpenCV examples use `cv::CommandLineParser`; PCL examples use PCL's own
+`pcl::console` parser. Both accept `-h` and `--help`. Inputs are **positional
+and optional**: an example with no arguments works, with three exceptions. `15_08_pcl_advanced_visualizer` is a menu of seven demos and prints
+that menu when called with no option; pick one, for instance `-s`. And
+`03_05_video_capture` and `06_03_wavelet_denoising` are real-time examples that
+open the default camera when called with no argument; without a camera, give
+them a file, for instance `../../data/vtest.avi` and
+`../../data/starry_night.png`.
+
+The few examples that write a file take the destination on the command line and
+default to the current directory: `--out` in `14_01`, `14_03`, `15_03` and
+`17_02`, and `--dst_path` (plus `--dst_raw_path` and `--dst_conf_path`) in
+`15_02`. Note that `15_03_stereo_to_pointcloud` writes a `cloud.ply` of about
+40 MB. Two examples write without asking, and neither takes a destination:
+`03_05_video_capture` always saves what it captures to `output.avi` in the
+current directory, and `15_11_pcl_registration` writes one
+`result_00N.pcd` per registered pair into `data/pcl_data/`, next to the
+captures it read. Both names are fixed, and the `result_*.pcd` are ignored by
+`.gitignore`.
+
+### Default images
+
+The examples default to the **same photographs the book uses in its figures**,
+so running one without arguments reproduces what the reader has just seen
+printed. `data/building_facade.png`, `coins.png`, `chess.png`, `smarties.png`,
+`aerial_view.png`, `starry_night.png` and `futbol.png` are the very files that
+the figure-generating scripts of the book read.
+
+The optical flow examples of chapter 16 default to the same video, the overhead
+shot of a busy square that the book credits to Pexels 853889.
+
+Those photographs are around 1400 px on the long side, and the video is Full HD,
+which does not fit on a normal screen once an example opens four or five
+windows. Every example that uses them reduces **only what it sends to the
+screen**, with `INTER_AREA` and a long side of 800 px; the processing always
+runs at full resolution. The reduction is a no-op on smaller inputs, so passing
+your own image changes nothing.
+
+Text is written on the reduced copy, or with the font raised by the same factor
+when it is a label anchored to a region, so that it stays readable instead of
+shrinking with the picture.
+
+The one exception to processing at full resolution is `16_03_dense_flow`:
+Farneback costs 392 ms per frame at 1920x1080, ten times the 40 ms a 25 fps
+video allows, so it reduces the frames by `--scale` (0.5 by default, the same
+factor the book uses for its figures) before computing the flow. Pass
+`--scale=1.0` to see the difference.
+
+---
+
+## ROS 2 examples (Chapter 19)
+
+The Chapter 19 examples live here like every other chapter, under
+`19_vision_ros2/`, but they are not built with the rest. They are ROS 2
+packages, not standalone programs: they need a workspace, they are built with
+`colcon` and they are run with `ros2 run`. The top-level `CMakeLists.txt`
+ignores that folder on purpose, so the repository still builds for anyone who
+only wants the OpenCV examples and has no ROS 2 installed.
+
+There are five packages: `opencv_demo`, `transport_demo`, `sync_demo` and
+`pcl_demo`, one per piece developed in the chapter, plus `launch_demo`, which
+holds the launch file that chains the `depth_image_proc` nodes to produce the
+cloud `pcl_demo` consumes.
+
+```bash
+cd <repository root>
+sudo rosdep init && rosdep update      # only once per machine, if never done
+rosdep install --from-paths 19_vision_ros2 --ignore-src -r -y
+colcon build --base-paths 19_vision_ros2 --symlink-install
+source install/setup.bash
+```
+
+`--base-paths` is what keeps `colcon` from descending into the rest of the
+repository, where it would find the OpenCV/PCL project of the other chapters.
+
+The packages are tested with **ROS 2 Jazzy** (Ubuntu 24.04) and **ROS 2 Lyrical**
+(Ubuntu 26.04). Where the ROS API changed between them (the removal of
+`ament_target_dependencies`, the `.hpp` headers of `message_filters`, and QoS
+passed as `rclcpp::QoS`), the code builds on both without warnings.
+
+> **Large messages on Lyrical.** With its default transport, the Fast DDS of
+> Lyrical often drops large best-effort messages: a 640×480 point cloud (about
+> 5 MB) can take tens of seconds to get through to `pcl_demo`, or not arrive at
+> all, while a small cloud arrives at once. Jazzy does not show this. Enabling
+> the large-data mode of Fast DDS, in every terminal that runs a node, fixes it:
+>
+> ```bash
+> export FASTDDS_BUILTIN_TRANSPORTS=LARGE_DATA
+> ```
+>
+> Measured over five runs each: without it, 4 of 5 clouds arrived, after 7 to
+> 55 s; with it, 5 of 5 in 1 to 2 s.
+
+Requirements, beyond one of those distributions: `cv_bridge`,
+`image_transport` (plus `image-transport-plugins`), `message_filters`,
+`pcl_ros` and `depth_image_proc`. `rosdep` installs them from the manifests, or
+by hand:
+
+```bash
+sudo apt install ros-${ROS_DISTRO}-cv-bridge \
+                 ros-${ROS_DISTRO}-image-transport \
+                 ros-${ROS_DISTRO}-image-transport-plugins \
+                 ros-${ROS_DISTRO}-message-filters \
+                 ros-${ROS_DISTRO}-pcl-ros \
+                 ros-${ROS_DISTRO}-depth-image-proc
+```
+
+| Package | Executable | Subscribes to | Publishes | What it shows |
+|---|---|---|---|---|
+| `opencv_demo` | `opencv_processing` | `/color/image` | `/image_processed` | The `cv_bridge` round trip: ROS message to `cv::Mat` and back, keeping the original header |
+| `transport_demo` | `transport_processing` | `/color/image` | `image_processed` (+ transport sub-topics) | The same node through `image_transport`: one publisher, several wire formats |
+| `sync_demo` | `sync_processing` | `/left/image`, `/right/image` | (displays) | `message_filters` with an `ApproximateTime` policy: one callback, two images already paired |
+| `pcl_demo` | `pcl_processing` | `/stereo/points` | `/pcl_processed` | `pcl_conversions`: `PointCloud2` to `pcl::PointCloud` and back. The gap between both conversions is where your PCL algorithm goes |
+| `launch_demo` | (launch only) | | `/stereo/points` | Chains the `depth_image_proc` nodes that produce the cloud `pcl_demo` consumes |
+
+Every node works the same against a live camera or against a recording:
+
+```bash
+ros2 bag record /color/image /color/camera_info /stereo/depth -o session
+ros2 bag play session
+```
+
+Things worth trying:
+
+- **`opencv_demo`**: ask `toCvCopy` for `BGR8` on a depth topic and watch the
+  `cv_bridge` exception; then ask for `BGR8` on an `rgb8` camera and notice that
+  nothing breaks, because `cv_bridge` converts.
+- **`transport_demo`**: compare `ros2 topic bw /image_processed` with
+  `ros2 topic bw /image_processed/compressed`. The saving depends on the scene,
+  not on the format in the abstract.
+- **`sync_demo`**: drop the queue size to 1 and count how many pairs are lost;
+  switch the policy to `ExactTime` and watch the callback stop firing unless the
+  cameras share a hardware trigger.
+- **`pcl_demo`**: drop a `VoxelGrid` filter between the two conversions and
+  compare `ros2 topic hz` on input and output.
+
+A note on QoS: these nodes use plain `rclcpp::SensorDataQoS()`, which is *best
+effort*, on both ends. Forcing it to `.reliable()` on the subscriber makes it
+incompatible with any publisher that offers best effort, which is what most
+camera drivers do, and there is no error message when that happens: the topic is
+listed, `ros2 topic hz` reports data, and the callback simply never runs. Check
+the actual profiles with:
+
+```bash
+ros2 topic info /color/image --verbose
+```
+
 ---
 
 ## FAQ
@@ -568,6 +585,23 @@ export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ```
 
 Also verify `CUDA_ARCH_BIN` matches your GPU's compute capability at https://developer.nvidia.com/cuda-gpus.
+
+---
+
+## Checking the repository
+
+`tools/check_repo.py` verifies the things that drift when a chapter is renamed
+or an example moves: that every example on disk is built by the top-level
+`CMakeLists.txt`, that each one produces a binary named after its folder
+whichever way it is compiled, that no header cites an executable or an example
+that does not exist, that the default input paths point at files that are
+really there, and that every example answers `-h` and `--help`.
+
+```bash
+python3 tools/check_repo.py
+```
+
+It exits non-zero on the first inconsistency, so it can be used in CI.
 
 ---
 
