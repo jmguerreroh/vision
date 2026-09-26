@@ -1,0 +1,31 @@
+# Ubuntu 26.04 as the README installs it: OpenCV 4.10, PCL 1.15 and ROS 2 Lyrical.
+# The steps live in checks.yml, shared with the workflow of the other release;
+# this file only says when to run them and for which release.
+
+name: Ubuntu 26.04 · ROS 2 Lyrical
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Run everything, not only the quick checks'
+        type: boolean
+        default: true
+  # Weekly, to notice when an update of the distribution packages breaks
+  # something even though the repository did not change.
+  schedule:
+    - cron: '0 5 * * 1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+    with:
+      ubuntu: '26.04'
+      ros_distro: lyrical
+      full: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.full) }}

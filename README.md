@@ -1,6 +1,7 @@
 # Computer Vision Examples
 
-[![CI](https://github.com/jmguerreroh/vision/actions/workflows/ci.yml/badge.svg)](https://github.com/jmguerreroh/vision/actions/workflows/ci.yml)
+[![Ubuntu 24.04 · ROS 2 Jazzy](https://github.com/jmguerreroh/vision/actions/workflows/ubuntu-24.04.yml/badge.svg)](https://github.com/jmguerreroh/vision/actions/workflows/ubuntu-24.04.yml)
+[![Ubuntu 26.04 · ROS 2 Lyrical](https://github.com/jmguerreroh/vision/actions/workflows/ubuntu-26.04.yml/badge.svg)](https://github.com/jmguerreroh/vision/actions/workflows/ubuntu-26.04.yml)
 
 Code examples for the Computer Vision subject of the Robotics Software Engineering Degree at URJC, using C++, OpenCV, and the Point Cloud Library (PCL).
 
@@ -609,9 +610,11 @@ build.
 
 ### Continuous integration
 
-On every push, `.github/workflows/ci.yml` builds everything on fresh Ubuntu
-24.04 and 26.04 images and the ROS 2 packages on Jazzy and Lyrical. Once a week
-it also runs every example, unattended. The same checks run locally, in the same
+There is one workflow per supported release, each with its badge at the top of
+this README: `ubuntu-24.04.yml` (OpenCV 4.6, PCL 1.14, ROS 2 Jazzy) and
+`ubuntu-26.04.yml` (OpenCV 4.10, PCL 1.15, ROS 2 Lyrical), both running the
+steps of `checks.yml`. On every push they build everything on a fresh image of
+their release; once a week they also run every example, unattended. The same checks run locally, in the same
 Docker images:
 
 ```bash
