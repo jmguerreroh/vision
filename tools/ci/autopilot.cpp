@@ -22,6 +22,16 @@
  *     default), and every few frames it receives a Return key press, which is
  *     what the "Press ENTER" waits of 15_11 listen to.
  *
+ * Closing a viz window that way has one side effect a person closing it by hand
+ * does not see. When the window is destroyed, VTK still sends it a ClientMessage
+ * (XSendEvent), and the X server answers BadWindow because the window no longer
+ * exists. Xlib's default handler turns that into exit code 1, but only if the
+ * error is read before the process ends, so it depends on timing: it never
+ * showed on a workstation and it did on a GitHub runner (15_04, after the
+ * example had finished its work). The autopilot ignores exactly that error,
+ * BadWindow on X_SendEvent, and says so on stderr; run_examples.py reports it.
+ * Any other X error still reaches the default handler.
+ *
  * The real functions are reached through dlsym(RTLD_NEXT), by their mangled
  * name. A name that does not exist in the loaded libraries (a signature of
  * another OpenCV version, or viz where it is not installed) just leaves that
@@ -207,3 +217,37 @@ bool CloudViewer::wasStopped(int millis)
 }  // namespace pcl
 
 #endif  // AUTOPILOT_PCL
+
+// --- X errors --------------------------------------------------------------------
+
+// Last in the file on purpose: Xlib defines macros (Success, None, Status...)
+// that break the Eigen headers PCL pulls in, so nothing may be included after it.
+#include <X11/Xlib.h>
+#include <X11/Xproto.h>
+
+namespace
+{
+
+// The previous X error handler, Xlib's default, which prints and exits.
+XErrorHandler default_x_handler = nullptr;
+
+int tolerantXHandler(Display * display, XErrorEvent * error)
+{
+  if (error->error_code == BadWindow && error->request_code == X_SendEvent) {
+    std::cerr << "[autopilot] ignored X error: BadWindow on X_SendEvent to a window "
+      "already destroyed (resource 0x" << std::hex << error->resourceid << std::dec
+      << ")" << std::endl;
+    return 0;
+  }
+  return default_x_handler(display, error);
+}
+
+// Installed when the library is loaded, before the example opens any window.
+// VTK swaps in its own handler while it creates a GL context and then puts the
+// previous one back, which is this one.
+__attribute__((constructor)) void installXHandler()
+{
+  default_x_handler = XSetErrorHandler(tolerantXHandler);
+}
+
+}  // namespace

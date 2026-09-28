@@ -307,6 +307,10 @@ def verdict(binary, code, out, cv_version):
             return 'PASS', 'refused OpenCV %d.%d as documented' % cv_version
         return 'FAIL', 'expected the OpenCV >= 4.9 message and exit 1, got %s\n%s' % (describe(code), out)
     if code == 0:
+        if '[autopilot] ignored X error' in out:
+            # The viz teardown race the autopilot tolerates (see autopilot.cpp):
+            # a pass, but said out loud in case it ever means something else.
+            return 'PASS', 'ignored X BadWindow when closing a viz window'
         return 'PASS', ''
     return 'FAIL', '%s\n%s' % (describe(code), out)
 

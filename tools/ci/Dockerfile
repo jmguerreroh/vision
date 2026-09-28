@@ -16,8 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libopencv-dev libpcl-dev \
       wget ca-certificates python3-pip \
     # Not in the README, only for the CI: a virtual display, software OpenGL
-    # for the VTK windows of PCL and viz, and the compiler of the autopilot.
-      xvfb xauth libgl1-mesa-dri \
+    # for the VTK windows of PCL and viz, and the Xlib headers of the autopilot.
+      xvfb xauth libgl1-mesa-dri libx11-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # README, "Deep learning models". torch comes from the CPU index first: the
@@ -39,11 +39,11 @@ COPY autopilot.cpp /opt/autopilot/
 RUN cd /opt/autopilot && \
     CXX="g++ -std=c++17 -O2 -Wall -Wextra -shared -fPIC" && \
     LIB=/usr/lib/x86_64-linux-gnu && \
-    $CXX -o libautopilot.so autopilot.cpp $(pkg-config --cflags opencv4) -ldl && \
+    $CXX -o libautopilot.so autopilot.cpp $(pkg-config --cflags opencv4) -lX11 -ldl && \
     $CXX -DAUTOPILOT_PCL -o libautopilot_pcl.so autopilot.cpp \
       $(pkg-config --cflags opencv4) -I/usr/include/eigen3 \
       -I$(ls -d /usr/include/pcl-* | head -1) -I$(ls -d /usr/include/vtk-* | head -1) \
       -lpcl_visualization -lpcl_common \
-      $(ls $LIB/libvtkCommonCore-*.so $LIB/libvtkRenderingCore-*.so) -ldl
+      $(ls $LIB/libvtkCommonCore-*.so $LIB/libvtkRenderingCore-*.so) -lX11 -ldl
 
 RUN git config --global --add safe.directory '*'
