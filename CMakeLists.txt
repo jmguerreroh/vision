@@ -133,6 +133,8 @@ add_cv_example(08_edge_detection/08_05_chain_code)
 # --- 09 Model fitting ----------------------------------------------------------
 add_cv_example(09_model_fitting/09_01_hough_lines)
 add_cv_example(09_model_fitting/09_02_hough_circles)
+add_cv_example(09_model_fitting/09_03_least_squares_ransac)
+add_cv_example(09_model_fitting/09_04_active_contours)
 
 # --- 10 Region segmentation ----------------------------------------------------
 add_cv_example(10_region_segmentation/10_01_threshold)

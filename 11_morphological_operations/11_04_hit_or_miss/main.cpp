@@ -23,7 +23,7 @@
  *          square each mask fires exactly once, on the right corner. Rotate
  *          it and the count goes haywire: the rasterised edges become
  *          staircases, some of their steps look exactly like the pattern,
- *          and the real corner of the square is eventually lost.
+ *          and by 10 degrees the real corner of the square is lost.
  */
 
 #include <cstdlib>
@@ -182,9 +182,11 @@ int main(int argc, char ** argv)
             << std::endl;
   std::cout << "rigidity: rotating the image turns every edge into a staircase,"
             << std::endl;
-  std::cout << "steps of the CIRCLE start matching the corner pattern, and past"
+  std::cout << "steps of the CIRCLE start matching the corner pattern, and at"
             << std::endl;
-  std::cout << "about 15 degrees the real corner of the square is not found at all."
+  std::cout << "10 degrees the real corner of the square is no longer found. Past"
+            << std::endl;
+  std::cout << "that, matches on every shape come and go with the angle."
             << std::endl;
 
   // Create the display window

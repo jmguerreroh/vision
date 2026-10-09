@@ -43,7 +43,7 @@ chapter and its code.
 | 06 | `06_frequency` | Frequency-domain transforms | DFT, DCT, wavelet denoising, Gabor bank, homomorphic filter |
 | 07 | `07_geometric_and_registration` | Geometric transforms and registration | affine transforms, perspective correction |
 | 08 | `08_edge_detection` | Edge detection | Sobel, Canny, Laplacian, contour extraction, chain code |
-| 09 | `09_model_fitting` | Model fitting | Hough lines, Hough circles |
+| 09 | `09_model_fitting` | Model fitting | Hough lines, Hough circles, least squares vs RANSAC, active contours |
 | 10 | `10_region_segmentation` | Region segmentation | threshold, connected components, color segmentation |
 | 11 | `11_morphological_operations` | Morphological operations | erode/dilate, opening/closing, gradient, hit-or-miss, skeletonization, flood fill, top-hat illumination, distance + watershed |
 | 12 | `12_region_descriptors` | Region descriptors | region moments, Hu moments, convex hull |

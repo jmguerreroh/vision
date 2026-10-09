@@ -116,7 +116,7 @@ int main(int argc, char ** argv)
 
   // Fill the holes before measuring distances. These are photographs of real
   // coins, and the relief of the minting leaves the binary image riddled with
-  // interior holes: over two thousand of them on data/coins.png. Each hole is
+  // interior holes: some 1700 of them on data/coins.png. Each hole is
   // a black pixel, so the distance transform of the next step would find
   // several ridges inside one coin instead of a single peak, and the count of
   // objects would come out at 18 rather than 8.

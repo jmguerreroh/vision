@@ -125,9 +125,11 @@ static void onMouse(int event, int x, int y, int /*flags*/, void * /*userdata*/)
   // With mask: mask must be 2 pixels larger, filled regions are marked
   // Without mask: simpler call, no boundary tracking
   if (app.use_mask) {
-    // Keep previously filled regions visible at gray (128) while the
-    // region filled by THIS click is written at mask_value (255). Without
-    // this re-threshold, floodFill would refuse to cross old fills.
+    // Lower the previous fills to gray (128) while the region filled by
+    // THIS click is written at mask_value (255), so the mask window tells
+    // the new fill apart from the old ones. 128 is still non-zero, so the
+    // old fills keep blocking: a new fill stops at their border and a click
+    // inside one fills nothing. Clear the mask to let a fill cross them.
     cv::threshold(app.mask, app.mask, 1, 128, cv::THRESH_BINARY);
     area = cv::floodFill(app.currentImage(), app.mask, seed, newVal,
                          &filled_rect, lo_diff_scalar, up_diff_scalar, flags);
