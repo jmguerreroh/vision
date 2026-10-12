@@ -1,7 +1,7 @@
 # Computer Vision Examples
 
-[![Ubuntu 24.04 · ROS 2 Jazzy](https://github.com/jmguerreroh/vision/actions/workflows/ubuntu-24.04.yml/badge.svg)](https://github.com/jmguerreroh/vision/actions/workflows/ubuntu-24.04.yml)
-[![Ubuntu 26.04 · ROS 2 Lyrical](https://github.com/jmguerreroh/vision/actions/workflows/ubuntu-26.04.yml/badge.svg)](https://github.com/jmguerreroh/vision/actions/workflows/ubuntu-26.04.yml)
+[![Ubuntu 24.04 · ROS 2 Jazzy](https://github.com/jmguerreroh/computer-vision/actions/workflows/ubuntu-24.04.yml/badge.svg)](https://github.com/jmguerreroh/computer-vision/actions/workflows/ubuntu-24.04.yml)
+[![Ubuntu 26.04 · ROS 2 Lyrical](https://github.com/jmguerreroh/computer-vision/actions/workflows/ubuntu-26.04.yml/badge.svg)](https://github.com/jmguerreroh/computer-vision/actions/workflows/ubuntu-26.04.yml)
 
 Code examples for the Computer Vision subject of the Robotics Software Engineering Degree at URJC, using C++, OpenCV, and the Point Cloud Library (PCL).
 
@@ -14,7 +14,7 @@ On Ubuntu, with the distribution packages:
 ```bash
 sudo apt update
 sudo apt install build-essential cmake git pkg-config libopencv-dev libpcl-dev
-git clone https://github.com/jmguerreroh/vision.git && cd vision
+git clone https://github.com/jmguerreroh/computer-vision.git && cd computer-vision
 echo "export OPENCV_SAMPLES_DATA_PATH=$(pwd)/data/" >> ~/.bashrc && source ~/.bashrc
 cmake -B vision_examples/build && cmake --build vision_examples/build
 cd vision_examples/bin && ./03_01_read_image
