@@ -82,7 +82,8 @@ data/pcl_data/result_*.pcd
 # the other way, hiding a new kind of source file without a word.
 #
 # Add a line when you add an example, or build from the root CMakeLists, which
-# puts every binary in vision_examples/bin/ instead.
+# puts every binary in vision_examples/bin/ instead. tools/check_repo.py fails
+# if an example has no line here, or a line is left for one that is gone.
 # ---------------------------------------------------------------------------
 /*/02_01_thin_lens_dof/02_01_thin_lens_dof
 /*/03_01_read_image/03_01_read_image
@@ -112,6 +113,8 @@ data/pcl_data/result_*.pcd
 /*/08_05_chain_code/08_05_chain_code
 /*/09_01_hough_lines/09_01_hough_lines
 /*/09_02_hough_circles/09_02_hough_circles
+/*/09_03_least_squares_ransac/09_03_least_squares_ransac
+/*/09_04_active_contours/09_04_active_contours
 /*/10_01_threshold/10_01_threshold
 /*/10_02_connected_components/10_02_connected_components
 /*/10_03_color_segmentation/10_03_color_segmentation

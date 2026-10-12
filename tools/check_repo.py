@@ -85,6 +85,30 @@ def main():
                     failures.append('%s/CMakeLists.txt builds "%s" instead of "%s"'
                                     % (ex, tgt, ex))
 
+    # 2b. The binary an example leaves next to its sources is in .gitignore.
+    # gitignore cannot express "a file named like its directory", so each one is
+    # listed by hand, and 09_03 and 09_04 arrived without their line: nothing
+    # failed until the weekly CI run built them in place and found the tree
+    # dirty. A Makefile names its binaries in TARGET; an example with only a
+    # CMakeLists.txt (the PCL ones) builds one named after its folder, which
+    # lands next to the sources when configured in place (cmake .). Lines left
+    # behind by a renamed or removed example are reported too.
+    ignored = set(re.findall(r'^/\*/([^/\s]+)/([^/\s]+)$',
+                             read(os.path.join(ROOT, '.gitignore')), re.M))
+    built = set()
+    for chap, ex in ex_list:
+        mk = os.path.join(ROOT, chap, ex, 'Makefile')
+        if os.path.exists(mk):
+            for _, target in re.findall(r'^(TARGET\d?)\s*=\s*(.+)$', read(mk), re.M):
+                built.add((ex, target.strip().replace('$(notdir $(CURDIR))', ex)))
+        elif os.path.exists(os.path.join(ROOT, chap, ex, 'CMakeLists.txt')):
+            built.add((ex, ex))
+    for ex, binary in sorted(built - ignored):
+        failures.append('.gitignore lacks /*/%s/%s, the binary the example builds'
+                        % (ex, binary))
+    for ex, binary in sorted(ignored - built):
+        failures.append('.gitignore lists /*/%s/%s, which no example builds' % (ex, binary))
+
     # 3. Headers do not cite executables that do not exist
     for chap, ex in ex_list:
         for src in glob.glob(os.path.join(ROOT, chap, ex, '*.cpp')):
@@ -486,6 +510,7 @@ def main():
     if not quiet:
         print('%d examples checked.' % len(ex_list))
         print('OK: names, headers, citations, data paths and help are consistent.')
+        print('OK: the binary of every example is in .gitignore.')
         print('OK: every NN_MM citation points at the example the comment describes.')
         print('OK: every chapter reference points at the chapter that deals with it.')
         print('OK: the help matches the parser, and the kernels match the book.')
