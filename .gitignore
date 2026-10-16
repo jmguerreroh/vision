@@ -119,8 +119,8 @@ data/pcl_data/result_*.pcd
 /*/10_02_connected_components/10_02_connected_components
 /*/10_03_color_segmentation/10_03_color_segmentation
 /*/11_01_erode_dilate/11_01_erode_dilate
-/*/11_02_opening_closing/11_02_opening_closing
-/*/11_03_morphological_gradient/11_03_morphological_gradient
+/*/11_02_morphology_ex/11_02_morphology_ex
+/*/11_03_morphological_contours/11_03_morphological_contours
 /*/11_04_hit_or_miss/11_04_hit_or_miss
 /*/11_05_skeletonization/11_05_skeletonization
 /*/11_06_flood_fill/11_06_flood_fill

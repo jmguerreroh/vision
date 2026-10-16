@@ -1,4 +1,4 @@
-# Makefile for Opening and Closing example
+# Makefile for Compound Morphological Operations example
 # Author: José Miguel Guerrero Hernández
 
 # Compiler settings

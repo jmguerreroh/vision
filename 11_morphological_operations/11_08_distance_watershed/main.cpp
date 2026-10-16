@@ -78,7 +78,7 @@ int main(int argc, char ** argv)
   // Command-line arguments; --help prints the usage
   cv::CommandLineParser parser(argc, argv,
     "{help h | | Show this help message}"
-    "{@input | ../../data/coins.png | Input file}");
+    "{@input | ../../data/coins_overlap.png | Input file}");
   if (parser.has("help")) {
     parser.printMessage();
     return EXIT_SUCCESS;
@@ -116,10 +116,10 @@ int main(int argc, char ** argv)
 
   // Fill the holes before measuring distances. These are photographs of real
   // coins, and the relief of the minting leaves the binary image riddled with
-  // interior holes: some 1700 of them on data/coins.png. Each hole is
+  // interior holes: some 1900 of them on data/coins_overlap.png. Each hole is
   // a black pixel, so the distance transform of the next step would find
   // several ridges inside one coin instead of a single peak, and the count of
-  // objects would come out at 18 rather than 8.
+  // objects would come out at 28 rather than 10.
   //
   // RETR_CCOMP returns two levels: outer boundaries and holes. Any contour
   // with a parent is a hole, and painting it white closes it. A morphological

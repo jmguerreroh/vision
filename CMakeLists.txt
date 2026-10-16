@@ -143,8 +143,8 @@ add_cv_example(10_region_segmentation/10_03_color_segmentation)
 
 # --- 11 Morphological operations -----------------------------------------------
 add_cv_example(11_morphological_operations/11_01_erode_dilate)
-add_cv_example(11_morphological_operations/11_02_opening_closing)
-add_cv_example(11_morphological_operations/11_03_morphological_gradient)
+add_cv_example(11_morphological_operations/11_02_morphology_ex)
+add_cv_example(11_morphological_operations/11_03_morphological_contours)
 add_cv_example(11_morphological_operations/11_04_hit_or_miss)
 add_cv_example(11_morphological_operations/11_05_skeletonization)
 add_cv_example(11_morphological_operations/11_06_flood_fill)

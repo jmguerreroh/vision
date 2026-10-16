@@ -1,10 +1,12 @@
 /**
  * @file main.cpp
- * @brief Morphological contours - sample code for extracting internal and external contours
+ * @brief Morphological contours - internal, external and gradient, by hand
  * @author José Miguel Guerrero Hernández
  * @note This program demonstrates how to extract contours using morphological operations.
  *       Internal contours: original - eroded image
  *       External contours: dilated image - original
+ *       Gradient: dilated - eroded, that is, the two contours together. It is
+ *       computed by hand too, and checked against cv::MORPH_GRADIENT.
  */
 
 #include <cstdlib>
@@ -15,11 +17,11 @@
 // Configuration constants
 namespace Config
 {
-constexpr int MAX_OPERATOR = 1;
+constexpr int MAX_OPERATOR = 2;
 constexpr int MAX_ELEM = 2;
 constexpr int MAX_KERNEL_SIZE = 21;
 const char * WINDOW_NAME = "Morphological Contours Demo";
-const char * TRACKBAR_OPERATOR = "Operator: 0: In - 1: Out";
+const char * TRACKBAR_OPERATOR = "Operator: 0: In - 1: Out - 2: Gradient";
 const char * TRACKBAR_ELEMENT = "Element: 0: Rect - 1: Cross - 2: Ellipse";
 const char * TRACKBAR_KERNEL = "Kernel size: 2n +1";
 }
@@ -37,6 +39,19 @@ struct MorphApp
 MorphApp app;
 
 /**
+ * @brief Number of pixels with at least one nonzero channel
+ *
+ * @note cv::countNonZero only accepts one channel, and the image is loaded
+ *       in color: a pixel counts if any of its channels is set.
+ */
+int countPixels(const cv::Mat & img)
+{
+  cv::Mat zero;
+  cv::inRange(img, cv::Scalar::all(0), cv::Scalar::all(0), zero);
+  return static_cast<int>(img.total()) - cv::countNonZero(zero);
+}
+
+/**
  * @brief Callback function for trackbar events - extracts morphological contours
  *
  * @note The two parameters are imposed by the OpenCV trackbar callback
@@ -46,9 +61,12 @@ MorphApp app;
  * Morphological contour extraction:
  *   Internal contour: src - erode(src) -> shows the inner edge of objects
  *   External contour: dilate(src) - src -> shows the outer edge of objects
+ *   Gradient: dilate(src) - erode(src) -> both edges at once
  *
- * This is equivalent to the morphological gradient but allows separate
- * visualization of internal and external boundaries.
+ * The gradient is the sum of the other two, pixel by pixel and in every
+ * channel. Their pixel counts only add up on a binary image, where the two
+ * contours never share a pixel; this one has intermediate levels, so a
+ * pixel can belong to both and the check compares values, not counts.
  */
 void morphologicalContours(int, void *)
 {
@@ -63,16 +81,31 @@ void morphologicalContours(int, void *)
         cv::Size(2 * morph_size + 1, 2 * morph_size + 1),
         cv::Point(morph_size, morph_size));
 
+  cv::Mat eroded, dilated;
+  cv::erode(app.src, eroded, element);
+  cv::dilate(app.src, dilated, element);
+
+  // Internal contour: the pixels that erosion would remove
+  cv::Mat internal = app.src - eroded;
+  // External contour: the pixels that dilation would add
+  cv::Mat external = dilated - app.src;
+
   if (morph_operator == 0) {
-    // Internal contours: original minus eroded
-    // This highlights the pixels that would be removed by erosion
-    cv::erode(app.src, app.dst, element);
-    app.dst = app.src - app.dst;
+    app.dst = internal;
+  } else if (morph_operator == 1) {
+    app.dst = external;
   } else {
-    // External contours: dilated minus original
-    // This highlights the pixels that would be added by dilation
-    cv::dilate(app.src, app.dst, element);
-    app.dst = app.dst - app.src;
+    // Gradient by hand: dilated minus eroded, the two contours together
+    app.dst = dilated - eroded;
+
+    // Two checks, both must give 0: the gradient is the sum of the two
+    // contours, and it is the same one OpenCV computes with MORPH_GRADIENT
+    cv::Mat reference;
+    cv::morphologyEx(app.src, reference, cv::MORPH_GRADIENT, element);
+    std::cout << "gradient vs internal + external: "
+              << countPixels(app.dst != internal + external) << " px differ; "
+              << "gradient vs MORPH_GRADIENT: "
+              << countPixels(app.dst != reference) << " px differ" << std::endl;
   }
 
   cv::imshow(Config::WINDOW_NAME, app.dst);

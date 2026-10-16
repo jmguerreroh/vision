@@ -1,10 +1,13 @@
 /**
  * @file main.cpp
- * @brief Morphological operations: Opening and Closing - sample code
+ * @brief Compound morphological operations with cv::morphologyEx - sample code
  * @author José Miguel Guerrero Hernández
- * @note This program demonstrates opening and closing morphological operations
- *       which are combinations of erosion and dilation. Opening removes noise
- *       while closing fills small holes in objects.
+ * @note This program walks through the five compound operations that
+ *       cv::morphologyEx offers, all built from erosion and dilation:
+ *       opening, closing, morphological gradient, top-hat and black-hat.
+ *       Opening removes small bright details, closing fills small dark holes,
+ *       the gradient keeps the object outline and top-hat / black-hat keep
+ *       the small bright / dark details.
  */
 
 #include <string>
@@ -51,7 +54,7 @@ namespace Config
 constexpr int MAX_OPERATOR = 4;   // 5 operations: open/close/gradient/tophat/blackhat
 constexpr int MAX_ELEM = 2;
 constexpr int MAX_KERNEL_SIZE = 21;
-const char * WINDOW_NAME = "Opening and Closing Demo";
+const char * WINDOW_NAME = "Compound Morphological Operations Demo";
 const char * TRACKBAR_OPERATOR = "Op: 0 Open, 1 Close, 2 Gradient, 3 TopHat, 4 BlackHat";
 const char * TRACKBAR_ELEMENT = "Element: 0: Rect - 1: Cross - 2: Ellipse";
 const char * TRACKBAR_KERNEL = "Kernel size: 2n +1";

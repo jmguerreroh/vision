@@ -22,6 +22,7 @@
  *          which the illumination changes.
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -34,9 +35,9 @@
 // Configuration constants
 namespace Config
 {
-// The grid puts several panels side by side, so it allows more width than a
-// single image: at 800 px each panel would be unreadable
-constexpr int MAX_GRID_WIDTH = 1200;
+// Longest side of the 2x2 grid on screen, in width and in height: the same
+// 800 px as the other examples, so the window fits on a normal screen
+constexpr int MAX_GRID_SIDE = 800;
 constexpr int MAX_OPERATOR = 1;
 constexpr int MAX_KERNEL_SIZE = 30;
 constexpr int DEFAULT_KERNEL_SIZE = 12;   // 2*12+1 = 25 pixels
@@ -106,7 +107,14 @@ void topHat(int, void *)
   // Build the 2x2 comparison grid
   cv::Mat panels[4] = {app.gray.clone(), app.otsu_direct.clone(),
     corrected.clone(), otsu_corrected.clone()};
+  // The panels are reduced before writing on them: a caption drawn at full
+  // resolution would shrink with the image and stop being readable
+  const int grid_side = 2 * std::max(app.gray.cols, app.gray.rows);
+  const double factor = std::min(1.0, static_cast<double>(Config::MAX_GRID_SIDE) / grid_side);
   for (cv::Mat & panel : panels) {
+    if (factor < 1.0) {
+      cv::resize(panel, panel, cv::Size(), factor, factor, cv::INTER_AREA);
+    }
     cv::cvtColor(panel, panel, cv::COLOR_GRAY2BGR);
   }
 
@@ -126,11 +134,6 @@ void topHat(int, void *)
   cv::hconcat(panels[0], panels[1], row1);
   cv::hconcat(panels[2], panels[3], row2);
   cv::vconcat(row1, row2, grid);
-
-  if (grid.cols > Config::MAX_GRID_WIDTH) {
-    const double scale = static_cast<double>(Config::MAX_GRID_WIDTH) / grid.cols;
-    cv::resize(grid, grid, cv::Size(), scale, scale);
-  }
 
   cv::imshow(Config::WINDOW_NAME, grid);
 
